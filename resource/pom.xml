@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+        <groupId>org.nmdp.service</groupId>
+		<artifactId>epitope-multimodule</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>epitope-resource</artifactId>
+    <name>epitope-resource</name>
+    <description>JAX-RS resource interface classes, independent of server implementation, to be used by clients for marshalling.</description>
+	<packaging>jar</packaging>
+	<dependencies>
+        <dependency>
+            <groupId>com.wordnik</groupId>
+            <artifactId>swagger-jaxrs_2.10</artifactId>
+        </dependency>
+		<dependency>
+			<groupId>org.nmdp.service</groupId>
+			<artifactId>epitope-domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+</project>

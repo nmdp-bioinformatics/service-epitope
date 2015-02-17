@@ -1,0 +1,162 @@
+package org.nmdp.epitope.guice;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.math.BigDecimal;
+
+import org.junit.Test;
+import org.nmdp.epitope.guice.ConfigurationModuleTest.AnnoOuter.AnnoInner;
+import org.nmdp.epitope.guice.ConfigurationModuleTest.NonBinding.NonBindingInner;
+import org.nmdp.epitope.guice.ConfigurationModuleTest.OuterIface.IfaceInner;
+
+import com.google.inject.BindingAnnotation;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+
+public class ConfigurationModuleTest {
+
+	public class DirectConfig {
+		@Direct
+		public String direct = "direct";
+	}
+	
+	@Test
+	public void testConfigure_Direct() throws Exception {
+		ConfigurationModule module = new ConfigurationModule(Direct.class, new DirectConfig());
+		Injector injector = Guice.createInjector(module);
+		assertThat(injector.getInstance(Key.get(String.class, Direct.class)), equalTo("direct"));
+	}
+
+	@BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+	public @interface Inner {}
+
+	public class InnerConfig {
+		@Inner
+		public String inner = "inner";
+	}
+	
+	@Test()
+	public void testConfig_Inner() throws Exception { 
+		ConfigurationModule module = new ConfigurationModule(Inner.class, new InnerConfig());
+		Injector injector = Guice.createInjector(module);
+		assertThat(injector.getInstance(Key.get(String.class, Inner.class)), equalTo("inner"));
+	}
+	
+	@Retention(RUNTIME)
+	public @interface NonBinding {
+		@BindingAnnotation
+	    @Target({FIELD, PARAMETER, METHOD})
+	    @Retention(RUNTIME)
+		public @interface NonBindingInner {}
+	}
+
+	public class NonBindingConfig {
+		@NonBinding
+		public String nonBinding = "nonBinding";
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testConfig_NonBinding() throws Exception {
+		ConfigurationModule module = new ConfigurationModule(NonBinding.class, new NonBindingConfig());
+		Injector injector = Guice.createInjector(module);
+		assertThat(injector.getInstance(Key.get(String.class, NonBinding.class)), equalTo("nonBinding"));
+	}
+
+	public interface OuterIface {
+		@BindingAnnotation
+	    @Target({FIELD, PARAMETER, METHOD})
+	    @Retention(RUNTIME)
+		public @interface IfaceInner {}
+	}
+
+	public class IfaceInnerConfig {
+		@IfaceInner
+		public String ifaceInner = "ifaceInner";
+	}
+
+	@Test
+	public void testConfig_IfaceInner() {
+		ConfigurationModule module = new ConfigurationModule(IfaceInner.class, new IfaceInnerConfig());
+		Injector injector = Guice.createInjector(module);
+		assertThat(injector.getInstance(Key.get(String.class, IfaceInner.class)), equalTo("ifaceInner"));
+	}
+	
+	@BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+	public @interface AnnoOuter {
+		@BindingAnnotation
+	    @Target({FIELD, PARAMETER, METHOD})
+	    @Retention(RUNTIME)
+		public @interface AnnoInner {}
+	}
+	
+	public class AnnoOuterInnerConfig {
+		@AnnoOuter
+		public String annoOuter = "annoOuter";
+		@AnnoInner
+		public String annoInner = "annoInner";
+	}
+
+	@Test
+	public void testConfig_AnnoOuterInner() {
+		// note, inner binding annotations are picked up automaticaly - feature?
+		ConfigurationModule module = new ConfigurationModule(AnnoOuter.class, new AnnoOuterInnerConfig());
+		Injector injector = Guice.createInjector(module);
+		assertThat(injector.getInstance(Key.get(String.class, AnnoOuter.class)), equalTo("annoOuter"));
+		assertThat(injector.getInstance(Key.get(String.class, AnnoInner.class)), equalTo("annoInner"));
+	}
+	
+	public class TypesConfig {
+		@Direct
+		public int direct = Integer.MAX_VALUE;
+		@NonBindingInner
+		public long nonBindingInner = Long.MAX_VALUE;
+		@IfaceInner
+		public boolean ifaceInner = true;
+		@AnnoOuter
+		public double annoOuter = Math.PI;
+		@AnnoInner
+		public BigDecimal annoInner = new BigDecimal("12345");
+	}
+
+	@Test
+	public void testConfig_Types() {
+		ConfigurationModule module = new ConfigurationModule(Direct.class, NonBindingInner.class, IfaceInner.class, AnnoOuter.class, AnnoInner.class, new TypesConfig());
+		Injector injector = Guice.createInjector(module);
+		assertThat(injector.getInstance(Key.get(Integer.class, Direct.class)), equalTo(Integer.MAX_VALUE));
+		assertThat(injector.getInstance(Key.get(Long.class, NonBindingInner.class)), equalTo(Long.MAX_VALUE));
+		assertThat(injector.getInstance(Key.get(Boolean.class, IfaceInner.class)), equalTo(true));
+		assertThat(injector.getInstance(Key.get(Double.class, AnnoOuter.class)), equalTo(Math.PI));
+		assertThat(injector.getInstance(Key.get(BigDecimal.class, AnnoInner.class)), equalTo(new BigDecimal("12345")));
+	}
+
+	
+	
+//	{
+//		ConfigurationModule module = new ConfigurationModule(Test1.class, Test2.class, Wrap1.class, Wrap2.class, new ConfigObject());
+//		Injector injector = Guice.createInjector(module);
+//		assertThat(injector.getInstance(Key.get(String.class, Test1.class)), equalTo("test1"));
+//		try {
+//			assertThat(injector.getInstance(Key.get(String.class, Test2.class)), nullValue());
+//			fail("expected exception here");
+//		} catch (Exception e) {}
+//		assertThat(injector.getInstance(Key.get(String.class, Test3.class)), equalTo("test3"));
+//		assertThat(injector.getInstance(Key.get(String.class, Test4.class)), equalTo("test4"));
+//		assertThat(injector.getInstance(Key.get(String.class, Test5.class)), equalTo("test5"));
+//	}
+//
+//	@Test
+//	public void testConfigure
+	
+}
