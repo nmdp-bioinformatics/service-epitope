@@ -48,6 +48,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.wordnik.swagger.config.SwaggerConfig;
+import com.wordnik.swagger.model.ApiInfo;
 
 /**
  * Dropwizard main application wrapper
@@ -126,4 +128,15 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     	final GlClientHealthCheck glClientHealthCheck = injector.getInstance(GlClientHealthCheck.class);
     	environment.healthChecks().register("glClient",  glClientHealthCheck);
     }
+
+	@Override
+	public void configureSwagger(SwaggerConfig config) {
+	    config.setApiVersion("1.0");
+	  	config.setApiInfo(new ApiInfo("Epitope Service", 
+	  			"This service reports on alleles and their associated immunogenicity groups and provides matching functions.",
+	  			null, // terms of service url 
+	  			"epearson@nmdp.org", // contact
+	  			null, // license
+	  			null)); // license url
+	}
 }
