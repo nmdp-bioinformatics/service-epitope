@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.nmdp.service</groupId>
         <artifactId>service-parent</artifactId>
-        <version>1-SNAPSHOT</version>
+        <version>1</version>
     </parent>
     <groupId>org.nmdp.service</groupId>
     <artifactId>epitope-multimodule</artifactId>
