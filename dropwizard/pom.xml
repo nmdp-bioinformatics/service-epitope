@@ -100,7 +100,6 @@
         <dependency>
 			<groupId>org.nmdp.service</groupId>
             <artifactId>common-service</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
