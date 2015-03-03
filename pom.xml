@@ -67,12 +67,12 @@
             <dependency>
                 <groupId>org.nmdp.service</groupId>
                 <artifactId>common-service</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
+                <version>1.0</version>
             </dependency>
             <dependency>
                 <groupId>org.nmdp.service</groupId>
                 <artifactId>common-dropwizard</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
+                <version>1.0</version>
             </dependency>
             <!-- do these sparkling deps need to be here? -->
             <dependency>
