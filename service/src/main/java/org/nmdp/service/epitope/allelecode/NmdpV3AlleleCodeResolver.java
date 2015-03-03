@@ -93,6 +93,7 @@ public class NmdpV3AlleleCodeResolver implements Function<String, String> {
 	private void refresh() {
 		try {
 			final URLConnection urlConnection = url.openConnection();
+			urlConnection.connect();
 			long sourceLastModified = urlConnection.getLastModified();  
 			logger.debug("checking resource modification date: " + sourceLastModified);
 			if (sourceLastModified < lastModified) {
@@ -169,6 +170,9 @@ public class NmdpV3AlleleCodeResolver implements Function<String, String> {
 		AlleleCodeExpansion expansion = null;
 		synchronized (this.alleleCodeMap) {
 			expansion = alleleCodeMap.get(code);
+		}
+		if (null == expansion) {
+			throw new RuntimeException("unrecognized allele code: " + alleleCode);
 		}
 		List<String> alleleList = expansion.getAlleleList();
 		boolean includeFamily = !expansion.isFamilyIncluded();
