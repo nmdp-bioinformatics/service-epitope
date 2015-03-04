@@ -29,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
@@ -43,7 +44,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeRefreshMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrl;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,59 +75,71 @@ public class NmdpV3AlleleCodeResolver implements Function<String, String> {
 	
 	Map<String, AlleleCodeExpansion> alleleCodeMap = new HashMap<>();
 	long lastModified = 0;
-	private URL url;
-	Logger logger = LoggerFactory.getLogger(getClass());
+	private URL[] urls;
+	static Logger logger = LoggerFactory.getLogger(NmdpV3AlleleCodeResolver.class);
 
 	@Inject
-	public NmdpV3AlleleCodeResolver(@NmdpV3AlleleCodeUrl URL url, @NmdpV3AlleleCodeRefreshMillis final long refreshMillis) {
-		this.url = url;
+	public NmdpV3AlleleCodeResolver(@NmdpV3AlleleCodeUrls URL[] urls, @NmdpV3AlleleCodeRefreshMillis final long refreshMillis) {
+		this.urls = urls;
 		refresh();
 		if (refreshMillis > 0) {
 			new Timer("NmdpV3AlleleCodeResolverRefreshThread", true).schedule(new TimerTask() {
 				@Override public void run() {
 					refresh();
 				}
-			}, new Date(), refreshMillis);
-		}
-	}
-	
-	private void refresh() {
-		try {
-			final URLConnection urlConnection = url.openConnection();
-			urlConnection.connect();
-			long sourceLastModified = urlConnection.getLastModified();  
-			logger.debug("checking resource modification date: " + sourceLastModified);
-			if (sourceLastModified < lastModified) {
-				logger.warn("cache is is newer than source (source: " + sourceLastModified + ", cache: " + lastModified + "), leaving it");
-				return;
-			} else if (sourceLastModified == lastModified) {
-				logger.debug("cache is current");
-				return;
-			} else {
-				logger.warn("cache is older than source, refreshing (source: " + sourceLastModified + ", cache: " + lastModified + ")");
-			}
-	
-			InputStream inputStream = getInputStream(urlConnection);
-			Map<String, AlleleCodeExpansion> map = buildAlleleCodeMapFromStream(inputStream);
-			synchronized(this.alleleCodeMap) {
-				this.alleleCodeMap = map;
-			}
-			this.lastModified = sourceLastModified;
-			logger.info("reload AlleleCodeMap complete");
-		} catch (RuntimeException e) {
-			throw (RuntimeException)e;
-		} catch (Exception e) {
-			throw new RuntimeException("exception while refreshing allele codes", e);
+			}, refreshMillis, refreshMillis);
 		}
 	}
 
-	private InputStream getInputStream(URLConnection urlConnection) throws IOException {
+	private void refresh() {
+		boolean success = false;
+		for (URL url : urls) {
+			try {
+				refreshFromUrl(url);
+				success = true;
+				break;
+			} catch (Exception e) {
+				logger.error("failed to refresh allele codes from url: " + url, e);
+			}
+		}
+		if (!success) {
+			throw new RuntimeException("failed to refersh allele codes from sources (see log for further exceptions)");
+		}
+	}
+	
+	private void refreshFromUrl(URL url) throws MalformedURLException, IOException {
+		final URLConnection urlConnection = url.openConnection();
+		urlConnection.connect();
+		long sourceLastModified = urlConnection.getLastModified();  
+		logger.debug("checking resource modification date: " + sourceLastModified);
+		if (sourceLastModified == 0) {
+			logger.warn("cache modified is not set, ignoring...");
+		} else if (sourceLastModified < lastModified) {
+			logger.warn("cache is is newer than source (source: " + sourceLastModified + ", cache: " + lastModified + "), leaving it");
+			return;
+		} else if (sourceLastModified == lastModified) {
+			logger.debug("cache is current");
+			return;
+		} else {
+			logger.warn("cache is older than source, refreshing (source: " + sourceLastModified + ", cache: " + lastModified + ")");
+		}
+
+		InputStream inputStream = getInputStream(urlConnection);
+		Map<String, AlleleCodeExpansion> map = buildAlleleCodeMapFromStream(inputStream);
+		synchronized(this.alleleCodeMap) {
+			this.alleleCodeMap = map;
+		}
+		this.lastModified = sourceLastModified;
+		logger.info("reload AlleleCodeMap complete");
+	}
+
+	private static InputStream getInputStream(URLConnection urlConnection) throws IOException {
 		InputStream inputStream = urlConnection.getInputStream();
 		ZipInputStream zipInputStream = new ZipInputStream(inputStream);
 		InputStreamReader ir = new InputStreamReader(zipInputStream);
 		ZipEntry entry = zipInputStream.getNextEntry();
 		BufferedReader br = new BufferedReader(ir);
-		logger.info("reading zip entry {} from {}", entry.getName(), url);
+		logger.info("reading zip entry {} from {}", entry.getName(), urlConnection.getURL());
 		return zipInputStream;
 	}
 

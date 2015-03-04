@@ -25,6 +25,7 @@ package org.nmdp.service.epitope.guice;
 
 import static com.google.common.base.Functions.compose;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -51,7 +52,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrl;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.nmdp.service.epitope.service.AllelePair;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
@@ -76,9 +77,18 @@ public class LocalServiceModule extends AbstractModule {
 	}
 	
 	@Provides
-	@NmdpV3AlleleCodeUrl 
-	public URL getNmdpV3AlleleCodeUrl(@NmdpV3AlleleCodeUrl String urlSpec) throws MalformedURLException {
-		return new URL(urlSpec);
+	@NmdpV3AlleleCodeUrls 
+	public URL[] getNmdpV3AlleleCodeUrl(@NmdpV3AlleleCodeUrls String[] urlSpecs) throws MalformedURLException {
+		URL[] urls = new URL[urlSpecs.length];
+		for (int i = 0; i < urlSpecs.length; i++) {
+			File f = new File(urlSpecs[i]);
+			if (f.isFile()) {
+				urls[i] = f.toURI().toURL();
+			} else {
+				urls[i] = new URL(urlSpecs[i]);
+			}
+		}
+		return urls;
 	}
 	
 	/**

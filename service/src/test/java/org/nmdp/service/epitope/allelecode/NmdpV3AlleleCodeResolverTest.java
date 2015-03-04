@@ -47,7 +47,7 @@ public class NmdpV3AlleleCodeResolverTest {
 	@Before
 	public void setUp() throws Exception {
 		URL url = getMockUrl("\n*\tAFC\t01:01/02:01/02:02/03:01\n", true);
-		resolver = new NmdpV3AlleleCodeResolver(url, 0);
+		resolver = new NmdpV3AlleleCodeResolver(new URL[]{url}, 0);
 	}
 
 	@Test

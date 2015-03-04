@@ -1,11 +1,10 @@
+---
 #application properties
 
-# namespaceUrl: 
-# group1Suffix: 
-# group2Suffix: 
-# group3Suffix: 
 resolveCodes: true
-# liftoverServiceUrl: 
+nmdpV3AlleleCodeUrls:
+  - https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
+  - /var/lib/epitope-service/alpha.v3.zip
 
 logging:
 
