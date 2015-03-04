@@ -5,6 +5,8 @@ RUN apt-get update \
 	&& apt-get -y dist-upgrade \
 	&& apt-get -y install openjdk-7-jdk
 
+VOLUME /var/lib/epitope-service
+
 ADD /epitope-service /opt/epitope-service
 
 EXPOSE 8080

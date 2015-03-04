@@ -104,7 +104,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface NmdpV3AlleleCodeUrl {
+	public @interface NmdpV3AlleleCodeUrls {
 	}
 	
 	/**

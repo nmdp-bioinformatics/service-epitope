@@ -43,7 +43,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeRefreshMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrl;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.ResolveCodes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -93,7 +93,7 @@ public class EpitopeServiceConfiguration extends Configuration {
     /**
      * https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
      */
-    private String nmdpV3AlleleCodeUrl = "https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip";
+    private String[] nmdpV3AlleleCodeUrls = { "https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip" };
     
     /**
      * number of milliseconds the group cache should be kept before refreshing it from the underlying resolver
@@ -302,14 +302,14 @@ public class EpitopeServiceConfiguration extends Configuration {
 	}
 
 	@JsonProperty
-    @NmdpV3AlleleCodeUrl
-	public String getNmdpV3AlleleCodeUrl() {
-		return nmdpV3AlleleCodeUrl;
+    @NmdpV3AlleleCodeUrls
+	public String[] getNmdpV3AlleleCodeUrls() {
+		return nmdpV3AlleleCodeUrls;
 	}
 
     @JsonProperty
-	public void setNmdpV3AlleleCodeUrl(String nmdpV3AlleleCodeUrl) {
-		this.nmdpV3AlleleCodeUrl = nmdpV3AlleleCodeUrl;
+	public void setNmdpV3AlleleCodeUrls(String[] nmdpV3AlleleCodeUrls) {
+		this.nmdpV3AlleleCodeUrls = nmdpV3AlleleCodeUrls;
 	}
 
     @JsonProperty
