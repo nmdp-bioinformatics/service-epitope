@@ -33,44 +33,42 @@ public class MatchResult {
 	private Double hvgNonPermissiveMismatchProbability;
 	private Double gvhNonPermissiveMismatchProbability;
 	private Double unknownProbability;
-	private MatchGrade pessimisticMatchGrade;
+	private MatchGrade matchGrade;
 
 	/**
-	 * Construct a new MatchResult with given likelihoods of various outcomes.
+	 * Construct a new MatchResult with given likelihoods of various outcomes. 
 	 * @param matchProbability probability of a match.
 	 * @param permissiveMismatchProbability probability of a mismatch.
 	 * @param hvgNonPermissiveMismatchProbability probability of a host vs graft non-permissive mismatch.
 	 * @param gvhNonPermissiveMismatchProbability probability of a graft vs host non-permissive mismatch.
 	 * @param unknownProbability probability that the outcome is unknown, because the TCE group of one or more alleles is unknown.
+	 * @param matchGrade most pessimistic match grade, in the case where frequency information is unavailable for one or more matches.
 	 */
 	public MatchResult(
 			Double matchProbability,
 			Double permissiveMismatchProbability,
 			Double hvgNonPermissiveMismatchProbability,
 			Double gvhNonPermissiveMismatchProbability,
-			Double unknownProbability)
+			Double unknownProbability, 
+			MatchGrade matchGrade)
 	{
-		double total = matchProbability 
-				+ permissiveMismatchProbability 
-				+ hvgNonPermissiveMismatchProbability 
-				+ gvhNonPermissiveMismatchProbability 
-				+ unknownProbability;
-		this.matchProbability = round(matchProbability/total);
-		this.permissiveMismatchProbability = round(permissiveMismatchProbability/total);
-		this.hvgNonPermissiveMismatchProbability = round(hvgNonPermissiveMismatchProbability/total);
-		this.gvhNonPermissiveMismatchProbability = round(gvhNonPermissiveMismatchProbability/total);
-		this.unknownProbability = round(unknownProbability/total);
+		double total = zeroNull(matchProbability)
+				+ zeroNull(permissiveMismatchProbability)
+				+ zeroNull(hvgNonPermissiveMismatchProbability) 
+				+ zeroNull(gvhNonPermissiveMismatchProbability)
+				+ zeroNull(unknownProbability);
+		this.matchProbability = (null == matchProbability) ? null : round(matchProbability/total);
+		this.permissiveMismatchProbability = (null == permissiveMismatchProbability) ? null : round(permissiveMismatchProbability/total);
+		this.hvgNonPermissiveMismatchProbability = (null == hvgNonPermissiveMismatchProbability) ? null : round(hvgNonPermissiveMismatchProbability/total);
+		this.gvhNonPermissiveMismatchProbability = (null == gvhNonPermissiveMismatchProbability) ? null : round(gvhNonPermissiveMismatchProbability/total);
+		this.unknownProbability = (null == unknownProbability ) ? null : round(unknownProbability/total);
+		this.matchGrade = matchGrade;
 	}
 
-	/**
-	 * Construct a new MatchResult with the given most pessimistic match grade.  This match result is applicable in the case where 
-	 * frequency information is unavailable for one or more alleles.  
-	 * @param pessimisticMatchGrade most pessimistic match grade
-	 */
-	public MatchResult(MatchGrade pessimisticMatchGrade) {
-		this.pessimisticMatchGrade = pessimisticMatchGrade;
+	private double zeroNull(Double d) {
+		return (null == d) ? 0 : d;
 	}
-
+	
 	private double round(double d) {
 		return (double)Math.round(d * 1000) / 1000;
 	}
@@ -113,8 +111,8 @@ public class MatchResult {
 	/**
 	 * @return most pessimistic match grade 
 	 */
-	public MatchGrade getPessimisticMatchGrade() {
-		return pessimisticMatchGrade;
+	public MatchGrade getMatchGrade() {
+		return matchGrade;
 	}
 
 	@Override
@@ -126,8 +124,8 @@ public class MatchResult {
 				+ hvgNonPermissiveMismatchProbability
 				+ ", gvhNonPermissiveMismatchProbability="
 				+ gvhNonPermissiveMismatchProbability + ", unknownProbability="
-				+ unknownProbability + ", pessimisticMatchGrade="
-				+ pessimisticMatchGrade + "]";
+				+ unknownProbability + ", matchGrade="
+				+ matchGrade + "]";
 	}
 	
 }

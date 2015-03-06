@@ -161,8 +161,8 @@ public final class EpitopeMatches extends AbstractEpitopeTool {
             	sb.append(result.getUnknownProbability());
             	sb.append("\t");
             }
-            if (result.getPessimisticMatchGrade() != null) {
-            	sb.append(result.getPessimisticMatchGrade());
+            if (result.getMatchGrade() != null) {
+            	sb.append(result.getMatchGrade());
             }
             writer.println(sb.toString());
         }

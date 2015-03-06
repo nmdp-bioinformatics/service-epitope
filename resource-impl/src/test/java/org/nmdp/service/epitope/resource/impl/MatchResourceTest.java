@@ -71,7 +71,7 @@ public class MatchResourceTest {
 		String rgl = "01:01+02:01";
 		String dgl = "03:01+04:01";
 		MatchRequest request = new MatchRequest(rgl, null, dgl, null, null);
-		MatchResult result = new MatchResult(MatchGrade.GVH_NONPERMISSIVE);
+		MatchResult result = new MatchResult(null, null, null, null, null, MatchGrade.GVH_NONPERMISSIVE);
 		when(matchService.getMatch(anyString(), any(DetailRace.class), anyString(), any(DetailRace.class))).thenReturn(result);
 		List<MatchResponse> test = resource.getMatches(Arrays.asList(request));
 		assertThat(test.size(), equalTo(1));
@@ -85,13 +85,13 @@ public class MatchResourceTest {
 		assertThat(test.get(0).getHvgNonPermissiveMismatchProbability(), nullValue());
 		assertThat(test.get(0).getGvhNonPermissiveMismatchProbability(), nullValue());
 		assertThat(test.get(0).getUnknownProbability(), nullValue());
-		assertThat(test.get(0).getPessimisticMatchGrade(), equalTo(MatchGrade.GVH_NONPERMISSIVE));
+		assertThat(test.get(0).getMatchGrade(), equalTo(MatchGrade.GVH_NONPERMISSIVE));
 	}
 
 	@Test
 	public void testGetMatches_TokenPresent() throws Exception {
 		MatchRequest request = new MatchRequest("test", null, "test", null, "testToken");
-		MatchResult result = new MatchResult(MatchGrade.GVH_NONPERMISSIVE);
+		MatchResult result = new MatchResult(null, null, null, null, null, MatchGrade.GVH_NONPERMISSIVE);
 		when(matchService.getMatch(anyString(), any(DetailRace.class), anyString(), any(DetailRace.class))).thenReturn(result);
 		List<MatchResponse> test = resource.getMatches(Arrays.asList(request));
 		assertThat(test.size(), equalTo(1));
@@ -107,7 +107,7 @@ public class MatchResourceTest {
 		String rgl = "01:01+02:01";
 		String dgl = "03:01+04:01";
 		MatchRequest request = new MatchRequest(rgl, DetailRace.CAU, dgl, DetailRace.AFA, null);
-		MatchResult result = new MatchResult(0.01, 0.02, 0.03, 0.04, 0.05);
+		MatchResult result = new MatchResult(0.01, 0.02, 0.03, 0.04, 0.05, null);
 		when(matchService.getMatch(anyString(), any(DetailRace.class), anyString(), any(DetailRace.class))).thenReturn(result);
 		List<MatchResponse> test = resource.getMatches(Arrays.asList(request));
 		assertThat(test.size(), equalTo(1));
@@ -125,7 +125,7 @@ public class MatchResourceTest {
 				equalTo(result.getGvhNonPermissiveMismatchProbability()));
 		assertThat(test.get(0).getUnknownProbability(), 
 				equalTo(result.getUnknownProbability()));
-		assertThat(test.get(0).getPessimisticMatchGrade(), nullValue());
+		assertThat(test.get(0).getMatchGrade(), nullValue());
 	}
 
 }

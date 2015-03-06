@@ -112,7 +112,7 @@ public class MatchServiceImplTest {
 				anAlleleList(group1Alleles().get(1), group2Alleles().get(1)),
 				anAlleleList(group2Alleles().get(1), group3Alleles().get(1))));
 		MatchResult test = service.getMatch(rgl, null, dgl, null);
-		assertThat(test.getPessimisticMatchGrade(), equalTo(MatchGrade.GVH_NONPERMISSIVE));
+		assertThat(test.getMatchGrade(), equalTo(MatchGrade.GVH_NONPERMISSIVE));
 	}
 	
 }
