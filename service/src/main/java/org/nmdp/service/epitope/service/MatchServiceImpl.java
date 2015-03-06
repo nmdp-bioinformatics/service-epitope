@@ -188,9 +188,9 @@ public class MatchServiceImpl implements MatchService {
 		}
 		logger.debug("finished with\n\tmp: " + mp + "\n\tpp: " + pp + "\n\thvgp: " + hvgp + "\n\tgvhp: " + gvhp + "\n\tup: " + up);
 		if (unknown) {
-			return new MatchResult(up + gvhp > 0 ? GVH_NONPERMISSIVE : hvgp > 0 ? HVG_NONPERMISSIVE : pp > 0 ? PERMISSIVE : MATCH);
+			return new MatchResult(null, null, null, null, null, up + gvhp > 0 ? GVH_NONPERMISSIVE : hvgp > 0 ? HVG_NONPERMISSIVE : pp > 0 ? PERMISSIVE : MATCH);
 		} else {
-			return new MatchResult(mp, pp, hvgp, gvhp, up);
+			return new MatchResult(mp, pp, hvgp, gvhp, up, null);
 		}
 	}
 

@@ -56,23 +56,20 @@ public class MatchResponse {
 			final @JsonProperty("hvgNonPermissiveMismatchProbability") Double hvgNonPermissiveMismatchProbability,
 			final @JsonProperty("gvhNonPermissiveMismatchProbability") Double gvhNonPermissiveMismatchProbability,
 			final @JsonProperty("unknownProbability") Double unknownProbability,
-			final @JsonProperty("unknownMatchGrade") MatchGrade unknownMatchGrade)
+			final @JsonProperty("matchGrade") MatchGrade matchGrade)
 	{
 		this.recipient = recipient;
 		this.recipientRace = recipientRace;
 		this.donor = donor;
 		this.donorRace = donorRace;
 		this.token = token;
-		if (unknownMatchGrade == null) {
-			this.matchResult = new MatchResult(
-					matchProbability, 
-					permissiveMismatchProbability, 
-					hvgNonPermissiveMismatchProbability, 
-					gvhNonPermissiveMismatchProbability, 
-					unknownProbability);
-		} else {
-			this.matchResult = new MatchResult(unknownMatchGrade);
-		}
+		this.matchResult = new MatchResult(
+				matchProbability, 
+				permissiveMismatchProbability, 
+				hvgNonPermissiveMismatchProbability, 
+				gvhNonPermissiveMismatchProbability, 
+				unknownProbability,
+				matchGrade);
 	}
 
 	public MatchResponse(String recipient,
@@ -167,7 +164,7 @@ public class MatchResponse {
 			value="Most pessimistic possible match grade if races are not provided"
 					+ " or if likelihood of occurance of any alleles can't be determined", 
 			required=false)
-	public MatchGrade getPessimisticMatchGrade() {
-		return matchResult.getPessimisticMatchGrade();
+	public MatchGrade getMatchGrade() {
+		return matchResult.getMatchGrade();
 	}
 }
