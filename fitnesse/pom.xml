@@ -11,9 +11,55 @@
     <description>Test fixtures and pages for fitnesse</description>
     <dependencies>
         <dependency>
+            <groupId>org.fitnesse</groupId>
+            <artifactId>fitnesse</artifactId>
+            <version>20150226</version>
+        </dependency>
+        <dependency>
+            <groupId>org.fitnesse.plugins</groupId>
+            <artifactId>maven-classpath-plugin</artifactId>
+            <version>1.9</version>
+        </dependency>
+        <dependency>
             <groupId>org.nmdp.service</groupId>
             <artifactId>epitope-client</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.3.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>fitnesseMain.FitNesseMain</mainClass>
+                    <classpathScope>test</classpathScope>
+                    <arguments>
+                        <argument>-p</argument><argument>8082</argument>
+                        <argument>-d</argument><argument>src/test/fitnesse</argument>
+                        <argument>-r</argument><argument>root</argument>
+                        <argument>-o</argument>
+                    </arguments>
+                    <!-- 
+                    <systemProperties>
+                        <systemProperty>
+                            <key>myproperty</key>
+                            <value>myvalue</value>
+                        </systemProperty>
+                        ...
+                    </systemProperties>
+                    -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
