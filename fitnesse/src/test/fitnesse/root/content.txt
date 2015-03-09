@@ -1,0 +1,3 @@
+!define TEST_SYSTEM {slim} 
+!path fitnesse.jar
+!pomFile pom.xml
