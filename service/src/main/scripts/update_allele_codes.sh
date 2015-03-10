@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 REMOTE_USER=epearson
 REMOTE_HOST=epearsonone
 ALLELE_CODE_URL=https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
