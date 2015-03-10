@@ -36,13 +36,13 @@ public class MatchResult {
 	private MatchGrade matchGrade;
 
 	/**
-	 * Construct a new MatchResult with given likelihoods of various outcomes. 
+	 * Construct a new MatchResult with match grade and given likelihoods of various outcomes. 
 	 * @param matchProbability probability of a match.
 	 * @param permissiveMismatchProbability probability of a mismatch.
 	 * @param hvgNonPermissiveMismatchProbability probability of a host vs graft non-permissive mismatch.
 	 * @param gvhNonPermissiveMismatchProbability probability of a graft vs host non-permissive mismatch.
 	 * @param unknownProbability probability that the outcome is unknown, because the TCE group of one or more alleles is unknown.
-	 * @param matchGrade most pessimistic match grade, in the case where frequency information is unavailable for one or more matches.
+	 * @param matchGrade most likely match grade, in the case where frequency information is not for all alleles, most pessimistic match grade otherwise.
 	 */
 	public MatchResult(
 			Double matchProbability,
@@ -109,7 +109,8 @@ public class MatchResult {
 	}
 
 	/**
-	 * @return most pessimistic match grade 
+	 * @return most likely match grade, in the case where frequency information is not for all alleles, most 
+	 * pessimistic match grade otherwise.
 	 */
 	public MatchGrade getMatchGrade() {
 		return matchGrade;
