@@ -58,10 +58,7 @@ public class MatchResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@ApiOperation(
-			value = "Returns list of match results (with probabilities) based on list of match requests"
-			+ " corrolated by token (or genotypes, if no token is provided).  If races is provided in the"
-			+ " request, the probabilities of each match outcome are provided based on likelihood of occurance"
-			+ " of each allele for that race group.", 
+			value = "Returns list of match results corrolated by token (or genotypes, if no token is provided).", 
 			notes = "",
 			response = MatchResponse.class,
 		    responseContainer = "List")

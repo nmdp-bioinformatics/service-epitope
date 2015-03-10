@@ -27,7 +27,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.immunogenomics.gl.Allele;
 import org.immunogenomics.gl.client.GlClient;
@@ -48,8 +47,6 @@ import com.google.inject.Inject;
  * implementation of EpitopeService, 
  */
 public class EpitopeServiceImpl implements EpitopeService {
-
-	private static final Pattern LOCUS_STRIP_PAT = Pattern.compile("^([^/~+|^*]+\\*)(.*)");
 
 	private Function<Integer, List<Allele>> groupResolver;
 	private ImmutableListMultimap<Integer, Allele> groupAlleleMap;

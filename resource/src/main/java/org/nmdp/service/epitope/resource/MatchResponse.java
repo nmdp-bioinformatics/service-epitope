@@ -32,9 +32,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value="Result of match of recipient and donor.  If races is provided in the"
-			+ " request, the probabilities of each match outcome are provided based on likelihood of occurance"
-			+ " of each allele for that race group, otherwise the most pessimistic match grade is returned." )
+@ApiModel(value="Result of match of recipient and donor.  The most likely match grade is returned.  If race"
+			+ " information is given, the probabilities of each match outcome are provided based on likelihood"
+			+ " of occurance of each allele for that race group, assuming that frequency of occurance is known"
+			+ " for each allele.  If frequencies can't be determined, the most pessimistic match grade is"
+			+ " returned.")
 public class MatchResponse {
 
 	private String recipient;
@@ -154,15 +156,15 @@ public class MatchResponse {
 	}
 
 	@ApiModelProperty(
-			value="Probability of type with unknown immunogenicity group", 
+			value="Probability that immunogenicity group for type is unknown", 
 			required=false)
 	public Double getUnknownProbability() {
 		return matchResult.getUnknownProbability();
 	}
 
 	@ApiModelProperty(
-			value="Most pessimistic possible match grade if races are not provided"
-					+ " or if likelihood of occurance of any alleles can't be determined", 
+			value="Most likely match grade if allele frequencies are known, or"
+					+ " most pessimistic match grade otherwise.", 
 			required=false)
 	public MatchGrade getMatchGrade() {
 		return matchResult.getMatchGrade();

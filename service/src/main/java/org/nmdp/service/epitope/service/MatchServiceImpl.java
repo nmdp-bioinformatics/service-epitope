@@ -28,6 +28,7 @@ import static org.nmdp.service.epitope.domain.MatchGrade.GVH_NONPERMISSIVE;
 import static org.nmdp.service.epitope.domain.MatchGrade.HVG_NONPERMISSIVE;
 import static org.nmdp.service.epitope.domain.MatchGrade.MATCH;
 import static org.nmdp.service.epitope.domain.MatchGrade.PERMISSIVE;
+import static org.nmdp.service.epitope.domain.MatchGrade.UNKNOWN;
 
 import java.util.HashSet;
 import java.util.List;
@@ -147,35 +148,45 @@ public class MatchServiceImpl implements MatchService {
 		double hvgp = 0;
 		double up = 0;
 		boolean unknown = false;
-		Set<AllelePair> isct = Sets.intersection(ralps, dalps);
-		for (AllelePair p : isct) {
+		int compares = 0;
+		MatchGrade matchGrade = UNKNOWN;
+		Set<AllelePair> same = Sets.intersection(ralps, dalps);
+		for (AllelePair p : same) {
+			compares++;
 			Double freq = freqResolver.apply(p);
 			if (freq == null) { unknown = true; freq = 1.0; }
+			matchGrade = MATCH;
 			mp += freq * freq;
 			if (logger.isTraceEnabled()) {
 				logger.trace("MATCH:p:" + p + " -> " + (freq*freq));
 			}
 		}
-		for (AllelePair rp : ralps) {
+		Set<AllelePair> diff = Sets.difference(ralps, dalps);
+		for (AllelePair rp : diff) {
 			Double rf = freqResolver.apply(rp);
 			if (rf == null) { unknown = true; rf = 1.0; }
 			for (AllelePair dp : dalps) {
+				compares++;
 				Double df = freqResolver.apply(dp);
 				if (df == null) { unknown = true; df = 1.0; }
 				MatchGrade mg = getMatchGrade(rp, dp); 
 				switch (mg) {
 				case MATCH:
-					continue;
+					throw new RuntimeException("shouldn't see match here");
 				case PERMISSIVE:
+					matchGrade = PERMISSIVE;
 					pp += rf * df;
 					break;
 				case GVH_NONPERMISSIVE:
+					matchGrade = GVH_NONPERMISSIVE;
 					gvhp += rf * df;
 					break;
 				case HVG_NONPERMISSIVE:
+					matchGrade = HVG_NONPERMISSIVE;
 					hvgp += rf * df;
 					break;
 				case UNKNOWN:
+					matchGrade = UNKNOWN;
 					up += rf * df;
 					break;
 				default:
@@ -188,10 +199,31 @@ public class MatchServiceImpl implements MatchService {
 		}
 		logger.debug("finished with\n\tmp: " + mp + "\n\tpp: " + pp + "\n\thvgp: " + hvgp + "\n\tgvhp: " + gvhp + "\n\tup: " + up);
 		if (unknown) {
+			// didn't know freq for one or more alleles, return pessimistic match grade
 			return new MatchResult(null, null, null, null, null, up + gvhp > 0 ? GVH_NONPERMISSIVE : hvgp > 0 ? HVG_NONPERMISSIVE : pp > 0 ? PERMISSIVE : MATCH);
-		} else {
-			return new MatchResult(mp, pp, hvgp, gvhp, up, null);
 		}
+		if (compares > 1) {
+			double prob = up;
+			matchGrade = UNKNOWN;
+			if (gvhp > prob) {
+				prob = gvhp;
+				matchGrade = GVH_NONPERMISSIVE; 
+			}
+			if (hvgp > prob) {
+				prob = hvgp;
+				matchGrade = HVG_NONPERMISSIVE;
+			}
+			if (pp > prob) {
+				prob = pp;
+				matchGrade = PERMISSIVE;
+			}
+			if (mp > prob) {
+				prob = mp;
+				matchGrade = MATCH;
+			}
+		}
+		// return both probabilities and match grade
+		return new MatchResult(mp, pp, hvgp, gvhp, up, matchGrade);
 	}
 
 	Set<AllelePair> getAllelePairs(GenotypeList gl, DetailRace race) {

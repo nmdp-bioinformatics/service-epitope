@@ -85,7 +85,11 @@ public class LocalServiceModule extends AbstractModule {
 			if (f.isFile()) {
 				urls[i] = f.toURI().toURL();
 			} else {
-				urls[i] = new URL(urlSpecs[i]);
+				try {
+					urls[i] = new URL(urlSpecs[i]);
+				} catch (Exception e) { 
+					continue; 
+				}
 			}
 		}
 		return urls;
