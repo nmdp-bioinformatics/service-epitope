@@ -4,9 +4,13 @@
  * don't edit first two lines
  * first four columns are inputs to the fixture
  * last five columns are test assertions
- * blank cells aren't asserted -- if you want to assert null, you must be explicit
+ * blank cells aren't asserted - if you want to assert null, you must be explicit
 
-| DT:org.nmdp.service.epitope.test.MatchTest | !-http://epearsonone:8080-! |
-| recipGl | recipRace | donorGl | donorRace | matchGrade? | matchPct? | permPct? | hvgPct? | gvhPct? | unknownPct? |
-| HLA-DPB1*03:FYKD+HLA-DPB1*14:001 | NAMER | HLA-DPB1*05:001+HLA-DPB1*13:BDVS | API | GVH_NONPERMISSIVE | null | null | null | null | null |
-| HLA-DPB1*01:01:01+HLA-DPB1*01:01:02 | CAU | HLA-DPB1*02:01:02+HLA-DPB1*02:01:03 | CAU | null | 0.0 | ~=1 | 0.0 | 0.0 | 0.0 |
+!|DT:org.nmdp.service.epitope.test.MatchTest|http://epearsonone:8080                                                                                                                                     |
+|#caseDescription                           |recipGl                            |recipRace|donorGl                            |donorRace|matchGrade?      |matchPct?|permPct?|hvgPct?|gvhPct?|unknownPct?|
+|Erik P test                                |HLA-DPB1*01:01:01+HLA-DPB1*01:01:02|CAU      |HLA-DPB1*02:01:02+HLA-DPB1*02:01:03|CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|Eric W test                                |HLA-DPB1*03:FYKD+HLA-DPB1*14:001   |NAMER    |HLA-DPB1*05:001+HLA-DPB1*13:BDVS   |API      |GVH_NONPERMISSIVE|null     |null    |null   |null   |null       |
+|HR Recip 1/1 Donor 1/1                     |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*17:01+HLA-DPB1*17:01      |AFA      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR Recip 2/2 Donor 2/2                     |HLA-DPB1*03:01+HLA-DPB1*14:01      |AFA      |HLA-DPB1*45:01+HLA-DPB1*03:01      |HAWI     |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR Recip 3/3 Donor 3/3                     |HLA-DPB1*01:01+HLA-DPB1*02:01      |NAMER    |HLA-DPB1*02:02+HLA-DPB1*23:01      |AFB      |PERMISSIVE       |null     |null    |null   |null   |null       |
+|HR Recip 1/1 Donor 2/2                     |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*45:01+HLA-DPB1*03:01      |AFA      |GVH_NONPERMISSIVE|0.0      |0.0     |0.0    |1.0    |0.0        |
