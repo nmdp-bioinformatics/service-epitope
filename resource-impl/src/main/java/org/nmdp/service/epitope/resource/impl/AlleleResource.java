@@ -49,7 +49,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.wordnik.swagger.annotations.Api;
@@ -79,29 +78,21 @@ public class AlleleResource {
 			response = AlleleView.class,
 		    responseContainer = "List")
 	public List<AlleleView> getAlleles(
-			@QueryParam("allele") 
-			@ApiParam("GL string for a single allele") 
-			String allele, 
 			@QueryParam("alleles") 
 			@ApiParam("List of alleles, separated by \",\" or \"/\"") 
 			String alleles, 
-			@QueryParam("group")
-			@ApiParam("Integer representation for a single immunogenicity group")
-			String group, 
 			@QueryParam("groups") 
 			@ApiParam("List of immunogenicity groups, separated by \",\"")
 			String groups)
 	{
-		if (null == allele && null == alleles && null == group && null == groups) 
+		if (null == alleles && null == groups) 
 		{
 			return Lists.transform(epitopeService.getAllAlleles(), new Function<Allele, AlleleView>() {
 				@Override public AlleleView apply(Allele allele) { return getAlleleView(allele); }
 			});
 		}
 		List<AlleleView> returnList = new ArrayList<>();
-		if (allele != null) addToList(returnList, getAlleleView(allele));
 		if (alleles != null) addToList(returnList, getAlleleViews(parseAlleles(alleles)));
-		if (group != null) addToList(returnList, getAllelesForGroupStrings(Arrays.asList(group)));
 		if (groups != null) {
 			addToList(returnList, getAllelesForGroupStrings(Splitter.on(",").split(groups)));
 		}
@@ -119,11 +110,9 @@ public class AlleleResource {
 			AlleleListRequest request) 
 	{
 		List<AlleleView> returnList = new ArrayList<>();
-		if (request.getAllele() != null) addToList(returnList, getAlleleView(request.getAllele()));
 		if (request.getAlleles() != null) {
 			addToList(returnList, getAlleleViews(request.getAlleles()));
 		}
-		if (request.getGroup() != null) addToList(returnList, getAllelesForGroups(Arrays.asList(request.getGroup())));
 		if (request.getGroups() != null) {
 			addToList(returnList, getAllelesForGroups(request.getGroups()));
 		}
@@ -158,19 +147,7 @@ public class AlleleResource {
 	private AlleleView getAlleleView(Allele allele) {
 		return new AlleleView(allele.getGlstring(), epitopeService.getGroupForAllele(allele));
 	}
-
-	private AlleleView getAlleleViewForUri(String uri) {
-		return getAlleleView(glClient.getAllele(uri));
-	}
 	
-	private Iterable<AlleleView> getAlleleViewsForUris(Iterable<String> uris) {
-		List<AlleleView> alleleViewList = new ArrayList<>();
-		for(String uri : uris) {
-			addToList(alleleViewList, getAlleleViewForUri(uri));			
-		}
-		return alleleViewList;
-	}
-
 	private Iterable<String> parseAlleles(String alleles) {
 		if (alleles.contains(",")) { 
 			return Splitter.on(",").split(alleles);

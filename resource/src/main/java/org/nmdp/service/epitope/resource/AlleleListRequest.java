@@ -34,39 +34,22 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 @ApiModel("Filter for alleles or groups")
 public class AlleleListRequest {
 
-	private String allele;
 	private List<String> alleles;
-	private Integer group;
 	private List<Integer> groups;
 
     @JsonCreator
-    public AlleleListRequest(final @JsonProperty("allele") String allele,
-                             final @JsonProperty("alleles") List<String> alleles,
-                             final @JsonProperty("group") Integer group,
+    public AlleleListRequest(final @JsonProperty("alleles") List<String> alleles,
                              final @JsonProperty("groups") List<Integer> groups) {
-
-        this.allele = allele;
         this.alleles = alleles;
-        this.group = group;
         this.groups = groups;
     }
 
-	@ApiModelProperty("GL string for a single allele") 
-    public String getAllele() {
-        return allele;
-    }
-
-	@ApiModelProperty("List of alleles") 
+	@ApiModelProperty("List of GL strings for alleles") 
     public List<String> getAlleles() {
         return alleles;
     }
 	
-	@ApiModelProperty("Integer representation for a single immunogenicity group")
-    public Integer getGroup() {
-        return group;
-    }
-	
-	@ApiModelProperty("List of immunogenicity groups")
+	@ApiModelProperty("List of integers representing immunogenicity groups")
     public List<Integer> getGroups() {
         return groups;
     }

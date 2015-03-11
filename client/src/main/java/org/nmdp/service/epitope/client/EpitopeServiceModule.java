@@ -55,8 +55,7 @@ public final class EpitopeServiceModule extends AbstractModule {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
                 .setSerializationInclusion(Include.NON_NULL)
-                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-		    	.enable(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED);
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
             
             return new RestAdapter.Builder()
                 .setEndpoint(endpointUrl)
