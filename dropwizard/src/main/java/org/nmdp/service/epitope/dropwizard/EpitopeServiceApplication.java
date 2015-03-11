@@ -39,7 +39,6 @@ import org.nmdp.service.epitope.resource.impl.AlleleResource;
 import org.nmdp.service.epitope.resource.impl.GroupResource;
 import org.nmdp.service.epitope.resource.impl.MatchResource;
 import org.nmdp.service.epitope.resource.impl.ResourceModule;
-import org.nmdp.service.epitope.resource.impl.TestResource;
 import org.skife.jdbi.v2.DBI;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -107,8 +106,7 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     	environment.getObjectMapper()
     			.enable(SerializationFeature.INDENT_OUTPUT)
                 .setSerializationInclusion(Include.NON_NULL)
-                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-		    	.enable(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED);
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
     	
     	final AlleleResource alleleResource = injector.getInstance(AlleleResource.class);
     	environment.jersey().register(alleleResource);
@@ -118,9 +116,6 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     	
     	final MatchResource matchResource = injector.getInstance(MatchResource.class);
     	environment.jersey().register(matchResource);
-    	
-    	final TestResource testResource = injector.getInstance(TestResource.class);
-    	environment.jersey().register(testResource);
 
     	environment.jersey().register(new org.nmdp.service.epitope.resource.impl.ExceptionMapper());
     	

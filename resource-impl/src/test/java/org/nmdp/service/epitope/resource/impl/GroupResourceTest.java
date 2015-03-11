@@ -27,7 +27,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.anAllele;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.anAlleleList;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestEpitopeService;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGlClient;
@@ -87,7 +86,7 @@ public class GroupResourceTest {
 
 	@Test
 	public void testGetGroups_NoInputs() throws Exception {
-		List<GroupView> groups = resource.getGroups(null, null, null, null);
+		List<GroupView> groups = resource.getGroups(null, null);
 		assertThat(groups.size(), equalTo(3));
 		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);
 		assertThat(map.keySet(), containsInAnyOrder(1, 2, 3));
@@ -103,21 +102,10 @@ public class GroupResourceTest {
 	}
 
 	@Test
-	public void testGetGroups_Allele() throws Exception {
-		Allele allele = anAllele();
-		String gl = allele.getGlstring();
-		List<GroupView> groups = resource.getGroups(gl, null, null, null);
-		assertThat(groups.size(), equalTo(1));
-		assertThat(groups.get(0).getGroup(), equalTo(3));
-		assertThat(groups.get(0).getAlleleList().size(), equalTo(1));
-		assertThat(groups.get(0).getAlleleList().get(0), equalTo(allele.getGlstring()));
-	}
-
-	@Test
 	public void testGetGroups_Alleles() throws Exception {
 		List<Allele> al = anAlleleList().getAlleles();
 		String gls = Joiner.on(",").join(al);
-		List<GroupView> groups = resource.getGroups(null, gls, null, null);
+		List<GroupView> groups = resource.getGroups(gls, null);
 		assertThat(groups.size(), equalTo(3));
 		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);
 		assertThat(map.keySet(), containsInAnyOrder(1, 2, 3));
@@ -129,21 +117,9 @@ public class GroupResourceTest {
 		assertThat(map.get(3).get(0).getAlleleList().get(0), equalTo(group3Alleles().get(0).getGlstring()));
 	}
 
-
-	@Test
-	public void testGetGroups_Group() throws Exception {
-		List<GroupView> groups = resource.getGroups(null, null, "1", null);
-		assertThat(groups.size(), equalTo(1));
-		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);
-		assertThat(map.keySet(), containsInAnyOrder(1));
-		assertThat(map.get(1).size(), equalTo(1));
-		assertThat(map.get(1).get(0).getAlleleList(), 
-				containsInAnyOrder(allelesToStrings(group1Alleles()).toArray()));
-	}
-
 	@Test
 	public void testGetGroups_Groups() throws Exception {
-		List<GroupView> groups = resource.getGroups(null, null, null, "1,2");
+		List<GroupView> groups = resource.getGroups(null, "1,2");
 		assertThat(groups.size(), equalTo(2));
 		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);
 		assertThat(map.keySet(), containsInAnyOrder(1, 2));
@@ -157,28 +133,15 @@ public class GroupResourceTest {
 
 	@Test
 	public void testGetGroups_AlleleListRequest_NoInputs() {
-		AlleleListRequest request = new AlleleListRequest(null, null, null, null);
+		AlleleListRequest request = new AlleleListRequest(null, null);
 		List<GroupView> groups = resource.getGroups(request);
 		assertThat(groups, emptyIterable());
 	}
 	
 	@Test
-	public void testGetGroups_AlleleListRequest_Allele() {
-		Allele allele = anAllele();
-		String gl = allele.getGlstring();
-		AlleleListRequest request = new AlleleListRequest(gl, null, null, null);
-		List<GroupView> groups = resource.getGroups(request);
-		assertThat(groups.size(), equalTo(1));
-		assertThat(groups.get(0).getGroup(), equalTo(3));
-		assertThat(groups.get(0).getAlleleList().size(), equalTo(1));
-		assertThat(groups.get(0).getAlleleList().get(0), equalTo(allele.getGlstring()));
-	}
-
-	@Test
 	public void testGetGroups_AlleleListRequest_Alleles() {
 		List<Allele> al = anAlleleList().getAlleles();
-		String gls = Joiner.on(",").join(al);
-		AlleleListRequest request = new AlleleListRequest(null, allelesToStrings(al), null, null);
+		AlleleListRequest request = new AlleleListRequest(allelesToStrings(al), null);
 		List<GroupView> groups = resource.getGroups(request);
 		assertThat(groups.size(), equalTo(3));
 		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);
@@ -192,20 +155,8 @@ public class GroupResourceTest {
 	}
 	
 	@Test
-	public void testGetGroups_AlleleListRequest_Group() throws Exception {
-		AlleleListRequest request = new AlleleListRequest(null, null, 1, null);
-		List<GroupView> groups = resource.getGroups(request);
-		assertThat(groups.size(), equalTo(1));
-		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);
-		assertThat(map.keySet(), containsInAnyOrder(1));
-		assertThat(map.get(1).size(), equalTo(1));
-		assertThat(map.get(1).get(0).getAlleleList(), 
-				containsInAnyOrder(allelesToStrings(group1Alleles()).toArray()));
-	}
-	
-	@Test
 	public void testGetGroups_AlleleListRequest_Groups() throws Exception {
-		AlleleListRequest request = new AlleleListRequest(null, null, null, Arrays.asList(1, 2));
+		AlleleListRequest request = new AlleleListRequest(null, Arrays.asList(1, 2));
 		List<GroupView> groups = resource.getGroups(request);
 		assertThat(groups.size(), equalTo(2));
 		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);

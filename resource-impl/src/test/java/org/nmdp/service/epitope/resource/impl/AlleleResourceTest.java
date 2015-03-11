@@ -80,38 +80,23 @@ public class AlleleResourceTest {
 	
 	@Test
 	public void testGetAlleles_NoInputs() throws Exception {
-		List<String> test = alleleViewsToStrings(resource.getAlleles(null, null, null, null));
+		List<String> test = alleleViewsToStrings(resource.getAlleles(null, null));
 		List<String> expect = allelesToStrings(epitopeService.getAllAlleles());
 		assertThat(test, containsInAnyOrder(expect.toArray()));
-	}
-
-	@Test
-	public void testGetAlleles_Allele() throws Exception {
-		Allele allele = anAllele();
-		String gl = allele.getGlstring();
-		List<String> test = alleleViewsToStrings(resource.getAlleles(gl, null, null, null));
-		assertThat(test, contains(gl));
 	}
 
 	@Test
 	public void testGetAlleles_Alleles() throws Exception {
 		List<Allele> al = anAlleleList().getAlleles();
 		String gls = Joiner.on(",").join(al);
-		List<String> test = alleleViewsToStrings(resource.getAlleles(null, gls, null, null));
+		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null));
 		List<String> expect = allelesToStrings(al);
 		assertThat(test, contains(expect.toArray()));
 	}
 
 	@Test
-	public void testGetAlleles_Group() throws Exception {
-		List<String> test = alleleViewsToStrings(resource.getAlleles(null, null, "1", null));
-		List<String> expect = allelesToStrings(group1Alleles());
-		assertThat(test, contains(expect.toArray()));
-	}
-
-	@Test
 	public void testGetAlleles_Groups() throws Exception {
-		List<String> test = alleleViewsToStrings(resource.getAlleles(null, null, null, "1,2"));
+		List<String> test = alleleViewsToStrings(resource.getAlleles(null, "1,2"));
 		List<String> expect = allelesToStrings(FluentIterable.from(group1Alleles())
 				.append(group2Alleles()).toList());
 		assertThat(test, contains(expect.toArray()));
@@ -119,18 +104,9 @@ public class AlleleResourceTest {
 	
 	@Test
 	public void testGetAlleles_AlleleListRequest_NoInputs() throws Exception {
-		AlleleListRequest r = new AlleleListRequest(null, null, null, null);
+		AlleleListRequest r = new AlleleListRequest(null, null);
 		List<String> test = alleleViewsToStrings(resource.getAlleles(r));
 		assertThat(test, emptyIterable());
-	}
-
-	@Test
-	public void testGetAlleles_AlleleListRequest_Allele() throws Exception {
-		Allele allele = anAllele();
-		String gl = allele.getGlstring();
-		AlleleListRequest r = new AlleleListRequest(gl, null, null, null);
-		List<String> test = alleleViewsToStrings(resource.getAlleles(r));
-		assertThat(test, contains(gl));
 	}
 
 	@Test
@@ -140,22 +116,14 @@ public class AlleleResourceTest {
 				return input.getGlstring();
 			}});
 		String gls = Joiner.on(",").join(al);
-		AlleleListRequest r = new AlleleListRequest(null, al, null, null);
-		List<String> test = alleleViewsToStrings(resource.getAlleles(null, gls, null, null));
+		AlleleListRequest r = new AlleleListRequest(al, null);
+		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null));
 		assertThat(test, contains(al.toArray()));
 	}
 
 	@Test
-	public void testGetAlleles_AlleleListRequest_Group() throws Exception {
-		AlleleListRequest r = new AlleleListRequest(null, null, 1, null);
-		List<String> test = alleleViewsToStrings(resource.getAlleles(r));
-		List<String> expect = allelesToStrings(group1Alleles());
-		assertThat(test, contains(expect.toArray()));
-	}
-
-	@Test
 	public void testGetAlleles_AlleleListRequest_Groups() throws Exception {
-		AlleleListRequest r = new AlleleListRequest(null, null, null, Arrays.asList(1, 2));
+		AlleleListRequest r = new AlleleListRequest(null, Arrays.asList(1, 2));
 		List<String> test = alleleViewsToStrings(resource.getAlleles(r));
 		List<String> expect = allelesToStrings(FluentIterable.from(group1Alleles())
 				.append(group2Alleles()).toList());

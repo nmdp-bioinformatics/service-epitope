@@ -25,7 +25,6 @@ package org.nmdp.service.epitope.resource.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.wordnik.swagger.annotations.Api;
@@ -106,29 +104,15 @@ public class GroupResource {
 			response = GroupView.class,
 		    responseContainer = "List")
 	public List<GroupView> getGroups(
-			@QueryParam("allele") 
-			@ApiParam("GL string for a single allele") 
-			String allele, 
 			@QueryParam("alleles") 
 			@ApiParam("List of alleles, separated by \",\" or \"/\"") 
 			String alleles, 
-//			@QueryParam("alleleUri") 
-//			@ApiParam("GL service URI for an allele") 
-//			String alleleUri,
-//			@QueryParam("alleleUris") 
-//			@ApiParam("List of GL service URIs for alleles separated by \",\"") 
-//			String alleleUris, 
-			@QueryParam("group")
-			@ApiParam("Integer representation for a single immunogenicity group")
-			String group, 
 			@QueryParam("groups") 
 			@ApiParam("List of immunogenicity groups, separated by \",\"")
 			String groups)
 	{
-		log.debug("getGroups(" + allele + ", " + alleles + ", " + group + ", " + groups + ")");
-		if (null == allele && null == alleles 
-				// && null == alleleUri && null == alleleUris 
-				&& null == group && null == groups) 
+		log.debug("getGroups(" + alleles + ", " + groups + ")");
+		if (null == alleles && null == groups) 
 		{
 			return FluentIterable.from(epitopeService.getAllGroups().entrySet())
 					.transform(new Function<Map.Entry<Integer, List<Allele>>, GroupView>() {
@@ -139,12 +123,8 @@ public class GroupResource {
 					.toList();
 		}
 		List<String> alleleList = new ArrayList<>();
-		if (allele != null) addToList(alleleList, allele);
 		if (alleles != null) addToList(alleleList, parseAlleles(alleles));
-//		if (alleleUri != null) addToList(alleleList, getGlstringForAlleleUris(Arrays.asList(alleleUri)));
-//		if (alleleUris != null) addToList(alleleList, getGlstringForAlleleUris(Splitter.on(",").split(alleleUris)));
 		List<Integer> groupList = new ArrayList<>();
-		if (null != group) groupList.add(new Integer(group));
 		if (groups != null) {
 			for (String g : Splitter.on(",").splitToList(groups)) {
 				groupList.add(new Integer(g));
@@ -162,17 +142,6 @@ public class GroupResource {
 			addToList(l, s);
 		}
 	}
-
-//	private Iterable<String> getGlstringForAlleleUris(Iterable<String> i) {
-//		List<String> l = new ArrayList<>();
-//		for (String s : i) {
-//			Allele allele = glClient.getAllele(s);
-//			if (null != allele) {
-//				l.add(allele.getGlstring());
-//			}
-//		
-//		return l;
-//	}
 	
 	private Iterable<String> parseAlleles(String alleles) {
 		if (alleles.contains(",")) { 
@@ -195,10 +164,8 @@ public class GroupResource {
 			AlleleListRequest request) 
 	{
 		List<String> alleleList = new ArrayList<>();
-		if (request.getAllele() != null) alleleList.add(request.getAllele());
 		if (request.getAlleles() != null) alleleList.addAll(request.getAlleles());
 		List<Integer> groupList = new ArrayList<>();
-		if (request.getGroup() != null) groupList.add(request.getGroup());
 		if (request.getGroups() != null) groupList.addAll(request.getGroups());
 		return getGroups(alleleList, groupList);
 	}
