@@ -33,9 +33,9 @@ import java.io.PrintStream;
 final class About {
     private static final String ARTIFACT_ID = "${project.artifactId}";
     private static final String BUILD_TIMESTAMP = "${maven.build.timestamp}";
-    private static final String COMMIT = "TBD";
+    private static final String COMMIT = "${git.commit.id}";
     private static final String COPYRIGHT = "Copyright (c) 2015 National Marrow Donor Program (NMDP)";
-    private static final String LICENSE = "TBD";
+    private static final String LICENSE = "Licensed GNU Lesser General Public License (LGPL), version 3 or later";
     private static final String VERSION = "${project.version}";
 
 
