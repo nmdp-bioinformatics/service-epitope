@@ -13,6 +13,8 @@
     <properties>
         <dsh-compress.version>1.0</dsh-compress.version>
         <dsh-commandline.version>1.1</dsh-commandline.version>
+        <maven.build.timestamp>${maven.build.timestamp}</maven.build.timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -80,6 +82,17 @@
                         <id>filter-src</id>
                         <goals>
                             <goal>filter-sources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
                         </goals>
                     </execution>
                 </executions>

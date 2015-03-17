@@ -39,11 +39,6 @@
 		</dependency>
         <dependency>
 			<groupId>org.nmdp.service</groupId>
-            <artifactId>epitope-resource</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-			<groupId>org.nmdp.service</groupId>
             <artifactId>epitope-service</artifactId>
             <version>${project.version}</version>
         </dependency>
