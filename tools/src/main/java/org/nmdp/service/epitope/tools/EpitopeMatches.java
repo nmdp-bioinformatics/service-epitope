@@ -55,14 +55,25 @@ public final class EpitopeMatches extends AbstractEpitopeTool {
     private final String recipientRace;
     private final String donor;
     private final String donorRace;
+    private final String token;
     static final String USAGE = "epitope-matches -u " + DEFAULT_ENDPOINT_URL + " \\" + "\n" + "  -r HLA-DPB1*01:01:01+HLA-DPB1*01:01:02 -c CAU -d HLA-DPB1*02:01:02+HLA-DPB1*02:01:03 -n CAU";
 
-    public EpitopeMatches(final String endpointUrl, final String recipient, final String recipientRace, final String donor, final String donorRace, final File inputFile, final File outputFile) {
+    public EpitopeMatches(
+    		final String endpointUrl, 
+    		final String recipient, 
+    		final String recipientRace, 
+    		final String donor, 
+    		final String donorRace, 
+    		final String token, 
+    		final File inputFile, 
+    		final File outputFile) 
+    {
         super(endpointUrl, inputFile, outputFile);
         this.recipient = recipient;
         this.recipientRace = recipientRace;
         this.donor = donor;
         this.donorRace = donorRace;
+        this.token = token;
     }
 
     public DetailRace getDetailRace(String s) {
@@ -81,6 +92,7 @@ public final class EpitopeMatches extends AbstractEpitopeTool {
             DetailRace rr = getDetailRace(recipientRace);
             String d = donor;
             DetailRace dr = getDetailRace(donorRace);
+            String t = token;
             if (r == null || rr == null || d == null || dr == null) {
                 int lineNumber = 0;
                 while (reader.ready()) {
@@ -89,19 +101,22 @@ public final class EpitopeMatches extends AbstractEpitopeTool {
                         break;
                     }
                     String[] tokens = line.split("\t");
-                    if (tokens.length != 4) {
+                    if (tokens.length < 4) {
                         throw new IOException("invalid input format at line " + lineNumber);
                     }
                     r = tokens[0];
                     rr = getDetailRace(tokens[1]);
                     d = tokens[2];
                     dr = getDetailRace(tokens[3]);
-                    MatchRequest request = new MatchRequest(r, rr, d, dr, null);
+                    if (tokens.length == 5 && tokens[4] != null && !tokens[4].equals("")) { 
+                    	t = tokens[4];
+                    }
+                    MatchRequest request = new MatchRequest(r, rr, d, dr, t);
                     write(getEpitopeService().getMatches(ImmutableList.of(request)), writer);
                     lineNumber++;
                 }
             } else {
-                MatchRequest request = new MatchRequest(r, rr, d, dr, null);
+                MatchRequest request = new MatchRequest(r, rr, d, dr, token);
                 write(getEpitopeService().getMatches(ImmutableList.of(request)), writer);
             }
             return 0;
@@ -129,40 +144,61 @@ public final class EpitopeMatches extends AbstractEpitopeTool {
     static void write(final List<MatchResponse> results, final PrintWriter writer) throws IOException {
         for (MatchResponse result : results) {
             StringBuilder sb = new StringBuilder();
-            sb.append(result.getRecipient());
-            sb.append("\t");
+            boolean delim = false;
+            if (result.getRecipient() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
+	            sb.append(result.getRecipient());
+            }
             if (result.getRecipientRace() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
 	            sb.append(result.getRecipientRace());
-	            sb.append("\t");
             }
-            sb.append(result.getDonor());
-            sb.append("\t");
+            if (result.getDonor() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
+	            sb.append(result.getDonor());
+            }
             if (result.getDonorRace() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
 	            sb.append(result.getDonorRace());
-	            sb.append("\t");
             }
-            if (result.getMatchProbability() != null) {
-	            sb.append(result.getMatchProbability());
-	            sb.append("\t");
-            }
-            if (result.getPermissiveMismatchProbability() != null) {
-	            sb.append(result.getPermissiveMismatchProbability());
-	            sb.append("\t");
-            }
-            if (result.getGvhNonPermissiveMismatchProbability() != null) {
-	            sb.append(result.getGvhNonPermissiveMismatchProbability());
-	            sb.append("\t");
-            }
-            if (result.getHvgNonPermissiveMismatchProbability() != null) {
-	            sb.append(result.getHvgNonPermissiveMismatchProbability());
-	            sb.append("\t");
-            }
-            if (result.getUnknownProbability() != null) {
-            	sb.append(result.getUnknownProbability());
-            	sb.append("\t");
+            if (result.getToken() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
+            	sb.append(result.getToken());
             }
             if (result.getMatchGrade() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
             	sb.append(result.getMatchGrade());
+            }
+            if (result.getMatchProbability() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
+	            sb.append(result.getMatchProbability());
+            }
+            if (result.getPermissiveMismatchProbability() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
+	            sb.append(result.getPermissiveMismatchProbability());
+            }
+            if (result.getHvgNonPermissiveMismatchProbability() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
+	            sb.append(result.getHvgNonPermissiveMismatchProbability());
+            }
+            if (result.getGvhNonPermissiveMismatchProbability() != null) {
+	            if (delim) sb.append("\t");
+	            delim = true;
+	            sb.append(result.getGvhNonPermissiveMismatchProbability());
+            }
+            if (result.getUnknownProbability() != null) {
+	            if (delim) sb.append("\t"); 
+	            delim = true;
+            	sb.append(result.getUnknownProbability());
             }
             writer.println(sb.toString());
         }
@@ -176,10 +212,14 @@ public final class EpitopeMatches extends AbstractEpitopeTool {
         StringArgument recipientRace = new StringArgument("c", "recipient-race", "recipient race code", false);
         StringArgument donor = new StringArgument("d", "donor", "donor genotype list", false);
         StringArgument donorRace = new StringArgument("n", "donor-race", "donor race code", false);
-        FileArgument inputFile = new FileArgument("i", "input-file", "input file of tab-delimited recipient donor genotype list and race code pairs, default stdin", false);
-        FileArgument outputFile = new FileArgument("o", "output-file", "output file of tab-delimited epitope match probabilities, default stdout", false);
+        StringArgument token = new StringArgument("t", "token", "identifier token", false);
+        FileArgument inputFile = new FileArgument("i", "input-file", 
+        		"tab delim input file (recip gl, recip race, donor gl, donor race, token), (token optional), (default stdin)", false);
+        FileArgument outputFile = new FileArgument("o", "output-file", 
+        		"tab delim output file (rcpgl, rcp race, dnr gl, dnr race, tok, match grade, match prob, perm prob, hvg prob, gvh prob, unknown prob) (default stdout)", false);
 
-        ArgumentList arguments = new ArgumentList(about, help, endpointUrl, recipient, recipientRace, donor, donorRace, inputFile, outputFile);
+        ArgumentList arguments = new ArgumentList(about, help, endpointUrl, recipient, recipientRace, 
+        		donor, donorRace, token, inputFile, outputFile);
         CommandLine commandLine = new CommandLine(args);
 
         EpitopeMatches epitopeMatches = null;
@@ -194,7 +234,15 @@ public final class EpitopeMatches extends AbstractEpitopeTool {
                 Usage.usage(USAGE, null, commandLine, arguments, System.out);
                 System.exit(0);
             }
-            epitopeMatches = new EpitopeMatches(endpointUrl.getValue(DEFAULT_ENDPOINT_URL), recipient.getValue(), recipientRace.getValue(), donor.getValue(), donorRace.getValue(), inputFile.getValue(), outputFile.getValue());
+            epitopeMatches = new EpitopeMatches(
+            		endpointUrl.getValue(DEFAULT_ENDPOINT_URL), 
+            		recipient.getValue(), 
+            		recipientRace.getValue(), 
+            		donor.getValue(), 
+            		donorRace.getValue(), 
+            		token.getValue(), 
+            		inputFile.getValue(), 
+            		outputFile.getValue());
         }
         catch (CommandLineParseException e) {
             if (about.wasFound()) {
