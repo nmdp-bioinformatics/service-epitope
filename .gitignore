@@ -20,3 +20,5 @@ release.properties
 */.classpath
 */.settings/
 */.idea
+**/.DS_Store
+/.DS_Store
