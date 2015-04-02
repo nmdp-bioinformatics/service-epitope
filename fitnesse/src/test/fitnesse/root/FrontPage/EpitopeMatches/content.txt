@@ -6,11 +6,40 @@
  * last five columns are test assertions
  * blank cells aren't asserted - if you want to assert null, you must be explicit
 
-!|DT:org.nmdp.service.epitope.test.MatchTest|http://epearsonone:8080                                                                                                                                     |
-|#caseDescription                           |recipGl                            |recipRace|donorGl                            |donorRace|matchGrade?      |matchPct?|permPct?|hvgPct?|gvhPct?|unknownPct?|
-|Erik P test                                |HLA-DPB1*01:01:01+HLA-DPB1*01:01:02|CAU      |HLA-DPB1*02:01:02+HLA-DPB1*02:01:03|CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
-|Eric W test                                |HLA-DPB1*03:FYKD+HLA-DPB1*14:001   |NAMER    |HLA-DPB1*05:001+HLA-DPB1*13:BDVS   |API      |GVH_NONPERMISSIVE|null     |null    |null   |null   |null       |
-|HR Recip 1/1 Donor 1/1                     |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*17:01+HLA-DPB1*17:01      |AFA      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
-|HR Recip 2/2 Donor 2/2                     |HLA-DPB1*03:01+HLA-DPB1*14:01      |AFA      |HLA-DPB1*45:01+HLA-DPB1*03:01      |HAWI     |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
-|HR Recip 3/3 Donor 3/3                     |HLA-DPB1*01:01+HLA-DPB1*02:01      |NAMER    |HLA-DPB1*02:02+HLA-DPB1*23:01      |AFB      |PERMISSIVE       |null     |null    |null   |null   |null       |
-|HR Recip 1/1 Donor 2/2                     |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*45:01+HLA-DPB1*03:01      |AFA      |GVH_NONPERMISSIVE|0.0      |0.0     |0.0    |1.0    |0.0        |
+!| DT:org.nmdp.service.epitope.test.MatchTest|http://epearsonone:8080                                                                                                                                     |
+|#caseDescription                            |recipGl                            |recipRace|donorGl                            |donorRace|matchGrade?      |matchPct?|permPct?|hvgPct?|gvhPct?|unknownPct?|
+|Erik P test                                 |HLA-DPB1*01:01:01+HLA-DPB1*01:01:02|CAU      |HLA-DPB1*02:01:02+HLA-DPB1*02:01:03|CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|Eric W test                                 |HLA-DPB1*03:FYKD+HLA-DPB1*14:001   |NAMER    |HLA-DPB1*05:001+HLA-DPB1*13:BDVS   |API      |GVH_NONPERMISSIVE|null     |null    |null   |null   |null       |
+|HR Match                                    |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |MATCH            |1.0      |0.0     |0.0    |0.0    |0.0        |
+|HR Match - Race Different                   |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*09:01+HLA-DPB1*10:01      |AFA      |MATCH            |1.0      |0.0     |0.0    |0.0    |0.0        |
+|HR with IR Partial Match                    |HLA-DPB1*09:01+HLA-DPB1*09:01      |CAU      |HLA-DPB1*09:01+HLA-DPB1*09:GTF     |CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR with IR Partial Match and 1/3            |HLA-DPB1*09:01+HLA-DPB1*09:01      |CAU      |HLA-DPB1*09:01+HLA-DPB1*01:ANZW    |CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR Recip 1/1 Donor 1/1                      |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*17:01+HLA-DPB1*17:01      |AFA      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR Recip 1/2 Donor 1/2                      |HLA-DPB1*09:01+HLA-DPB1*03:01      |CAU      |HLA-DPB1*17:01+HLA-DPB1*14:01      |AFA      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR Recip 2/2 Donor 2/2                      |HLA-DPB1*03:01+HLA-DPB1*14:01      |AFA      |HLA-DPB1*45:01+HLA-DPB1*03:01      |HAWI     |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR Recip 3/3 Donor 3/3                      |HLA-DPB1*01:01+HLA-DPB1*02:01      |NAMER    |HLA-DPB1*02:02+HLA-DPB1*23:01      |AFB      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR Recip 1/1 Donor 2/2                      |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*45:01+HLA-DPB1*03:01      |AFA      |GVH_NONPERMISSIVE|0.0      |0.0     |0.0    |1.0    |0.0        |
+|HR Recip 1/1 Donor 3/3                      |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*02:02+HLA-DPB1*23:01      |AFA      |GVH_NONPERMISSIVE|0.0      |0.0     |0.0    |1.0    |0.0        |
+|HR Recip 2/2 Donor 3/3                      |HLA-DPB1*45:01+HLA-DPB1*03:01      |CAU      |HLA-DPB1*02:02+HLA-DPB1*23:01      |AFA      |GVH_NONPERMISSIVE|0.0      |0.0     |0.0    |1.0    |0.0        |
+|HR Recip 2/2 Donor 1/1                      |HLA-DPB1*45:01+HLA-DPB1*03:01      |CAU      |HLA-DPB1*09:01+HLA-DPB1*10:01      |AFA      |HVG_NONPERMISSIVE|0.0      |0.0     |1.0    |0.0    |0.0        |
+|HR Recip 3/3 Donor 1/1                      |HLA-DPB1*02:02+HLA-DPB1*23:01      |CAU      |HLA-DPB1*09:01+HLA-DPB1*10:01      |AFA      |HVG_NONPERMISSIVE|0.0      |0.0     |1.0    |0.0    |0.0        |
+|HR Recip 3/3 Donor 2/2                      |HLA-DPB1*02:02+HLA-DPB1*23:01      |CAU      |HLA-DPB1*45:01+HLA-DPB1*03:01      |AFA      |HVG_NONPERMISSIVE|0.0      |0.0     |1.0    |0.0    |0.0        |
+|IR CAU Recip 1or3/1 HR CAU Donor 1/1        |HLA-DPB1*01:ANZW+HLA-DPB1*10:01    |CAU      |HLA-DPB1*17:01+HLA-DPB1*17:01      |CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR CAU Recip 1/1 IR CAU Donor 1or3/1        |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*17:01    |CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|HR CAU Recip 1/1 IR CAU Donor 1or3/1or3     |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*01:ANZW  |CAU      |GVH_NONPERMISSIVE|0.0      |0.136   |0.0    |0.864  |0.0        |
+|HR CAU Recip 1/1 IR AFA Donor 1or3/1or3     |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*01:ANZW  |AFA      |GVH_NONPERMISSIVE|0.0      |0.008   |0.0    |0.992  |0.0        |
+|HR CAU Recip 1/1 IR NAMER Donor 1or3/1or3   |HLA-DPB1*09:01+HLA-DPB1*10:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*01:ANZW  |NAMER    |GVH_NONPERMISSIVE|0.0      |null    |0.0    |null   |1.0        |
+|HR CAU Recip 3/3 IR CAU Donor 1or3/1or3     |HLA-DPB1*01:01+HLA-DPB1*02:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*01:ANZW  |CAU      |PERMISSIVE       |0.0      |0.864   |0.136  |0.0    |0.0        |
+|HR CAU Recip 3/3 IR AFA Donor 1or3/1or3     |HLA-DPB1*01:01+HLA-DPB1*02:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*01:ANZW  |AFA      |PERMISSIVE       |0.0      |0.992   |0.008  |0.0    |0.0        |
+|IR CAU Recip 1or3/1 IR CAU Donor 1or3/1     |HLA-DPB1*01:ANZW+HLA-DPB1*10:01    |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*17:01    |CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|IR CAU Recip 1or3/1 IR AFA Donor 1or3/1     |HLA-DPB1*01:ANZW+HLA-DPB1*10:01    |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*17:01    |AFA      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|IR CAU Recip 1or3/3 HR CAU Donor 1/1        |HLA-DPB1*01:ANZW+HLA-DPB1*02:01    |CAU      |HLA-DPB1*17:01+HLA-DPB1*17:01      |CAU      |HVG_NONPERMISSIVE|0.0      |0.07    |0.93   |0.0    |0.0        |
+|HR CAU Recip 1/3 IR CAU Donor 1or3/1        |HLA-DPB1*09:01+HLA-DPB1*02:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*17:01    |CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|IR CAU Recip 1or3/3 IR CAU Donor 1or3/1     |HLA-DPB1*01:ANZW+HLA-DPB1*02:01    |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*17:01    |CAU      |HVG_NONPERMISSIVE|0.0      |0.07    |0.93   |0.0    |0.0        |
+|IR CAU Recip 1or3/3 IR AFA Donor 1or3/1     |HLA-DPB1*01:ANZW+HLA-DPB1*02:01    |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*17:01    |AFA      |HVG_NONPERMISSIVE|0.0      |0.07    |0.93   |0.0    |0.0        |
+|HR CAU Recip 2/2 IR AFA Donor 1or3/1or3     |HLA-DPB1*03:01+HLA-DPB1*14:01      |CAU      |HLA-DPB1*01:ANZW+HLA-DPB1*01:ANZW  |AFA      |GVH_NONPERMISSIVE|0.0      |0.0     |0.008  |0.992  |0.0        |
+|HR CAU Recip 2/2 IR AFA Donor 2or3/2or3     |HLA-DPB1*03:01+HLA-DPB1*14:01      |CAU      |HLA-DPB1*01:AFC+HLA-DPB1*01:AFC    |AFA      |GVH_NONPERMISSIVE|0.0      |0.212   |0.0    |0.788  |0.0        |
+|HR CAU Recip 2/2 IR AFA Donor 2or3/2or3     |HLA-DPB1*03:01+HLA-DPB1*14:01      |CAU      |HLA-DPB1*01:HMRR+HLA-DPB1*01:HMRR  |AFA      |GVH_NONPERMISSIVE|0.0      |0.001   |0.036  |0.963  |0.0        |
+|HR CAU Recip Null HR Donor 1/1              |HLA-DPB1*61:01N+HLA-DPB1*64:01N    |CAU      |HLA-DPB1*17:01+HLA-DPB1*17:01      |AFA      |UNKNOWN          |0.0      |0.0     |0.0    |0.0    |1.0        |
+|Recip 2381120 Donor 521812842               |HLA-DPB1*04:HJMR+HLA-DPB1*04:FNVS  |CAU      |HLA-DPB1*04:FNVS+HLA-DPB1*11:01    |CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
+|No DP CAU Donor AFA Recip                   |                                   |CAU      |                                   |AFA      |                 |         |        |       |       |           |
