@@ -23,6 +23,8 @@
 
 package org.nmdp.service.epitope.resource;
 
+import java.util.List;
+
 import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.domain.MatchResult;
@@ -45,6 +47,7 @@ public class MatchResponse {
 	private DetailRace donorRace;
 	private String token;
 	private MatchResult matchResult;
+    private List<String> trace;
 
 	@JsonCreator
 	public MatchResponse(
@@ -78,18 +81,21 @@ public class MatchResponse {
 			DetailRace recipientRace,
 			String donor,
 			DetailRace donorRace,
-			MatchResult matchResult) 
+			MatchResult matchResult,
+			List<String> trace) 
 	{
 		this.recipient = recipient;
 		this.recipientRace = recipientRace;
 		this.donor = donor;
 		this.donorRace = donorRace;
 		this.matchResult = matchResult;
+		this.trace = trace;
 	}
 
-	public MatchResponse(String token, MatchResult matchResult) {
+    public MatchResponse(String token, MatchResult matchResult, List<String> trace) {
 		this.token = token;
 		this.matchResult = matchResult;
+		this.trace = trace;
 	}
 
 	@ApiModelProperty(
@@ -168,5 +174,11 @@ public class MatchResponse {
 			required=false)
 	public MatchGrade getMatchGrade() {
 		return matchResult.getMatchGrade();
+	}
+	
+    @ApiModelProperty(
+            value="Trace data", required=false)
+	public List<String> getTrace() {
+	    return trace;
 	}
 }

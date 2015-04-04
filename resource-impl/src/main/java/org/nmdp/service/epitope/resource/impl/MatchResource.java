@@ -31,15 +31,17 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.resource.MatchRequest;
 import org.nmdp.service.epitope.resource.MatchResponse;
 import org.nmdp.service.epitope.service.MatchService;
+import org.nmdp.service.epitope.trace.Trace;
 
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiImplicitParam;
+import com.wordnik.swagger.annotations.ApiImplicitParams;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
@@ -62,25 +64,41 @@ public class MatchResource {
 			notes = "",
 			response = MatchResponse.class,
 		    responseContainer = "List")
-	@ApiImplicitParam(paramType="body", dataType="MatchRequest") // need something to generate items in spec
+	@ApiImplicitParams({
+	    @ApiImplicitParam(paramType="body", dataType="MatchRequest", value="list of match requests"), // need something to generate items in spec
+	    @ApiImplicitParam(paramType="query", name="trace", value="trace detail", required=false, dataType = "boolean")	
+	})
 	public List<MatchResponse> getMatches(
 			@ApiParam(value="List of match requests for which to create match results") // needed for description (ignored if placed above)
-			List<MatchRequest> matchRequestList) 
+			List<MatchRequest> matchRequestList,
+	        @ApiParam(value="Optional request for result trace detail", required=false) 
+			@QueryParam("trace") 
+            Boolean traceEnabled) 
 	{
-		List<MatchResponse> matchResultList = new ArrayList<>();
-		for (MatchRequest request : matchRequestList) {
-			org.nmdp.service.epitope.domain.MatchResult matchResult = matchService.getMatch(request.getRecipient(), request.getRecipientRace(), request.getDonor(), request.getDonorRace());
-			if (request.getToken() == null || request.getToken().equals("")) {
-				matchResultList.add(new MatchResponse(
-						request.getRecipient(), 
-						request.getRecipientRace(),
-						request.getDonor(), 
-						request.getDonorRace(),
-						matchResult));
-			} else {
-				matchResultList.add(new MatchResponse(request.getToken(), matchResult));
-			}
-		}
+	    List<MatchResponse> matchResultList = new ArrayList<>();
+	    if (null != traceEnabled && traceEnabled == Boolean.TRUE) {
+	        Trace.enable();
+	    }
+	    try {
+    		for (MatchRequest request : matchRequestList) {
+    			org.nmdp.service.epitope.domain.MatchResult matchResult = matchService.getMatch(request.getRecipient(), request.getRecipientRace(), request.getDonor(), request.getDonorRace());
+    			List<String> trace = Trace.getTrace();
+    			Trace.reset();
+    			if (request.getToken() == null || request.getToken().equals("")) {
+    				matchResultList.add(new MatchResponse(
+    						request.getRecipient(), 
+    						request.getRecipientRace(),
+    						request.getDonor(), 
+    						request.getDonorRace(),
+    						matchResult,
+    						trace));
+    			} else {
+    				matchResultList.add(new MatchResponse(request.getToken(), matchResult, trace));
+    			}
+    		}
+	    } finally {
+	        Trace.disable();
+	    }
 		return matchResultList;
 	}
 }

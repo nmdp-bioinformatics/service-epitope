@@ -38,7 +38,7 @@ import com.google.inject.Inject;
  * GroupResolver implementation that resolves alleles that belong to a group based the supplied DB manager.
  */
 public class DbiGroupResolver implements Function<Integer, List<Allele>> {
-
+    
 	DbiManager dbiManager;
 	GlClient glClient;
 
@@ -49,7 +49,7 @@ public class DbiGroupResolver implements Function<Integer, List<Allele>> {
 	}
 
 	@Override
-	public List<Allele> apply(Integer group) {
+	public List<Allele> apply(final Integer group) {
 		List<String> alleleStringList = dbiManager.getAllelesForGroup(group);
 		List<Allele> alleleList = Lists.transform(alleleStringList, new Function<String, Allele>() {
 			@Override public Allele apply(String name) {

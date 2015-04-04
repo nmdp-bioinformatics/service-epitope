@@ -32,6 +32,7 @@ import javax.validation.constraints.NotNull;
 
 import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheSize;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFrequency;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
@@ -133,9 +134,14 @@ public class EpitopeServiceConfiguration extends Configuration {
     /**
      * number of seconds the nmdp v3 allele code file should be kept for before refreshing
      */
-	private long nmdpV3AlleleCodeRefreshMillis = 60 * 60 * 1000L;
+    private long nmdpV3AlleleCodeRefreshMillis = 60 * 60 * 1000L;
+    
+    /**
+     * number of seconds the nmdp v3 allele code file should be kept for before refreshing
+     */
+    private double baselineAlleleFrequency = 1.0E-5; // from loren
 	
-	/**
+    /**
 	 * jdbi data source factory, set by dropwizard
 	 */
 	@Valid
@@ -291,6 +297,18 @@ public class EpitopeServiceConfiguration extends Configuration {
     public void setFrequencyCacheSize(long frequencyCacheSize) {
     	this.frequencyCacheSize = frequencyCacheSize;
     }
+
+    @JsonProperty
+    @BaselineAlleleFrequency
+    public double getBaselineAlleleFrequency() {
+        return baselineAlleleFrequency;
+    }
+
+    @JsonProperty
+    public void setBaselineAlleleFrequency(double baselineAlleleFrequency) {
+        this.baselineAlleleFrequency = baselineAlleleFrequency;
+    }
+
 
     @JsonProperty
 	public DataSourceFactory getDataSourceFactory() {

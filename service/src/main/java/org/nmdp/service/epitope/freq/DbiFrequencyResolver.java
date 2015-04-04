@@ -23,22 +23,30 @@
 
 package org.nmdp.service.epitope.freq;
 
+import java.util.Set;
+
 import org.nmdp.service.epitope.db.DbiManager;
+import org.nmdp.service.epitope.domain.DetailRace;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFrequency;
 import org.nmdp.service.epitope.service.AllelePair;
 
 import com.google.common.base.Function;
 import com.google.inject.Inject;
 
-public class DbiFrequencyResolver implements Function<AllelePair, Double> {
+public class DbiFrequencyResolver implements IFrequencyResolver {
 
 	private DbiManager dbi;
+	private Double baselineFrequency;
+    private Set<DetailRace> raceSet;
 	
 	@Inject
-	public DbiFrequencyResolver(DbiManager dbi) {
+	public DbiFrequencyResolver(DbiManager dbi, @BaselineAlleleFrequency Double baselineFrequency) {
 		this.dbi = dbi;
+		this.baselineFrequency = baselineFrequency;
+        this.raceSet = this.dbi.getRacesWithFrequencies();
 	}
 	
-	public String stripLocus(String allele) {
+	String stripLocus(String allele) {
 		int i = allele.indexOf('*');
 		if (i < 0) return allele;
 		return allele.substring(i+1);
@@ -47,16 +55,20 @@ public class DbiFrequencyResolver implements Function<AllelePair, Double> {
 	@Override
 	public Double apply(AllelePair pair) {
 		if (null == pair.getRace()) return null;
-		
-		Double a1f = dbi.getFrequency(stripLocus(pair.getA1().getGlstring()), pair.getRace());
-		if (null == a1f) return null;
+		Double a1f = getFrequency(pair.getA1().getGlstring(), pair.getRace());
 		if (pair.getA1().equals(pair.getA2())) {
 			return a1f*a1f;
 		} else {
-			Double a2f = dbi.getFrequency(stripLocus(pair.getA2().getGlstring()), pair.getRace());
-			if (null == a2f) return null;
+		    Double a2f = getFrequency(pair.getA2().getGlstring(), pair.getRace());
 			return a1f*a2f*2;
 		}
+	}
+	
+	public Double getFrequency(String allele, DetailRace race) {
+        boolean r = raceSet.contains(race);
+        Double f = dbi.getFrequency(stripLocus(allele), race);
+        if (null == f) f = r ? 0 : baselineFrequency;
+        return f;
 	}
 
 }

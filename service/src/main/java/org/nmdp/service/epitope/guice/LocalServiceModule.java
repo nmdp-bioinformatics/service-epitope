@@ -36,6 +36,7 @@ import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
 import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
 import org.nmdp.service.epitope.freq.DbiFrequencyResolver;
 import org.nmdp.service.epitope.freq.FrequencyResolver;
+import org.nmdp.service.epitope.freq.IFrequencyResolver;
 import org.nmdp.service.epitope.gl.GlResolver;
 import org.nmdp.service.epitope.gl.GlStringResolver;
 import org.nmdp.service.epitope.gl.LocalGlClientModule;
@@ -74,6 +75,7 @@ public class LocalServiceModule extends AbstractModule {
 		// standard implementations
 		bind(EpitopeService.class).to(EpitopeServiceImpl.class);
 		bind(MatchService.class).to(MatchServiceImpl.class);
+		bind(IFrequencyResolver.class).to(DbiFrequencyResolver.class);
 	}
 	
 	@Provides
@@ -100,7 +102,7 @@ public class LocalServiceModule extends AbstractModule {
 	 */
 	@Provides
 	@FrequencyResolver
-	public Function<AllelePair, Double> getFrequencyResolver(DbiFrequencyResolver resolver, @FrequencyCacheMillis long duration, @FrequencyCacheSize long size) {
+	public Function<AllelePair, Double> getFrequencyResolver(IFrequencyResolver resolver, @FrequencyCacheMillis long duration, @FrequencyCacheSize long size) {
 		return new CachingResolver<AllelePair, Double>(resolver, duration, duration, size);
 	}
 

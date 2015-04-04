@@ -25,6 +25,8 @@ package org.nmdp.service.epitope.service;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.aGenotype;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.aGenotypeList;
@@ -48,8 +50,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.service.epitope.EpitopeServiceTestData;
+import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.domain.MatchResult;
+import org.nmdp.service.epitope.freq.IFrequencyResolver;
 
 import com.google.common.base.Function;
 
@@ -59,6 +63,9 @@ public class MatchServiceImplTest {
 	@Mock
 	private Function<AllelePair, Double> freqResolver;
 
+	@Mock
+	private IFrequencyResolver freqResolverImpl;
+	
 	private GlClient glClient;
 
 	@Mock
@@ -72,20 +79,21 @@ public class MatchServiceImplTest {
 	public void setUp() throws Exception {
 		glClient = getTestGlClient();
 		glStringFilter = getTestGlStringFilter();
-		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver);
+		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver, freqResolverImpl);
 		when(glClient.createLocus("HLA-DPB1")).thenReturn(aLocus());
+		when(freqResolverImpl.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1E-5);
 	}
 		
 	@Test
 	public void testGetLowGroup() throws Exception {
 		AllelePair pair = EpitopeServiceTestData.aHeterozygousAllelePair();
-		assertThat(service.getLowGroup(pair), equalTo(1));
+		assertThat(pair.getLowG(), equalTo(1));
 	}
 	
 	@Test
 	public void testGetLowGroup_Homo() throws Exception {
 		AllelePair pair = EpitopeServiceTestData.aHomozygousAllelePair();
-		assertThat(service.getLowGroup(pair), equalTo(1));
+		assertThat(pair.getLowG(), equalTo(1));
 	}
 	
 	@Test
@@ -97,9 +105,9 @@ public class MatchServiceImplTest {
 	
 	@Test
 	public void testGetMatchGrade() throws Exception {
-		AllelePair rp = new AllelePair(group1Alleles().get(0), group2Alleles().get(0), CAU);
-		AllelePair dp = new AllelePair(group2Alleles().get(0), group3Alleles().get(0), CAU);
-		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver);
+		AllelePair rp = new AllelePair(group1Alleles().get(0), 1, group2Alleles().get(0), 2, CAU);
+		AllelePair dp = new AllelePair(group2Alleles().get(0), 2, group3Alleles().get(0), 3, CAU);
+		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver, freqResolverImpl);
 		assertThat(service.getMatchGrade(rp, dp), equalTo(MatchGrade.GVH_NONPERMISSIVE));
 	}
 
@@ -111,6 +119,7 @@ public class MatchServiceImplTest {
 		GenotypeList dgl = new GenotypeList("1", aGenotype( 
 				anAlleleList(group1Alleles().get(1), group2Alleles().get(1)),
 				anAlleleList(group2Alleles().get(1), group3Alleles().get(1))));
+		when(freqResolver.apply(any(AllelePair.class))).thenReturn(1.0E-5);
 		MatchResult test = service.getMatch(rgl, null, dgl, null);
 		assertThat(test.getMatchGrade(), equalTo(MatchGrade.GVH_NONPERMISSIVE));
 	}
