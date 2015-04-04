@@ -23,7 +23,6 @@
 
 package org.nmdp.service.epitope;
 
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -52,19 +51,19 @@ import org.immunogenomics.gl.GenotypeList;
 import org.immunogenomics.gl.Haplotype;
 import org.immunogenomics.gl.Locus;
 import org.immunogenomics.gl.client.GlClient;
-import org.immunogenomics.gl.client.local.LocalGlClient;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.nmdp.service.epitope.gl.LocalGlClientModule;
 import org.nmdp.service.epitope.service.AllelePair;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.google.common.io.ByteStreams;
 
 
@@ -118,9 +117,13 @@ public class EpitopeServiceTestData {
 				anAllele("02:01"));
 	}
 
-	public static AlleleList anAlleleList(Allele... alleles) {
-		return new AlleleList(Joiner.on("/").join(alleles), Arrays.asList(alleles));
-	}
+    public static AlleleList anAlleleList(Allele... alleles) {
+        return anAlleleList(Arrays.asList(alleles));
+    }
+
+    public static AlleleList anAlleleList(List<Allele> alleles) {
+        return new AlleleList(Joiner.on("/").join(alleles), alleles);
+    }
 
 	public static AlleleList anAlleleList() {
 		return anAlleleList(
@@ -192,11 +195,11 @@ public class EpitopeServiceTestData {
 	}
 
 	public static AllelePair aHomozygousAllelePair() {
-		return new AllelePair(group1Alleles().get(0), group1Alleles().get(0), CAU);
+		return new AllelePair(group1Alleles().get(0), 1, group1Alleles().get(0), 1, CAU);
 	}
 
 	public static AllelePair aHeterozygousAllelePair() {
-		return new AllelePair(group1Alleles().get(0), group2Alleles().get(0), CAU);
+		return new AllelePair(group1Alleles().get(0), 1, group2Alleles().get(0), 2, CAU);
 	}
 
 	public static GenotypeList aGenotypeList() {
@@ -236,10 +239,20 @@ public class EpitopeServiceTestData {
 				@Override public Locus answer(InvocationOnMock invocation) throws Throwable {
 					return aLocus(invocation.getArgumentAt(0, String.class));
 				}}).when(glClient).createLocus(anyString());
-			doAnswer(new Answer<Allele>() {
-				@Override public Allele answer(InvocationOnMock invocation) throws Throwable {
-					return anAllele(invocation.getArgumentAt(0, String.class));
-				}}).when(glClient).createAllele(anyString());
+            doAnswer(new Answer<Allele>() {
+                @Override public Allele answer(InvocationOnMock invocation) throws Throwable {
+                    return anAllele(invocation.getArgumentAt(0, String.class));
+                }}).when(glClient).createAllele(anyString());
+            doAnswer(new Answer<AlleleList>() {
+                @Override public AlleleList answer(InvocationOnMock invocation) throws Throwable {
+                    List<Allele> al = FluentIterable.from(
+                            Splitter.on(CharMatcher.anyOf(",/"))
+                            .split(invocation.getArgumentAt(0, String.class)))
+                            .transform(new Function<String, Allele>() {
+                                @Override public Allele apply(String s) { return anAllele(s); }})
+                            .toList();
+                    return anAlleleList(al);
+                }}).when(glClient).createAlleleList(anyString());
 		} catch (Exception e) {
 			throw asRuntimeException(e);
 		}

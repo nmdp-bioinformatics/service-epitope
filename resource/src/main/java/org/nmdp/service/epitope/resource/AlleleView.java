@@ -25,7 +25,6 @@ package org.nmdp.service.epitope.resource;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
@@ -33,12 +32,12 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 public class AlleleView {
 
 	private String allele;
-	private Integer group;
+    private Integer group;
 
     @JsonCreator
     public AlleleView(
     		final @JsonProperty("allele") String allele, 
-    		final @JsonProperty("group") Integer group) 
+    		final @JsonProperty("group") Integer group)
     {
 		this.allele = allele;
 		this.group = group;
@@ -49,10 +48,10 @@ public class AlleleView {
 		return allele;
 	}
 
-	@ApiModelProperty(value="Immunogenicity group associated with the allele", required=true)
-	public Integer getGroup() {
-		return group;
-	}
+    @ApiModelProperty(value="Immunogenicity group associated with the allele", required=true)
+    public Integer getGroup() {
+        return group;
+    }
 
 	@Override
 	public int hashCode() {

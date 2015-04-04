@@ -10,4 +10,14 @@
     <name>epitope-domain</name>
     <description>Common domain classes, independent of any service implementation, suitable
         for server side or client side usage.</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.immunogenomics.gl</groupId>
+            <artifactId>gl-client-local</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.immunogenomics.gl</groupId>
+            <artifactId>gl-service</artifactId>
+        </dependency>
+    </dependencies>
 </project>
