@@ -6,7 +6,6 @@
         <artifactId>service-parent</artifactId>
         <version>1</version>
     </parent>
-    <groupId>org.nmdp.service</groupId>
     <artifactId>epitope-multimodule</artifactId>
     <name>epitope-multimodule</name>
     <description>T-cell epitope group matching service for HLA-DPB1 locus.</description>
@@ -39,14 +38,12 @@
                 <groupId>org.nmdp.gl</groupId>
                 <artifactId>gl-client-local</artifactId>
                 <version>1.0-SNAPSHOT</version>
-                <!-- 
                 <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
                 </exclusions>
-                 -->
             </dependency>
             <dependency>
                 <groupId>org.nmdp.gl</groupId>
@@ -63,19 +60,6 @@
                 <artifactId>common-dropwizard</artifactId>
                 <version>1.0</version>
             </dependency>
-            <!-- do these sparkling deps need to be here? -->
-            <!-- 
-            <dependency>
-                <groupId>com.github.heuermh.sparkling</groupId>
-                <artifactId>sparkling</artifactId>
-                <version>1.1.2</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.heuermh.sparkling</groupId>
-                <artifactId>sparkling-template-velocity</artifactId>
-                <version>1.1.2</version>
-            </dependency>
-             -->
             <!-- should these be moved to parent? -->
             <dependency>
                 <groupId>org.xerial</groupId>
