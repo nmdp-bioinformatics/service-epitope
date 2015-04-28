@@ -32,7 +32,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.List;
 
-import org.immunogenomics.gl.Allele;
+import org.nmdp.gl.Allele;
 
 import com.google.common.base.Function;
 import com.google.inject.BindingAnnotation;

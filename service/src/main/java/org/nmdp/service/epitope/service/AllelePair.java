@@ -23,7 +23,7 @@
 
 package org.nmdp.service.epitope.service;
 
-import org.immunogenomics.gl.Allele;
+import org.nmdp.gl.Allele;
 import org.nmdp.service.epitope.domain.DetailRace;
 
 /**

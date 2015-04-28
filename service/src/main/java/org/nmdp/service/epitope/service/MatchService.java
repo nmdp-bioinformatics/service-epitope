@@ -23,7 +23,7 @@
 
 package org.nmdp.service.epitope.service;
 
-import org.immunogenomics.gl.GenotypeList;
+import org.nmdp.gl.GenotypeList;
 import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchResult;
 

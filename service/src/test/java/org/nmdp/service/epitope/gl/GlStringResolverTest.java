@@ -28,8 +28,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.immunogenomics.gl.GenotypeList;
-import org.immunogenomics.gl.client.GlClient;
+import org.nmdp.gl.GenotypeList;
+import org.nmdp.gl.client.GlClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

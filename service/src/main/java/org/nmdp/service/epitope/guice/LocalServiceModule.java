@@ -30,8 +30,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-import org.immunogenomics.gl.Allele;
-import org.immunogenomics.gl.GenotypeList;
+import org.nmdp.gl.Allele;
+import org.nmdp.gl.GenotypeList;
 import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
 import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
 import org.nmdp.service.epitope.freq.DbiFrequencyResolver;

@@ -42,7 +42,7 @@ import static org.nmdp.service.epitope.domain.DetailRace.CAU;
 import java.util.Arrays;
 import java.util.List;
 
-import org.immunogenomics.gl.Genotype;
+import org.nmdp.gl.Genotype;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

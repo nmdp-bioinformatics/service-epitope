@@ -23,8 +23,8 @@
 
 package org.nmdp.service.epitope.gl;
 
-import org.immunogenomics.gl.client.GlClient;
-import org.immunogenomics.gl.client.local.LocalGlClient;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.gl.client.local.LocalGlClient;
 
 import com.google.inject.AbstractModule;
 

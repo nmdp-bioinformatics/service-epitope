@@ -40,8 +40,8 @@ import static org.nmdp.service.epitope.domain.DetailRace.CAU;
 
 import java.util.Set;
 
-import org.immunogenomics.gl.GenotypeList;
-import org.immunogenomics.gl.client.GlClient;
+import org.nmdp.gl.GenotypeList;
+import org.nmdp.gl.client.GlClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

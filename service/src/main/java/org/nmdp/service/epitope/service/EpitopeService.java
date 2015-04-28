@@ -26,7 +26,7 @@ package org.nmdp.service.epitope.service;
 import java.util.List;
 import java.util.Map;
 
-import org.immunogenomics.gl.Allele;
+import org.nmdp.gl.Allele;
 
 /**
  * Interface for Epitope Service

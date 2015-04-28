@@ -23,9 +23,9 @@
 
 package org.nmdp.service.epitope.gl;
 
-import org.immunogenomics.gl.GenotypeList;
-import org.immunogenomics.gl.client.GlClient;
-import org.immunogenomics.gl.client.GlClientException;
+import org.nmdp.gl.GenotypeList;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.gl.filter.GlStringFilter;
 
 import com.google.common.base.Function;
