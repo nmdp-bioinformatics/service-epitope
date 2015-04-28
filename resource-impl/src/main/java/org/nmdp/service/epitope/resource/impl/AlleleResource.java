@@ -92,7 +92,7 @@ public class AlleleResource {
 			});
 		}
 		List<AlleleView> returnList = new ArrayList<>();
-		if (alleles != null) addToList(returnList, getAlleleViews(parseAlleles(alleles)));
+		if (alleles != null) addToList(returnList, getAlleleViews(alleles));
 		if (groups != null) {
 			addToList(returnList, getAllelesForGroupStrings(Splitter.on(",").split(groups)));
 		}
@@ -148,27 +148,23 @@ public class AlleleResource {
 		return new AlleleView(allele.getGlstring(), epitopeService.getGroupForAllele(allele));
 	}
 	
-	private Iterable<String> parseAlleles(String alleles) {
-		if (alleles.contains(",")) { 
-			return Splitter.on(",").split(alleles);
-		} else if (alleles.contains("/")) {
-			List<Allele> al;
-			try {
-				al = glClient.createAlleleList(glStringFilter.apply(alleles)).getAlleles();
-			} catch (GlClientException e) {
-				throw new RuntimeException("failed to create allele list: " + glStringFilter.apply(alleles), e);
-			}
-			return Iterables.transform(al, new Function<Allele, String>() {
-				@Override public String apply(Allele allele) { return glStringFilter.apply(allele.getGlstring()); }
-			});
-		}
-		return Arrays.asList(alleles);
+	private Iterable<AlleleView> getAlleleViews(String alleles) {
+	    alleles = alleles.replace(',', '/');
+	    List<Allele> al;
+	    try {
+	        al = glClient.createAlleleList(glStringFilter.apply(alleles)).getAlleles();
+	    } catch (GlClientException e) {
+	        throw new RuntimeException("failed to create allele list: " + glStringFilter.apply(alleles), e);
+	    }
+	    return Iterables.transform(al, new Function<Allele, AlleleView>() {
+	        @Override public AlleleView apply(Allele allele) { return getAlleleView(allele.getGlstring()); }
+	    });
 	}
 	
 	private Iterable<AlleleView> getAlleleViews(Iterable<String> alleles) {
 		List<AlleleView> alleleViewList = new ArrayList<>();
 		for(String allele : alleles) {
-			addToList(alleleViewList, getAlleleView(allele));			
+			addToList(alleleViewList, getAlleleViews(allele));			
 		}
 		return alleleViewList;
 	}

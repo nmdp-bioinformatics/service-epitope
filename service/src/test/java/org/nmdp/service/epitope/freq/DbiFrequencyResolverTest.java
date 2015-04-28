@@ -50,11 +50,11 @@ public class DbiFrequencyResolverTest {
 	@Mock
 	private DbiManager dbi;
 	
-	@InjectMocks
 	private DbiFrequencyResolver resolver;
 
 	@Before
 	public void setUp() throws Exception {
+	    resolver = new DbiFrequencyResolver(dbi, 1.0E-5);
 	}
 
 	@After

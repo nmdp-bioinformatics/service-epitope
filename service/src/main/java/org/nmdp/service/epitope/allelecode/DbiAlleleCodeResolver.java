@@ -24,8 +24,10 @@
 package org.nmdp.service.epitope.allelecode;
 
 import java.util.List;
+import java.util.Set;
 
 import org.nmdp.service.epitope.db.DbiManager;
+import org.nmdp.service.epitope.domain.DetailRace;
 
 import com.google.common.base.Function;
 import com.google.inject.Inject;
@@ -36,7 +38,7 @@ import com.google.inject.Inject;
 public class DbiAlleleCodeResolver implements Function<String, String> {
 
 	private DbiManager dbi;
-
+	
 	@Inject
 	public DbiAlleleCodeResolver(DbiManager dbi) {
 		this.dbi = dbi;
@@ -47,7 +49,6 @@ public class DbiAlleleCodeResolver implements Function<String, String> {
 	 */
 	@Override
 	public String apply(String alleleCode) {
-		
 		int sep = alleleCode.indexOf("*");
 		if (sep == -1) {
 			throw new RuntimeException("invalid allele code, can't determine locus: " + alleleCode);

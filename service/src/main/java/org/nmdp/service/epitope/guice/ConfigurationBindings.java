@@ -172,6 +172,14 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface ResolveCodes {}
+    public @interface ResolveCodes {}
+
+    /**
+     * if true, accept allele codes in GL string input (e.g. DPB1*ABCD+DPB1*EFGH) and resolve 
+     */
+    @BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+    public @interface BaselineAlleleFrequency {}
 
 }

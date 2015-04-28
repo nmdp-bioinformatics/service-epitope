@@ -73,7 +73,7 @@ public class MatchResourceTest {
 		MatchRequest request = new MatchRequest(rgl, null, dgl, null, null);
 		MatchResult result = new MatchResult(null, null, null, null, null, MatchGrade.GVH_NONPERMISSIVE);
 		when(matchService.getMatch(anyString(), any(DetailRace.class), anyString(), any(DetailRace.class))).thenReturn(result);
-		List<MatchResponse> test = resource.getMatches(Arrays.asList(request));
+		List<MatchResponse> test = resource.getMatches(Arrays.asList(request), false);
 		assertThat(test.size(), equalTo(1));
 		assertThat(test.get(0).getToken(), nullValue());
 		assertThat(test.get(0).getRecipient(), equalTo(rgl));
@@ -93,7 +93,7 @@ public class MatchResourceTest {
 		MatchRequest request = new MatchRequest("test", null, "test", null, "testToken");
 		MatchResult result = new MatchResult(null, null, null, null, null, MatchGrade.GVH_NONPERMISSIVE);
 		when(matchService.getMatch(anyString(), any(DetailRace.class), anyString(), any(DetailRace.class))).thenReturn(result);
-		List<MatchResponse> test = resource.getMatches(Arrays.asList(request));
+		List<MatchResponse> test = resource.getMatches(Arrays.asList(request), false);
 		assertThat(test.size(), equalTo(1));
 		assertThat(test.get(0).getToken(), equalTo("testToken"));
 		assertThat(test.get(0).getRecipient(), nullValue());
@@ -109,7 +109,7 @@ public class MatchResourceTest {
 		MatchRequest request = new MatchRequest(rgl, DetailRace.CAU, dgl, DetailRace.AFA, null);
 		MatchResult result = new MatchResult(0.01, 0.02, 0.03, 0.04, 0.05, null);
 		when(matchService.getMatch(anyString(), any(DetailRace.class), anyString(), any(DetailRace.class))).thenReturn(result);
-		List<MatchResponse> test = resource.getMatches(Arrays.asList(request));
+		List<MatchResponse> test = resource.getMatches(Arrays.asList(request), false);
 		assertThat(test.size(), equalTo(1));
 		assertThat(test.get(0).getToken(), nullValue());
 		assertThat(test.get(0).getRecipient(), equalTo(rgl));

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.nmdp.service.epitope.domain.DetailRace;
 import org.skife.jdbi.v2.DBI;
@@ -45,6 +46,9 @@ import org.skife.jdbi.v2.util.StringMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 public class DbiManager {
@@ -52,10 +56,13 @@ public class DbiManager {
 	private final DBI dbi;
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
+	private ImmutableSet<DetailRace> raceSet;
+
 	@Inject
 	public DbiManager(DBI dbi) {
 		this.dbi = dbi;
 		dbi.setSQLLog(new SLF4JLog(logger, Level.TRACE));
+		initRacesWithFrequencies();
 	}
 	
 	ResultSetMapper<String> LOCUS_ALLELE = new ResultSetMapper<String>() {
@@ -174,7 +181,6 @@ public class DbiManager {
 					+ " left join race_freq drf on dr.detail_race = drf.detail_race"
 					+ " where dr.detail_race = :race"
 					+ " and brf.allele = :allele"
-					+ " and (drf.detail_race is null or drf.detail_race = brf.detail_race)"
 					+ " and (drf.allele is null or drf.allele = :allele);")
 					.bind("allele", allele)
 					.bind("race", race)
@@ -182,5 +188,21 @@ public class DbiManager {
 					.first();
 		}
 	}
+
+    private void initRacesWithFrequencies() {
+        try (Handle handle = dbi.open()) {
+            Map<String, Double> alleleFreqMap = new HashMap<>();
+            List<String> list = handle.createQuery("select distinct detail_race from race_freq")
+                .map(StringMapper.FIRST)
+                .list();
+            this.raceSet = FluentIterable.from(list).transform(
+                    new Function<String, DetailRace>() {
+                        @Override public DetailRace apply(String input) { return DetailRace.valueOf(input); }
+                    }).toSet();
+        }
+    }
 	
+    public Set<DetailRace> getRacesWithFrequencies() {
+        return this.raceSet;
+    }
 }
