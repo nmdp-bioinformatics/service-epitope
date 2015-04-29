@@ -30,9 +30,9 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 
-import org.immunogenomics.gl.Allele;
-import org.immunogenomics.gl.AlleleList;
-import org.immunogenomics.gl.client.GlClient;
+import org.nmdp.gl.Allele;
+import org.nmdp.gl.AlleleList;
+import org.nmdp.gl.client.GlClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

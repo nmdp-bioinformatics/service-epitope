@@ -23,12 +23,12 @@
 
 package org.nmdp.service.epitope.gl;
 
-import org.immunogenomics.gl.client.GlClient;
-import org.immunogenomics.gl.client.cache.CacheGlClientModule;
-import org.immunogenomics.gl.client.http.HttpClient;
-import org.immunogenomics.gl.client.http.restassured.RestAssuredHttpClient;
-import org.immunogenomics.gl.client.json.JsonGlClient;
-import org.immunogenomics.gl.service.Namespace;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.gl.client.cache.CacheGlClientModule;
+import org.nmdp.gl.client.http.HttpClient;
+import org.nmdp.gl.client.http.restassured.RestAssuredHttpClient;
+import org.nmdp.gl.client.json.JsonGlClient;
+import org.nmdp.gl.service.Namespace;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.google.inject.AbstractModule;

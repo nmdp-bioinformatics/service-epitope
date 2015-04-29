@@ -23,8 +23,8 @@
 
 package org.nmdp.service.epitope.dropwizard;
 
-import org.immunogenomics.gl.Locus;
-import org.immunogenomics.gl.client.GlClient;
+import org.nmdp.gl.Locus;
+import org.nmdp.gl.client.GlClient;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.google.inject.Inject;

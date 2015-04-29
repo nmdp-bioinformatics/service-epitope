@@ -25,9 +25,9 @@ package org.nmdp.service.epitope.group;
 
 import java.util.List;
 
-import org.immunogenomics.gl.Allele;
-import org.immunogenomics.gl.client.GlClient;
-import org.immunogenomics.gl.client.GlClientException;
+import org.nmdp.gl.Allele;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.db.DbiManager;
 
 import com.google.common.base.Function;
