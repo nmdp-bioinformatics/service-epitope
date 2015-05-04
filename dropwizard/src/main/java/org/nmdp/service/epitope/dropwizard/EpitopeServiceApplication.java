@@ -96,12 +96,8 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     			new ResourceModule(),
     			new AbstractModule() {
 					@Override protected void configure() {
-						try {
-							DBI dbi = new DBIFactory().build(environment, configuration.getDataSourceFactory(), "sqlite");
-							bind(DBI.class).toInstance(dbi);
-						} catch (ClassNotFoundException e) {
-							throw new RuntimeException("failed to initialize DBI", e);
-						}
+						DBI dbi = new DBIFactory().build(environment, configuration.getDataSourceFactory(), "sqlite");
+						bind(DBI.class).toInstance(dbi);
 					}});
     	environment.getObjectMapper()
     			.enable(SerializationFeature.INDENT_OUTPUT)

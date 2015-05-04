@@ -38,7 +38,6 @@ import javax.ws.rs.core.Response;
 import org.nmdp.service.epitope.resource.impl.mime.MIMEParse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.stringtemplate.v4.ST;
 
 import com.google.common.base.Function;
 import com.google.common.escape.Escaper;
