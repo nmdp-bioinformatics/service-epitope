@@ -73,10 +73,13 @@ public class EpitopeServiceImpl implements EpitopeService {
 				return o1.getGlstring().compareTo(o2.getGlstring());
 			}
 		});
-		for (int i = 1; i <= 3; i++) {
+		for (int i = 0; i <= 3; i++) {
 			Integer group = i;
 			List<Allele> alleles = groupResolver.apply(group);
-			for (Allele allele : alleles) builder.put(group, allele);
+			if (null == alleles) {
+			    throw new IllegalStateException("failed to resolve alleles in group: " + group);
+			}
+		    for (Allele allele : alleles) builder.put(group, allele);
 		}
 		groupAlleleMap = builder.build();
 		alleleGroupMap = groupAlleleMap.inverse();

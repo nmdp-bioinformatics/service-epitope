@@ -149,6 +149,11 @@ public class AllelePair {
         return (g1.compareTo(g2) < 0) ? g1 : g2;
     }
     
+    public Integer getHighG() {
+        if (g1 == null || g2 == null) return null;
+        return (g1.compareTo(g2) > 0) ? g1 : g2;
+    }
+    
     public DetailRace getRace() {
 		return race;
 	}	
