@@ -104,7 +104,7 @@ public class AlleleResourceTest {
 	
 	@Test
 	public void testGetAlleles_AlleleListRequest_NoInputs() throws Exception {
-		AlleleListRequest r = new AlleleListRequest(null, null);
+		AlleleListRequest r = new AlleleListRequest(null, null, null);
 		List<String> test = alleleViewsToStrings(resource.getAlleles(r));
 		assertThat(test, emptyIterable());
 	}
@@ -116,14 +116,14 @@ public class AlleleResourceTest {
 				return input.getGlstring();
 			}});
 		String gls = Joiner.on(",").join(al);
-		AlleleListRequest r = new AlleleListRequest(al, null);
+		AlleleListRequest r = new AlleleListRequest(al, null, null);
 		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null));
 		assertThat(test, contains(al.toArray()));
 	}
 
 	@Test
 	public void testGetAlleles_AlleleListRequest_Groups() throws Exception {
-		AlleleListRequest r = new AlleleListRequest(null, Arrays.asList(1, 2));
+		AlleleListRequest r = new AlleleListRequest(null, Arrays.asList(1, 2), null);
 		List<String> test = alleleViewsToStrings(resource.getAlleles(r));
 		List<String> expect = allelesToStrings(FluentIterable.from(group1Alleles())
 				.append(group2Alleles()).toList());

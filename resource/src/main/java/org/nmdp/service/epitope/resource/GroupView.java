@@ -25,6 +25,8 @@ package org.nmdp.service.epitope.resource;
 
 import java.util.List;
 
+import org.nmdp.service.epitope.domain.DetailRace;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModel;
@@ -34,18 +36,32 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 public class GroupView {
 
 	private Integer group;
+	private DetailRace race;
+	private Double probability;
 	private List<String> alleleList;
 
     @JsonCreator
-    public GroupView(final @JsonProperty("group") Integer group, final @JsonProperty("alleleList") List<String> alleleList) {
+    public GroupView(final @JsonProperty("group") Integer group, final @JsonProperty("race") DetailRace race, final @JsonProperty("probability") Double probability, final @JsonProperty("alleleList") List<String> alleleList) {
 		this.group = group; 
+		this.race = race;
+		this.probability = probability;
 		this.alleleList = alleleList;
 	}
 
-	@ApiModelProperty(value="Integer representation of an immunogenicity group", required=true)
-	public Integer getGroup() {
-		return group;
-	}
+    @ApiModelProperty(value="Integer representation of an immunogenicity group", required=true)
+    public Integer getGroup() {
+        return group;
+    }
+
+    @ApiModelProperty(value="Race context of alleles for group probability", required=false)
+    public DetailRace getRace() {
+        return race;
+    }
+
+    @ApiModelProperty(value="Decimal representation of probability of occurance, given a race and set of alleles", required=false)
+    public Double getProbability() {
+        return probability;
+    }
 	
 	@ApiModelProperty(value="List of requested alleles that are associated with it", required=true)
 	public List<String> getAlleleList() {
