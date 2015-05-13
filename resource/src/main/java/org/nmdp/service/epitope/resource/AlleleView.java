@@ -23,6 +23,8 @@
 
 package org.nmdp.service.epitope.resource;
 
+import org.nmdp.service.epitope.domain.DetailRace;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModel;
@@ -33,14 +35,20 @@ public class AlleleView {
 
 	private String allele;
     private Integer group;
+    private DetailRace race;
+    private Double frequency;
 
     @JsonCreator
     public AlleleView(
     		final @JsonProperty("allele") String allele, 
-    		final @JsonProperty("group") Integer group)
+    		final @JsonProperty("group") Integer group,
+    		final @JsonProperty("race") DetailRace race,
+    		final @JsonProperty("frequency") Double frequency)
     {
 		this.allele = allele;
 		this.group = group;
+        this.race = race;
+        this.frequency = frequency;
 	}
 
 	@ApiModelProperty(value="GL string for an allele", required=true)
@@ -51,6 +59,16 @@ public class AlleleView {
     @ApiModelProperty(value="Immunogenicity group associated with the allele", required=true)
     public Integer getGroup() {
         return group;
+    }
+
+    @ApiModelProperty(value="Race context of alleles for frequencies", required=true)
+    public DetailRace getRace() {
+        return race;
+    }
+
+    @ApiModelProperty(value="Frequency of the allele within the given population", required=true)
+    public Double getFrequency() {
+        return frequency;
     }
 
 	@Override

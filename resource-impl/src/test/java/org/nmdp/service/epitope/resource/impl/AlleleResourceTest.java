@@ -44,7 +44,9 @@ import org.nmdp.gl.client.GlClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.nmdp.service.epitope.freq.IFrequencyResolver;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.AlleleView;
 import org.nmdp.service.epitope.service.EpitopeService;
@@ -60,12 +62,16 @@ public class AlleleResourceTest {
 	EpitopeService epitopeService = getTestEpitopeService();
 	GlClient glClient = getTestGlClient(); 
 	Function<String, String> glStringFilter = getTestGlStringFilter();
+
+	@Mock
+	IFrequencyResolver freqResolverImpl;
+
 	
 	private AlleleResource resource;
 
 	@Before
 	public void setUp() throws Exception {
-		resource = new AlleleResource(epitopeService, glClient, glStringFilter);
+		resource = new AlleleResource(epitopeService, glClient, glStringFilter, freqResolverImpl);
 	}
 
 	public List<String> allelesToStrings(List<Allele> alleleList) {
@@ -80,7 +86,7 @@ public class AlleleResourceTest {
 	
 	@Test
 	public void testGetAlleles_NoInputs() throws Exception {
-		List<String> test = alleleViewsToStrings(resource.getAlleles(null, null));
+		List<String> test = alleleViewsToStrings(resource.getAlleles(null, null, null));
 		List<String> expect = allelesToStrings(epitopeService.getAllAlleles());
 		assertThat(test, containsInAnyOrder(expect.toArray()));
 	}
@@ -89,14 +95,14 @@ public class AlleleResourceTest {
 	public void testGetAlleles_Alleles() throws Exception {
 		List<Allele> al = anAlleleList().getAlleles();
 		String gls = Joiner.on(",").join(al);
-		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null));
+		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null, null));
 		List<String> expect = allelesToStrings(al);
 		assertThat(test, contains(expect.toArray()));
 	}
 
 	@Test
 	public void testGetAlleles_Groups() throws Exception {
-		List<String> test = alleleViewsToStrings(resource.getAlleles(null, "1,2"));
+		List<String> test = alleleViewsToStrings(resource.getAlleles(null, "1,2", null));
 		List<String> expect = allelesToStrings(FluentIterable.from(group1Alleles())
 				.append(group2Alleles()).toList());
 		assertThat(test, contains(expect.toArray()));
@@ -117,7 +123,7 @@ public class AlleleResourceTest {
 			}});
 		String gls = Joiner.on(",").join(al);
 		AlleleListRequest r = new AlleleListRequest(al, null, null);
-		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null));
+		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null, null));
 		assertThat(test, contains(al.toArray()));
 	}
 
@@ -133,7 +139,7 @@ public class AlleleResourceTest {
 	@Test
 	public void testGetAllele() throws Exception {
 		Allele a = anAllele();
-		AlleleView test = resource.getAllele(a.getGlstring());
+		AlleleView test = resource.getAllele(a.getGlstring(), null);
 		assertThat(test.getGroup(), equalTo(epitopeService.getGroupForAllele(a)));
 	}
 

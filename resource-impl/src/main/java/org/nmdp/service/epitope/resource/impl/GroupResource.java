@@ -89,11 +89,11 @@ public class GroupResource {
 		} catch (GlClientException e) {
 			throw new RuntimeException("failed to create allele: " + glstring, e);
 		}
-		return new AlleleView(glstring, epitopeService.getGroupForAllele(allele));
+		return new AlleleView(glstring, epitopeService.getGroupForAllele(allele), null, null);
 	}
 	
 	private AlleleView getAlleleView(Allele allele) {
-		return new AlleleView(glStringFilter.apply(allele.getGlstring()), epitopeService.getGroupForAllele(allele));
+		return new AlleleView(glStringFilter.apply(allele.getGlstring()), epitopeService.getGroupForAllele(allele), null, null);
 	}
 	
 	private List<String> convertAlleleListToStringList(List<Allele> alleleList) {
