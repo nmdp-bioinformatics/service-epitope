@@ -25,9 +25,10 @@ package org.nmdp.service.epitope.resource;
 
 import java.util.List;
 
+import org.nmdp.service.epitope.domain.DetailRace;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
@@ -36,21 +37,30 @@ public class AlleleListRequest {
 
 	private List<String> alleles;
 	private List<Integer> groups;
+	private DetailRace race;
 
     @JsonCreator
     public AlleleListRequest(final @JsonProperty("alleles") List<String> alleles,
-                             final @JsonProperty("groups") List<Integer> groups) {
+                             final @JsonProperty("groups") List<Integer> groups,
+                             final @JsonProperty("race") DetailRace race) {
         this.alleles = alleles;
         this.groups = groups;
+        this.race = race;
     }
 
 	@ApiModelProperty("List of GL strings for alleles") 
     public List<String> getAlleles() {
         return alleles;
     }
-	
-	@ApiModelProperty("List of integers representing immunogenicity groups")
+    
+    @ApiModelProperty("List of integers representing immunogenicity groups")
     public List<Integer> getGroups() {
         return groups;
     }
+    
+    @ApiModelProperty("Race context to consider alleles for group probabilities")
+    public DetailRace getRace() {
+        return race;
+    }
+
 }
