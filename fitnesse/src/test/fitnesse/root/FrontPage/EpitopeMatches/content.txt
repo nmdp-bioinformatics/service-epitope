@@ -6,7 +6,7 @@
  * last five columns are test assertions
  * blank cells aren't asserted - if you want to assert null, you must be explicit
 
-!| DT:org.nmdp.service.epitope.test.MatchTest|http://epearsonone:8080                                                                                                                                     |
+!| DT:org.nmdp.service.epitope.test.MatchTest|http://localhost:8080                                                                                                                                     |
 |#caseDescription                            |recipGl                            |recipRace|donorGl                            |donorRace|matchGrade?      |matchPct?|permPct?|hvgPct?|gvhPct?|unknownPct?|
 |Erik P test                                 |HLA-DPB1*01:01:01+HLA-DPB1*01:01:02|CAU      |HLA-DPB1*02:01:02+HLA-DPB1*02:01:03|CAU      |PERMISSIVE       |0.0      |1.0     |0.0    |0.0    |0.0        |
 |Eric W test                                 |HLA-DPB1*03:FYKD+HLA-DPB1*14:001   |NAMER    |HLA-DPB1*05:001+HLA-DPB1*13:BDVS   |API      |GVH_NONPERMISSIVE|null     |null    |null   |null   |null       |

@@ -58,7 +58,7 @@ public class AlleleListRequest {
         return groups;
     }
     
-    @ApiModelProperty("Race context to consider alleles for group probabilities")
+    @ApiModelProperty("Race context to consider alleles for race frequencies and group probabilities")
     public DetailRace getRace() {
         return race;
     }

@@ -40,6 +40,8 @@ import javax.ws.rs.core.MediaType;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
+import org.nmdp.service.epitope.domain.DetailRace;
+import org.nmdp.service.epitope.freq.IFrequencyResolver;
 import org.nmdp.service.epitope.gl.filter.GlStringFilter;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.AlleleView;
@@ -65,12 +67,14 @@ public class AlleleResource {
 	private EpitopeService epitopeService;
 	private GlClient glClient;
 	private Function<String, String> glStringFilter;
+    private IFrequencyResolver freqResolverImpl;
 
 	@Inject
-	public AlleleResource(EpitopeService epitopeService, GlClient glClient, @GlStringFilter Function<String, String> glStringFilter) {
+	public AlleleResource(EpitopeService epitopeService, GlClient glClient, @GlStringFilter Function<String, String> glStringFilter, IFrequencyResolver freqResolverImpl) {
 		this.epitopeService = epitopeService;
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
+        this.freqResolverImpl = freqResolverImpl;
 	}
 	
 	@GET
@@ -83,18 +87,21 @@ public class AlleleResource {
 			String alleles, 
 			@QueryParam("groups") 
 			@ApiParam("List of immunogenicity groups, separated by \",\"")
-			String groups)
+			String groups,
+            @QueryParam("race") 
+            @ApiParam("Race code for which to determine allele frequencies")
+            final DetailRace race)
 	{
 		if (null == alleles && null == groups) 
 		{
 			return Lists.transform(epitopeService.getAllAlleles(), new Function<Allele, AlleleView>() {
-				@Override public AlleleView apply(Allele allele) { return getAlleleView(allele); }
+				@Override public AlleleView apply(Allele allele) { return getAlleleView(allele, race); }
 			});
 		}
 		List<AlleleView> returnList = new ArrayList<>();
-		if (alleles != null) addToList(returnList, getAlleleViews(alleles));
+		if (alleles != null) addToList(returnList, getAlleleViews(alleles, race));
 		if (groups != null) {
-			addToList(returnList, getAllelesForGroupStrings(Splitter.on(",").split(groups)));
+			addToList(returnList, getAllelesForGroupStrings(Splitter.on(",").split(groups), race));
 		}
 		return returnList;
 	}
@@ -111,10 +118,10 @@ public class AlleleResource {
 	{
 		List<AlleleView> returnList = new ArrayList<>();
 		if (request.getAlleles() != null) {
-			addToList(returnList, getAlleleViews(request.getAlleles()));
+			addToList(returnList, getAlleleViews(request.getAlleles(), request.getRace()));
 		}
 		if (request.getGroups() != null) {
-			addToList(returnList, getAllelesForGroups(request.getGroups()));
+			addToList(returnList, getAllelesForGroups(request.getGroups(), request.getRace()));
 		}
 		return returnList;
 	}
@@ -125,30 +132,43 @@ public class AlleleResource {
 	public AlleleView getAllele(
 			@PathParam("allele") 
 			@ApiParam("GL string for an allele")
-			String allele) 
+			String allele,
+            @QueryParam("race") 
+            @ApiParam("Race code for which to determine allele frequencies")
+            DetailRace race) 
 	{
-		return getAlleleView(allele);
+		return getAlleleView(allele, race);
 	}
 
-	private AlleleView getAlleleView(String glstring) {
+	private AlleleView getAlleleView(String glString, Integer group, DetailRace race) {
+        Double frequency = (null == race) ? null : freqResolverImpl.getFrequency(glString, race);
+        if (null != frequency) frequency = round(frequency);
+        return new AlleleView(glString, group, race, frequency);
+	}
+	 
+    private double round(double d) {
+        return (double)Math.round(d * 100000) / 100000;
+    }
+    
+	private AlleleView getAlleleView(String glstring, DetailRace race) {
 		Allele allele = null;
 		try {
 			allele = glClient.createAllele(glStringFilter.apply(glstring));
 		} catch (GlClientException e) {
 			throw new RuntimeException("failed to create allele: " + glstring, e);
 		}
-		Integer group = epitopeService.getGroupForAllele(allele);
-		if (null == group) {
-			throw new RuntimeException("unknown group for allele: " + glstring);
-		}
-		return new AlleleView(allele.getGlstring(), group);
+		return getAlleleView(allele, race);
 	}
 
-	private AlleleView getAlleleView(Allele allele) {
-		return new AlleleView(allele.getGlstring(), epitopeService.getGroupForAllele(allele));
+	private AlleleView getAlleleView(Allele allele, DetailRace race) {
+        Integer group = epitopeService.getGroupForAllele(allele);
+        if (null == group) {
+            throw new RuntimeException("unknown group for allele: " + allele);
+        }
+        return getAlleleView(allele.getGlstring(), group, race);
 	}
 	
-	private Iterable<AlleleView> getAlleleViews(String alleles) {
+	private Iterable<AlleleView> getAlleleViews(String alleles, final DetailRace race) {
 	    alleles = alleles.replace(',', '/');
 	    List<Allele> al;
 	    try {
@@ -157,31 +177,31 @@ public class AlleleResource {
 	        throw new RuntimeException("failed to create allele list: " + glStringFilter.apply(alleles), e);
 	    }
 	    return Iterables.transform(al, new Function<Allele, AlleleView>() {
-	        @Override public AlleleView apply(Allele allele) { return getAlleleView(allele.getGlstring()); }
+	        @Override public AlleleView apply(Allele allele) { return getAlleleView(allele.getGlstring(), race); }
 	    });
 	}
 	
-	private Iterable<AlleleView> getAlleleViews(Iterable<String> alleles) {
+	private Iterable<AlleleView> getAlleleViews(Iterable<String> alleles, DetailRace race) {
 		List<AlleleView> alleleViewList = new ArrayList<>();
 		for(String allele : alleles) {
-			addToList(alleleViewList, getAlleleViews(allele));			
+			addToList(alleleViewList, getAlleleViews(allele, race));			
 		}
 		return alleleViewList;
 	}
 	
-	private List<AlleleView> getAllelesForGroupStrings(Iterable<String> groups) {
+	private List<AlleleView> getAllelesForGroupStrings(Iterable<String> groups, DetailRace race) {
 		Iterable<Integer> groupInts = Iterables.transform(groups, new Function<String, Integer>() {
 			@Override public Integer apply(String string) { return new Integer(string); }
 		});
-		return getAllelesForGroups(groupInts);
+		return getAllelesForGroups(groupInts, race);
 	}
 
-	private List<AlleleView> getAllelesForGroups(Iterable<Integer> groups) {
+	private List<AlleleView> getAllelesForGroups(Iterable<Integer> groups, DetailRace race) {
 		List<AlleleView> returnList = new ArrayList<>();
 		for (Integer group : groups) {
 			List<Allele> alleleList = epitopeService.getAllelesForGroup(group);
 			for (Allele allele : alleleList) {
-				returnList.add(new AlleleView(allele.getGlstring(), group));
+				returnList.add(getAlleleView(allele.getGlstring(), group, race));
 			}
 		}
 		return returnList;
