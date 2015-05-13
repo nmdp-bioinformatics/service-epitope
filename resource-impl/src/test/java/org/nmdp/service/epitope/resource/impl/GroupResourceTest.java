@@ -33,6 +33,7 @@ import static org.nmdp.service.epitope.EpitopeServiceTestData.anAlleleList;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestEpitopeService;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGlClient;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGlStringFilter;
+import static org.nmdp.service.epitope.EpitopeServiceTestData.group0Alleles;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group1Alleles;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group2Alleles;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group3Alleles;
@@ -95,14 +96,17 @@ public class GroupResourceTest {
 	@Test
 	public void testGetGroups_NoInputs() throws Exception {
 		List<GroupView> groups = resource.getGroups(null, null, null);
-		assertThat(groups.size(), equalTo(3));
+		assertThat(groups.size(), equalTo(4));
 		ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);
-		assertThat(map.keySet(), containsInAnyOrder(1, 2, 3));
-		assertThat(map.get(1).size(), equalTo(1));
+		assertThat(map.keySet(), containsInAnyOrder(0, 1, 2, 3));
+        assertThat(map.get(0).size(), equalTo(1));
+        assertThat(map.get(1).size(), equalTo(1));
 		assertThat(map.get(2).size(), equalTo(1));
 		assertThat(map.get(3).size(), equalTo(1));
-		assertThat(map.get(1).get(0).getAlleleList(), 
-				containsInAnyOrder(allelesToStrings(group1Alleles()).toArray()));
+        assertThat(map.get(0).get(0).getAlleleList(), 
+                containsInAnyOrder(allelesToStrings(group0Alleles()).toArray()));
+        assertThat(map.get(1).get(0).getAlleleList(), 
+                containsInAnyOrder(allelesToStrings(group1Alleles()).toArray()));
 		assertThat(map.get(2).get(0).getAlleleList(), 
 				containsInAnyOrder(allelesToStrings(group2Alleles()).toArray()));
 		assertThat(map.get(3).get(0).getAlleleList(), 

@@ -98,11 +98,15 @@ public class MatchServiceImpl implements MatchService {
 		MatchGrade matchGrade = null;
 		if (recipLow == null || donorLow == null) {
 			matchGrade = MatchGrade.UNKNOWN;
-		} else if (recipLow.compareTo(donorLow) == 0) {
-			matchGrade = MatchGrade.PERMISSIVE;
 		} else {
-			matchGrade = (recipLow.compareTo(donorLow) < 0) 
-					? MatchGrade.GVH_NONPERMISSIVE : MatchGrade.HVG_NONPERMISSIVE;
+	        if (0 == recipLow) recipLow = recipAllelePair.getHighG(); // special handling for null alleles
+	        if (0 == donorLow) donorLow = donorAllelePair.getHighG(); // special handling for null alleles
+		    if (recipLow.compareTo(donorLow) == 0) {
+		        matchGrade = MatchGrade.PERMISSIVE;
+    		} else {
+    			matchGrade = (recipLow.compareTo(donorLow) < 0) 
+    					? MatchGrade.GVH_NONPERMISSIVE : MatchGrade.HVG_NONPERMISSIVE;
+    		}
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("Matched:rp:" + recipAllelePair + ",dp:" + donorAllelePair 

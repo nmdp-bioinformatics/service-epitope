@@ -99,11 +99,17 @@ public class EpitopeServiceTestData {
 		return new Allele(glstring, glstring, glstring, aLocus());
 	}
 
-	public static List<Allele> group1Alleles() {
-		return Arrays.asList( 
-				anAllele("09:01"),
-				anAllele("10:01"));
-	}
+    public static List<Allele> group0Alleles() {
+        return Arrays.asList( 
+                anAllele("61:01N"),
+                anAllele("64:01N"));
+    }
+
+    public static List<Allele> group1Alleles() {
+        return Arrays.asList( 
+                anAllele("09:01"),
+                anAllele("10:01"));
+    }
 
 	public static List<Allele> group2Alleles() {
 		return Arrays.asList( 
@@ -226,7 +232,8 @@ public class EpitopeServiceTestData {
 	
 	public static Function<Integer, List<Allele>> getTestGroupResolver() {
 		Function<Integer, List<Allele>> groupResolver = mock(Function.class);
-		when(groupResolver.apply(1)).thenReturn(group1Alleles());
+        when(groupResolver.apply(0)).thenReturn(group0Alleles());
+        when(groupResolver.apply(1)).thenReturn(group1Alleles());
 		when(groupResolver.apply(2)).thenReturn(group2Alleles());
 		when(groupResolver.apply(3)).thenReturn(group3Alleles());
 		return groupResolver;
