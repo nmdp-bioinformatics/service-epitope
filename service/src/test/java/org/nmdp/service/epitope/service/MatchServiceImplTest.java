@@ -79,7 +79,7 @@ public class MatchServiceImplTest {
 	public void setUp() throws Exception {
 		glClient = getTestGlClient();
 		glStringFilter = getTestGlStringFilter();
-		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver, freqResolverImpl);
+		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver, freqResolverImpl, 0.01);
 		when(glClient.createLocus("HLA-DPB1")).thenReturn(aLocus());
 		when(freqResolverImpl.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1E-5);
 	}
@@ -107,7 +107,7 @@ public class MatchServiceImplTest {
 	public void testGetMatchGrade() throws Exception {
 		AllelePair rp = new AllelePair(group1Alleles().get(0), 1, group2Alleles().get(0), 2, CAU);
 		AllelePair dp = new AllelePair(group2Alleles().get(0), 2, group3Alleles().get(0), 3, CAU);
-		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver, freqResolverImpl);
+		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqResolver, freqResolverImpl, 0.01);
 		assertThat(service.getMatchGrade(rp, dp), equalTo(MatchGrade.GVH_NONPERMISSIVE));
 	}
 
@@ -121,7 +121,7 @@ public class MatchServiceImplTest {
 				anAlleleList(group2Alleles().get(1), group3Alleles().get(1))));
 		when(freqResolver.apply(any(AllelePair.class))).thenReturn(1.0E-5);
 		MatchResult test = service.getMatch(rgl, null, dgl, null);
-		assertThat(test.getMatchGrade(), equalTo(MatchGrade.GVH_NONPERMISSIVE));
+		assertThat(test.getMatchGrade(), equalTo(MatchGrade.PERMISSIVE));
 	}
 	
 }

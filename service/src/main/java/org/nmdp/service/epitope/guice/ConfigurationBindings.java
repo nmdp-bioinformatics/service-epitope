@@ -182,4 +182,12 @@ public @interface ConfigurationBindings {
     @Retention(RUNTIME)
     public @interface BaselineAlleleFrequency {}
 
+    /**
+     * threshold above which to consider possible outcomes as reported match grade 
+     */
+    @BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+    public @interface MatchGradeThreshold {}
+
 }

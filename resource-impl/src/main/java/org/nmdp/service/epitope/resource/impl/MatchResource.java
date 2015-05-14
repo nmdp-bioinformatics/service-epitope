@@ -47,7 +47,7 @@ import com.wordnik.swagger.annotations.ApiParam;
 
 @Path("matches/")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value="Matches", description="Returns DPB1 matches based on recipient and donor genotypes")
+@Api(value="Matches", description="Returns DPB1 matches based on recipient and donor genotypes.")
 public class MatchResource {
 
 	MatchService matchService;
@@ -61,7 +61,7 @@ public class MatchResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@ApiOperation(
 			value = "Returns list of match results corrolated by token (or genotypes, if no token is provided).", 
-			notes = "",
+			notes = "The reported match grade is the most optimistic outcome possible with a probability greater than 0.01.",
 			response = MatchResponse.class,
 		    responseContainer = "List")
 	@ApiImplicitParams({
