@@ -52,25 +52,12 @@ public class MatchResult {
 			Double unknownProbability, 
 			MatchGrade matchGrade)
 	{
-		double total = zeroNull(matchProbability)
-				+ zeroNull(permissiveMismatchProbability)
-				+ zeroNull(hvgNonPermissiveMismatchProbability) 
-				+ zeroNull(gvhNonPermissiveMismatchProbability)
-				+ zeroNull(unknownProbability);
-		this.matchProbability = (null == matchProbability) ? null : round(matchProbability/total);
-		this.permissiveMismatchProbability = (null == permissiveMismatchProbability) ? null : round(permissiveMismatchProbability/total);
-		this.hvgNonPermissiveMismatchProbability = (null == hvgNonPermissiveMismatchProbability) ? null : round(hvgNonPermissiveMismatchProbability/total);
-		this.gvhNonPermissiveMismatchProbability = (null == gvhNonPermissiveMismatchProbability) ? null : round(gvhNonPermissiveMismatchProbability/total);
-		this.unknownProbability = (null == unknownProbability ) ? null : round(unknownProbability/total);
+		this.matchProbability = matchProbability;
+		this.permissiveMismatchProbability = permissiveMismatchProbability;
+		this.hvgNonPermissiveMismatchProbability = hvgNonPermissiveMismatchProbability;
+		this.gvhNonPermissiveMismatchProbability = gvhNonPermissiveMismatchProbability;
+		this.unknownProbability = unknownProbability;
 		this.matchGrade = matchGrade;
-	}
-
-	private double zeroNull(Double d) {
-		return (null == d) ? 0 : d;
-	}
-	
-	private double round(double d) {
-		return (double)Math.round(d * 1000) / 1000;
 	}
 	
 	/**

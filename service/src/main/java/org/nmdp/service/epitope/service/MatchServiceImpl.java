@@ -33,6 +33,7 @@ import static org.nmdp.service.epitope.domain.MatchGrade.UNKNOWN;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.nmdp.gl.Allele;
@@ -51,6 +52,7 @@ import org.nmdp.service.epitope.freq.FrequencyResolver;
 import org.nmdp.service.epitope.freq.IFrequencyResolver;
 import org.nmdp.service.epitope.gl.GlResolver;
 import org.nmdp.service.epitope.gl.filter.GlStringFilter;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGradeThreshold;
 import org.nmdp.service.epitope.trace.Trace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +71,7 @@ public class MatchServiceImpl implements MatchService {
     private Function<AllelePair, Double> freqResolver;
     private IFrequencyResolver freqResolverImpl;
 	private Function<String, String> glStringFilter;
+	private double matchGradeThreshold;
 	Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Inject
@@ -78,7 +81,8 @@ public class MatchServiceImpl implements MatchService {
 			GlClient glClient, 
 			@GlStringFilter Function<String, String> glStringFilter, 
 			@FrequencyResolver Function<AllelePair, Double> freqResolver, // supports caching
-			IFrequencyResolver freqResolverImpl) 
+			IFrequencyResolver freqResolverImpl,
+			@MatchGradeThreshold Double matchGradeThreshold) 
 	{
 		this.epitopeService = epitopeService;
 		this.glResolver = glResolver;
@@ -86,6 +90,7 @@ public class MatchServiceImpl implements MatchService {
         this.freqResolverImpl = freqResolverImpl;
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
+		this.matchGradeThreshold = (null != matchGradeThreshold) ? matchGradeThreshold : 0.01;
 	}
 	
 	MatchGrade getMatchGrade(AllelePair recipAllelePair, AllelePair donorAllelePair) {
@@ -206,12 +211,13 @@ public class MatchServiceImpl implements MatchService {
 //				}
 			}
 		}
+		normalizeProbabilities(pmap);
 		logger.debug("finished with: " + pmap);
 		grade = UNKNOWN;
-        if (pmap.get(MATCH) > 0.0) grade = MATCH;
-        if (pmap.get(PERMISSIVE) > 0.0) grade = PERMISSIVE;
-        if (pmap.get(HVG_NONPERMISSIVE) > 0.0) grade = HVG_NONPERMISSIVE;
-        if (pmap.get(GVH_NONPERMISSIVE) > 0.0) grade = GVH_NONPERMISSIVE;
+        if (pmap.get(GVH_NONPERMISSIVE) >= matchGradeThreshold) grade = GVH_NONPERMISSIVE;
+        if (pmap.get(HVG_NONPERMISSIVE) >= matchGradeThreshold) grade = HVG_NONPERMISSIVE;
+        if (pmap.get(PERMISSIVE) >= matchGradeThreshold) grade = PERMISSIVE;
+        if (pmap.get(MATCH) >= matchGradeThreshold) grade = MATCH;
 		// return both probabilities and match grade
 		return new MatchResult(
 		        pmap.get(MATCH),
@@ -222,7 +228,16 @@ public class MatchServiceImpl implements MatchService {
 		        grade);
 	}
 
-	Set<AllelePair> getAllelePairs(GenotypeList gl, DetailRace race) {
+	private void normalizeProbabilities(EnumMap<MatchGrade, Double> pmap) {
+        double total = 0.0;
+        for (double d : pmap.values()) { total += d; }
+        for (Map.Entry<MatchGrade, Double> entry : pmap.entrySet()) {
+            double newValue = (double)Math.round(entry.getValue() / total * 1000) / 1000;
+            entry.setValue(newValue);
+        }
+    }
+
+    Set<AllelePair> getAllelePairs(GenotypeList gl, DetailRace race) {
 		Locus dpb1 = null;
 		try {
 			dpb1 = glClient.createLocus("HLA-DPB1");

@@ -42,6 +42,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.Group2Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.Group3Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGradeThreshold;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeRefreshMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
@@ -140,7 +141,12 @@ public class EpitopeServiceConfiguration extends Configuration {
      * number of seconds the nmdp v3 allele code file should be kept for before refreshing
      */
     private double baselineAlleleFrequency = 1.0E-5; // from loren
-	
+    
+    /**
+     * threshold above which to consider possible outcomes as reported match grade
+     */
+    private double matchGradeThreshold = 0.01;
+    
     /**
 	 * jdbi data source factory, set by dropwizard
 	 */
@@ -341,7 +347,18 @@ public class EpitopeServiceConfiguration extends Configuration {
 			long nmdpV3AlleleCodeRefreshMillis) {
 		this.nmdpV3AlleleCodeRefreshMillis = nmdpV3AlleleCodeRefreshMillis;
 	}
-    
+
+    @MatchGradeThreshold
+    @JsonProperty
+    public double getMatchGradeThreshold() {
+        return matchGradeThreshold;
+    }
+
+    @JsonProperty
+    public void setMatchGradeThreshold(double matchGradeThreshold) {
+        this.matchGradeThreshold = matchGradeThreshold;
+    }
+
 
 
 }
