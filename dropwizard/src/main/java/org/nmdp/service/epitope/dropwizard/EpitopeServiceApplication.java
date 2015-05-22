@@ -24,6 +24,7 @@
 package org.nmdp.service.epitope.dropwizard;
 
 import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.flyway.FlywayBundle;
 import io.dropwizard.flyway.FlywayFactory;
 import io.dropwizard.jdbi.DBIFactory;
@@ -31,6 +32,7 @@ import io.dropwizard.jdbi.bundles.DBIExceptionsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
+import org.flywaydb.core.Flyway;
 import org.nmdp.service.common.domain.ConfigurationModule;
 import org.nmdp.service.common.dropwizard.CommonServiceApplication;
 import org.nmdp.service.epitope.guice.ConfigurationBindings;
@@ -72,8 +74,14 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
      */
     @Override
     public void initializeService(Bootstrap<EpitopeServiceConfiguration> bootstrap) {
+        bootstrap.addBundle(new FlywayMigrationBundle<EpitopeServiceConfiguration>() {
+            @Override
+            public DataSourceFactory getDataSourceFactory(EpitopeServiceConfiguration configuration) {
+                return configuration.getDataSourceFactory();
+            }
+        });
     	bootstrap.addBundle(new DBIExceptionsBundle());
-        bootstrap.addBundle(new FlywayBundle<EpitopeServiceConfiguration>() {
+    	bootstrap.addBundle(new FlywayBundle<EpitopeServiceConfiguration>() {
             @Override
             public DataSourceFactory getDataSourceFactory(EpitopeServiceConfiguration configuration) {
                 return configuration.getDataSourceFactory();
@@ -90,7 +98,8 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
      */
 	@Override
 	public void runService(final EpitopeServiceConfiguration configuration, final Environment environment) throws Exception {
-    	Injector injector = Guice.createInjector(
+
+	    Injector injector = Guice.createInjector(
     			new ConfigurationModule(ConfigurationBindings.class, configuration), 
     			new LocalServiceModule(), 
     			new ResourceModule(),

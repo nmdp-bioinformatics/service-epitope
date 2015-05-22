@@ -15,7 +15,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -27,7 +26,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.6</version>
                 <configuration>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <filters>
@@ -60,9 +58,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/docker</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/docker</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes><include>${project.build.finalName}.jar</include></includes>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -89,16 +113,16 @@
             <artifactId>guice</artifactId>
         </dependency>
         <dependency>
-			<groupId>org.nmdp.service</groupId>
+            <groupId>org.nmdp.service</groupId>
             <artifactId>epitope-resource-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-			<groupId>org.nmdp.service</groupId>
+            <groupId>org.nmdp.service</groupId>
             <artifactId>common-dropwizard</artifactId>
         </dependency>
         <dependency>
-			<groupId>org.nmdp.service</groupId>
+            <groupId>org.nmdp.service</groupId>
             <artifactId>common-service</artifactId>
         </dependency>
     </dependencies>
