@@ -21,21 +21,27 @@
 
 */
 
-package org.nmdp.epitope.db;
+package db.migration;
 
-import static org.nmdp.epitope.db.common.DbUtil.loadCsv;
+import static db.migration.util.DbUtil.loadCsv;
 
 import java.sql.Connection;
 
-import com.googlecode.flyway.core.api.migration.jdbc.JdbcMigration;
+import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
 
 public class V2__load_initial_data implements JdbcMigration {
 
 	@Override
 	public void migrate(Connection conn) throws Exception {
-		loadCsv(conn, "insert into allele_group (locus, allele, immune_group) values (?, ?, ?);", "../allele_group.csv");
-		loadCsv(conn, "insert into detail_race (detail_race, broad_race, description) values (?, ?, ?);", "../allele_group.csv");
-		loadCsv(conn, "insert into race_freq (locus, detail_race, allele, frequency) values (?, ?, ?, ?);", "../allele_group.csv");
+		loadCsv(conn, 
+		        "insert into allele_group (locus, allele, immune_group) values (?, ?, ?);", 
+		        "db/v2/allele_group.csv");
+		loadCsv(conn, 
+		        "insert into detail_race (detail_race, broad_race, description) values (?, ?, ?);", 
+		        "db/v2/detail_race.csv");
+		loadCsv(conn, 
+		        "insert into race_freq (locus, detail_race, allele, frequency) values (?, ?, ?, ?);", 
+		        "db/v2/race_freq.csv");
 	}
 
 }

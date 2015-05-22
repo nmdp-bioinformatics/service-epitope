@@ -70,5 +70,10 @@
             <artifactId>epitope-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.nmdp.service</groupId>
+            <artifactId>epitope-db</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -21,35 +21,46 @@
 
 */
 
-package org.nmdp.epitope.db.common;
+package db.migration.util;
 
+import java.net.URL;
 import java.sql.Connection;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.PreparedBatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 
 public class DbUtil {
 
-	public static void loadCsv(Connection conn, String sql, String csvFile) throws Exception {
+    static Logger log = LoggerFactory.getLogger(DbUtil.class);
+    
+	public static void loadCsv(Connection conn, String sql, String csvResource) throws Exception {
+	    log.debug("csvResource: " + csvResource);
+	    URL csvUrl = DbUtil.class.getClassLoader().getResource(csvResource);
+	    log.debug("csvUrl: " + csvUrl);
 		try (Handle handle = DBI.open(conn)) {
 			PreparedBatch batch = handle.prepareBatch(sql);
-			Iterator<String[]> it = readCsv(csvFile);
+			Iterator<Object[]> it = readCsv(csvUrl);
 			while (it.hasNext()) {
-				batch.add(it.next());
+			    Object[] row = it.next();
+			    log.trace("row: " + Arrays.toString(row));
+				batch.add(row);
 			}
 			batch.execute();
 		}
 	}
 	
-	public static Iterator<String[]> readCsv(String url) throws Exception {
+	public static Iterator<Object[]> readCsv(URL csvUrl) throws Exception {
 		CsvMapper mapper = new CsvMapper();
 		mapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
-		return mapper.reader(String[].class).readValues(url);
+		return mapper.reader(String[].class).readValues(csvUrl);
 	}
 	
 }
