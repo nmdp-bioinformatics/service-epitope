@@ -9,6 +9,9 @@
     <artifactId>epitope-fitnesse</artifactId>
     <name>epitope-fitnesse</name>
     <description>Test fixtures and pages for fitnesse</description>
+    <properties>
+        <fitnesse.port>48082</fitnesse.port>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.fitnesse</groupId>
@@ -43,7 +46,7 @@
                     <mainClass>fitnesseMain.FitNesseMain</mainClass>
                     <classpathScope>test</classpathScope>
                     <arguments>
-                        <argument>-p</argument><argument>8082</argument>
+                        <argument>-p</argument><argument>${fitnesse.port}</argument>
                         <argument>-d</argument><argument>src/test/fitnesse</argument>
                         <argument>-r</argument><argument>root</argument>
                         <argument>-o</argument>
