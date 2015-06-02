@@ -28,6 +28,6 @@ package org.nmdp.service.epitope.guice;
  * @param <K> cache key
  * @param <V> cache value
  */
-public interface CachingResolverListener<K, V> {
+public interface CachingFunctionListener<K, V> {
 	public abstract void reloaded(K key, V oldValue, V newValue);
 }

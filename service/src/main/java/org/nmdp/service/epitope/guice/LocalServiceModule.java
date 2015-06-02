@@ -34,9 +34,8 @@ import org.nmdp.gl.Allele;
 import org.nmdp.gl.GenotypeList;
 import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
 import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
-import org.nmdp.service.epitope.freq.DbiFrequencyResolver;
-import org.nmdp.service.epitope.freq.FrequencyResolver;
-import org.nmdp.service.epitope.freq.IFrequencyResolver;
+import org.nmdp.service.epitope.db.DbiManager;
+import org.nmdp.service.epitope.db.DbiManagerImpl;
 import org.nmdp.service.epitope.gl.GlResolver;
 import org.nmdp.service.epitope.gl.GlStringResolver;
 import org.nmdp.service.epitope.gl.LocalGlClientModule;
@@ -54,15 +53,18 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
-import org.nmdp.service.epitope.service.AllelePair;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
+import org.nmdp.service.epitope.service.FrequencyResolver;
+import org.nmdp.service.epitope.service.FrequencyService;
+import org.nmdp.service.epitope.service.FrequencyServiceImpl;
 import org.nmdp.service.epitope.service.MatchService;
 import org.nmdp.service.epitope.service.MatchServiceImpl;
 
 import com.google.common.base.Function;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 
 public class LocalServiceModule extends AbstractModule {
 
@@ -73,10 +75,19 @@ public class LocalServiceModule extends AbstractModule {
 		install(new LocalGlClientModule());
 		
 		// standard implementations
+		bind(DbiManager.class).to(DbiManagerImpl.class);
 		bind(EpitopeService.class).to(EpitopeServiceImpl.class);
 		bind(MatchService.class).to(MatchServiceImpl.class);
-		bind(IFrequencyResolver.class).to(DbiFrequencyResolver.class);
+		bind(FrequencyService.class).to(FrequencyServiceImpl.class);
 	}
+
+	@Provides
+	@Singleton
+    public FrequencyResolver getFrequencyResolver(final DbiManager dbiManager, @FrequencyCacheMillis long duration, @FrequencyCacheSize long size) {
+	    final CachingFunction<AlleleRace, Double> cf = 
+	            new CachingFunction<AlleleRace, Double>(ar -> dbiManager.getFrequency(ar.getAllele(), ar.getRace()), duration, duration, size);
+	    return (allele, race) -> cf.apply(new AlleleRace(allele, race));
+    }
 	
 	@Provides
 	@NmdpV3AlleleCodeUrls 
@@ -98,39 +109,33 @@ public class LocalServiceModule extends AbstractModule {
 	}
 	
 	/**
-	 * resolve frequencies from internal sqlite db
-	 */
-	@Provides
-	@FrequencyResolver
-	public Function<AllelePair, Double> getFrequencyResolver(IFrequencyResolver resolver, @FrequencyCacheMillis long duration, @FrequencyCacheSize long size) {
-		return new CachingResolver<AllelePair, Double>(resolver, duration, duration, size);
-	}
-
-	/**
 	 * resolve allele codes from alpha.v3.zip file
 	 */
 	@Provides
+	@Singleton
 	@AlleleCodeResolver
 	public Function<String, String> getAlleleCodeResolver(NmdpV3AlleleCodeResolver resolver, @AlleleCodeCacheMillis long duration, @AlleleCodeCacheSize long size) {
-		return new CachingResolver<String, String>(resolver, duration, duration, size);
+		return new CachingFunction<String, String>(resolver, duration, duration, size);
 	}
 	
 	/**
 	 * resolve groups from internal sqlite db
 	 */
 	@Provides
+	@Singleton
 	@GroupResolver
 	public Function<Integer, List<Allele>> getGroupResolver(DbiGroupResolver resolver, @GroupCacheMillis long duration) {
-		return new CachingResolver<Integer, List<Allele>>(resolver, duration, duration, 3);
+		return new CachingFunction<Integer, List<Allele>>(resolver, duration, duration, 3);
 	}
 	
 	/**
 	 * resolve gl strings using supplied glclient (see glclient bindings)
 	 */
 	@Provides
+	@Singleton
 	@GlResolver
 	public Function<String, GenotypeList> getGlResolver(GlStringResolver resolver, @GlCacheMillis long duration, @GlCacheSize long size) {
-		return new CachingResolver<String, GenotypeList>(resolver, duration, duration, size);
+		return new CachingFunction<String, GenotypeList>(resolver, duration, duration, size);
 	}
 	
 	/**

@@ -26,6 +26,8 @@ package org.nmdp.service.epitope.resource.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -41,11 +43,11 @@ import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.freq.IFrequencyResolver;
 import org.nmdp.service.epitope.gl.filter.GlStringFilter;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.AlleleView;
 import org.nmdp.service.epitope.service.EpitopeService;
+import org.nmdp.service.epitope.service.FrequencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,15 +69,15 @@ public class AlleleResource {
 	private EpitopeService epitopeService;
 	private GlClient glClient;
 	private Function<String, String> glStringFilter;
-    private IFrequencyResolver freqResolverImpl;
+	private FrequencyService freqService;
 
 	@Inject
-	public AlleleResource(EpitopeService epitopeService, GlClient glClient, @GlStringFilter Function<String, String> glStringFilter, IFrequencyResolver freqResolverImpl) {
+	public AlleleResource(EpitopeService epitopeService, GlClient glClient, @GlStringFilter Function<String, String> glStringFilter, FrequencyService freqService) {
 		this.epitopeService = epitopeService;
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
-        this.freqResolverImpl = freqResolverImpl;
-	}
+		this.freqService = freqService;
+    }
 	
 	@GET
 	@ApiOperation(value="Returns alleles with their associated immunogenicity groups",
@@ -141,7 +143,7 @@ public class AlleleResource {
 	}
 
 	private AlleleView getAlleleView(String glString, Integer group, DetailRace race) {
-        Double frequency = (null == race) ? null : freqResolverImpl.getFrequency(glString, race);
+        Double frequency = (null == race) ? null : freqService.getFrequency(glString, race);
         if (null != frequency) frequency = round(frequency);
         return new AlleleView(glString, group, race, frequency);
 	}
@@ -176,30 +178,31 @@ public class AlleleResource {
 	    } catch (GlClientException e) {
 	        throw new RuntimeException("failed to create allele list: " + glStringFilter.apply(alleles), e);
 	    }
-	    return Iterables.transform(al, new Function<Allele, AlleleView>() {
-	        @Override public AlleleView apply(Allele allele) { return getAlleleView(allele.getGlstring(), race); }
-	    });
+	    return Iterables.transform(al, a -> getAlleleView(a.getGlstring(), race));
 	}
 	
-	private Iterable<AlleleView> getAlleleViews(Iterable<String> alleles, DetailRace race) {
-		List<AlleleView> alleleViewList = new ArrayList<>();
-		for(String allele : alleles) {
-			addToList(alleleViewList, getAlleleViews(allele, race));			
-		}
-		return alleleViewList;
-	}
-	
+    private Iterable<AlleleView> getAlleleViews(Iterable<String> alleles, DetailRace race) {
+        List<AlleleView> alleleViewList = new ArrayList<>();
+        for(String allele : alleles) {
+            addToList(alleleViewList, getAlleleViews(allele, race));            
+        }
+        return alleleViewList;
+    }
+    
 	private List<AlleleView> getAllelesForGroupStrings(Iterable<String> groups, DetailRace race) {
-		Iterable<Integer> groupInts = Iterables.transform(groups, new Function<String, Integer>() {
-			@Override public Integer apply(String string) { return new Integer(string); }
-		});
+		Iterable<Integer> groupInts = Iterables.transform(groups, s -> new Integer(s));
 		return getAllelesForGroups(groupInts, race);
 	}
 
 	private List<AlleleView> getAllelesForGroups(Iterable<Integer> groups, DetailRace race) {
-		List<AlleleView> returnList = new ArrayList<>();
+//		return (List<AlleleView>)StreamSupport.stream(groups.spliterator(), false)
+//		        .flatMap(g -> epitopeService.getAllelesForGroup(g).stream()
+//		                .map(a -> getAlleleView(a.getGlstring(), g, race)))
+//		        .collect(Collectors.toList());
+        List<AlleleView> returnList = new ArrayList<>();
 		for (Integer group : groups) {
 			List<Allele> alleleList = epitopeService.getAllelesForGroup(group);
+			alleleList.stream().map(a -> getAlleleView(a.getGlstring(), group, race));
 			for (Allele allele : alleleList) {
 				returnList.add(getAlleleView(allele.getGlstring(), group, race));
 			}

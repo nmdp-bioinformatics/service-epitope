@@ -32,10 +32,10 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.junit.Test;
-import org.nmdp.service.epitope.db.DbiManager;
+import org.nmdp.service.epitope.db.DbiManagerImpl;
 
 
-public class DbiManagerTest {
+public class DbiManagerImplTest {
 //
 //	DBI dbi = 
 //	

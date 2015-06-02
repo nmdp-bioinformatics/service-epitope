@@ -21,7 +21,7 @@
 
 */
 
-package org.nmdp.service.epitope.freq;
+package org.nmdp.service.epitope.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -37,50 +37,38 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.freq.DbiFrequencyResolver;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DbiFrequencyResolverTest {
+public class FrequencyServiceImplTest {
 
 	@Mock
-	private DbiManager dbi;
+	private FrequencyResolver resolver;
 	
-	private DbiFrequencyResolver resolver;
+	@Mock
+	private DbiManager dbiManager;
+	
+	private FrequencyServiceImpl service;
 
 	@Before
 	public void setUp() throws Exception {
-	    resolver = new DbiFrequencyResolver(dbi, 1.0E-5);
-	}
-
-	@After
-	public void tearDown() throws Exception {
+	    service = new FrequencyServiceImpl(resolver, dbiManager, 1.0E-5);
 	}
 
 	@Test
 	public void testStripLocus() throws Exception {
-		String test = resolver.stripLocus("HLA-DPB1*01:01");
+		String test = service.stripLocus("HLA-DPB1*01:01");
 		assertThat(test, equalTo("01:01"));
 	}
 
 	@Test
-	public void testApply_Homozygous() throws Exception {
-		when(dbi.getFrequency(anyString(), any(DetailRace.class))).thenReturn(.01);
-		Double test = resolver.apply(aHomozygousAllelePair());
-		verify(dbi).getFrequency(anyString(), any(DetailRace.class));
-		assertThat(test, org.hamcrest.Matchers.closeTo(0.0001, 0.0000001));
-	}
-
-	@Test
-	public void testApply_Heterozygous() throws Exception {
-		when(dbi.getFrequency(anyString(), any(DetailRace.class))).thenReturn(.02).thenReturn(.03);
-		Double test = resolver.apply(aHeterozygousAllelePair());
-		verify(dbi, times(2)).getFrequency(anyString(), any(DetailRace.class));
-		assertThat(test, org.hamcrest.Matchers.closeTo(0.0012, 0.0000001));
+	public void testGetFrequency() throws Exception {
+		when(resolver.getFrequency(anyString(), any(DetailRace.class))).thenReturn(.02);
+		Double test = service.getFrequency("HLA-DPB1*01:01", DetailRace.CAU);
+		assertThat(test, org.hamcrest.Matchers.closeTo(0.02, 0.0000001));
 	}
 
 }

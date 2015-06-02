@@ -28,20 +28,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
-import org.dishevelled.commandline.ArgumentList;
-import org.dishevelled.commandline.CommandLine;
-import org.dishevelled.commandline.CommandLineParseException;
-import org.dishevelled.commandline.CommandLineParser;
 import org.dishevelled.commandline.Switch;
-import org.dishevelled.commandline.Usage;
 import org.dishevelled.commandline.argument.StringArgument;
 import org.nmdp.service.epitope.client.EndpointUrl;
 import org.nmdp.service.epitope.client.EpitopeService;
 import org.nmdp.service.epitope.client.EpitopeServiceModule;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 
 /**
  * Abstract epitope command line tool.

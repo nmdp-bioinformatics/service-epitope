@@ -49,10 +49,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.freq.IFrequencyResolver;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.GroupView;
 import org.nmdp.service.epitope.service.EpitopeService;
+import org.nmdp.service.epitope.service.FrequencyService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -72,14 +72,14 @@ public class GroupResourceTest {
 	private GroupResource resource;
 
 	@Mock
-    private IFrequencyResolver freqResolverImpl;	
+    private FrequencyService freqService;	
 	
 	@Before
 	public void setUp() throws Exception {
 		epitopeService = getTestEpitopeService();
 		glClient = getTestGlClient();
 		glStringFilter = getTestGlStringFilter();
-		resource = new GroupResource(epitopeService, glClient, glStringFilter, freqResolverImpl);
+		resource = new GroupResource(epitopeService, glClient, glStringFilter, freqService);
 	}
 
 	
@@ -89,8 +89,7 @@ public class GroupResourceTest {
 	}
 
 	public ImmutableListMultimap<Integer, GroupView> getGroupMap(List<GroupView> groups) {
-		return FluentIterable.from(groups).index(new Function<GroupView, Integer>() {
-			@Override public Integer apply(GroupView input) { return input.getGroup(); }});
+		return FluentIterable.from(groups).index(g -> g.getGroup());
 	}
 
 	@Test
@@ -186,9 +185,9 @@ public class GroupResourceTest {
         List<Allele> al = anAlleleList().getAlleles();  // 09:01(1), 03:01(2), 01:01(3)
         DetailRace race = DetailRace.API;
         AlleleListRequest request = new AlleleListRequest(allelesToStrings(al), null, race);
-        when(freqResolverImpl.getFrequency(al.get(0).getGlstring(), race)).thenReturn(0.1);
-        when(freqResolverImpl.getFrequency(al.get(1).getGlstring(), race)).thenReturn(0.2);
-        when(freqResolverImpl.getFrequency(al.get(2).getGlstring(), race)).thenReturn(0.4);
+        when(freqService.getFrequency(al.get(0).getGlstring(), race)).thenReturn(0.1);
+        when(freqService.getFrequency(al.get(1).getGlstring(), race)).thenReturn(0.2);
+        when(freqService.getFrequency(al.get(2).getGlstring(), race)).thenReturn(0.4);
         List<GroupView> groups = resource.getGroups(request);
         assertThat(groups.size(), equalTo(3));
         ImmutableListMultimap<Integer, GroupView> map = getGroupMap(groups);

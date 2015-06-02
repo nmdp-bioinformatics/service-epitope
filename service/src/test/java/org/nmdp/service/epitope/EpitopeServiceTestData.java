@@ -23,6 +23,7 @@
 
 package org.nmdp.service.epitope;
 
+import static com.google.common.base.CharMatcher.anyOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -252,12 +253,9 @@ public class EpitopeServiceTestData {
                 }}).when(glClient).createAllele(anyString());
             doAnswer(new Answer<AlleleList>() {
                 @Override public AlleleList answer(InvocationOnMock invocation) throws Throwable {
-                    List<Allele> al = FluentIterable.from(
-                            Splitter.on(CharMatcher.anyOf(",/"))
+                    List<Allele> al = FluentIterable.from(Splitter.on(anyOf(",/"))
                             .split(invocation.getArgumentAt(0, String.class)))
-                            .transform(new Function<String, Allele>() {
-                                @Override public Allele apply(String s) { return anAllele(s); }})
-                            .toList();
+                            .transform(e -> anAllele(e)).toList();
                     return anAlleleList(al);
                 }}).when(glClient).createAlleleList(anyString());
 		} catch (Exception e) {
