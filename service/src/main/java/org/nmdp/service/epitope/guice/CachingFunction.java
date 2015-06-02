@@ -46,11 +46,11 @@ import com.google.inject.Inject;
  * @param <K> the key type to be cached
  * @param <V> the value type to be cached
  */
-public class CachingResolver<K, V> implements Function<K, V> {
+public class CachingFunction<K, V> implements Function<K, V> {
 
 	private LoadingCache<K, Optional<V>> cache;
 	
-	private List<CachingResolverListener<K, V>> listenerList = new ArrayList<>();
+	private List<CachingFunctionListener<K, V>> listenerList = new ArrayList<>();
 	
 	/**
 	 * construct a CachingResolver with the specified resolver and cache parameters
@@ -60,7 +60,7 @@ public class CachingResolver<K, V> implements Function<K, V> {
 	 * @param cacheCapacity max capacity of the cache
 	 */
 	@Inject
-	public CachingResolver(final Function<K, V> resolver, final @CacheDuration long duration, final @CachePeriod long period, final @CacheCapacity long cacheCapacity) {
+	public CachingFunction(final Function<K, V> delegate, final @CacheDuration long duration, final @CachePeriod long period, final @CacheCapacity long cacheCapacity) {
 		final ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
 		cache = CacheBuilder.newBuilder()
 				.refreshAfterWrite(period, TimeUnit.MILLISECONDS)
@@ -69,13 +69,11 @@ public class CachingResolver<K, V> implements Function<K, V> {
 				.maximumSize(cacheCapacity)
 				.build(new CacheLoader<K, Optional<V>>() {
 					public Optional<V> load(K key) {
-						return Optional.fromNullable(resolver.apply(key));
+						return Optional.fromNullable(delegate.apply(key));
 					}
 					@Override
 					public ListenableFuture<Optional<V>> reload(final K key, final Optional<V> oldValue) throws Exception {
-						final ListenableFuture<Optional<V>> future = executor.submit(new Callable<Optional<V>>() {
-							public Optional<V> call() { return load(key); }
-						});
+						final ListenableFuture<Optional<V>> future = executor.submit(() -> load(key));
 						notifyListeners(future, key, oldValue);
 						return future;
 					}
@@ -86,7 +84,7 @@ public class CachingResolver<K, V> implements Function<K, V> {
 	 * add a listener to the cache, to be notified of refreshes to cache content
 	 * @param listener
 	 */
-	public void addListener(CachingResolverListener<K, V> listener) {
+	public void addListener(CachingFunctionListener<K, V> listener) {
 		listenerList.add(listener);
 	}
 
@@ -94,7 +92,7 @@ public class CachingResolver<K, V> implements Function<K, V> {
 	 * remove a listener from the cache
 	 * @param listener
 	 */
-	public void removeListener(CachingResolverListener<K, V> listener) {
+	public void removeListener(CachingFunctionListener<K, V> listener) {
 		listenerList.remove(listener);
 	}
 
@@ -105,17 +103,14 @@ public class CachingResolver<K, V> implements Function<K, V> {
 	 * @param oldValue the old value
 	 */
 	private void notifyListeners(final ListenableFuture<Optional<V>> future, final K key, final Optional<V> oldValue) {
-		for (final CachingResolverListener<K, V> listener : listenerList) {
-			future.addListener(new Runnable() {
-				@Override 
-				public void run() {
-					try {
-						listener.reloaded(key,  oldValue.orNull(), future.get().orNull());
-					} catch (Exception e) {
-						throw new RuntimeException("caught exception while notifying listener (key: " 
-								+ key + ", oldValue: " + oldValue + ")");
-					}
-				}
+		for (final CachingFunctionListener<K, V> listener : listenerList) {
+			future.addListener(() -> {
+			    try {
+			        listener.reloaded(key,  oldValue.orNull(), future.get().orNull());
+			    } catch (Exception e) {
+			        throw new RuntimeException("caught exception while notifying listener (key: " 
+			                + key + ", oldValue: " + oldValue + ")");
+			    }
 			}, MoreExecutors.directExecutor());
 		}
 	}

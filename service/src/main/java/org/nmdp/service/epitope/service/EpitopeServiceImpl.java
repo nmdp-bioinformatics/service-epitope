@@ -23,10 +23,17 @@
 
 package org.nmdp.service.epitope.service;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
@@ -143,12 +150,7 @@ public class EpitopeServiceImpl implements EpitopeService {
 	 */
 	@Override
 	public Map<Allele, Integer> getGroupsForAllAlleles() {
-		return Maps.transformValues(Multimaps.asMap(alleleGroupMap), new Function<List<Integer>, Integer>() {
-			@Override 
-			public Integer apply(List<Integer> list) { 
-				return list.get(0); 
-			}
-		});
+		return Maps.transformValues(Multimaps.asMap(alleleGroupMap), l -> l.get(0));
 	}
 
 	/**

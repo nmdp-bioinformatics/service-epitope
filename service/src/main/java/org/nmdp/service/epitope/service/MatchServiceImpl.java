@@ -31,13 +31,14 @@ import static org.nmdp.service.epitope.domain.MatchGrade.PERMISSIVE;
 import static org.nmdp.service.epitope.domain.MatchGrade.UNKNOWN;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.nmdp.gl.Allele;
-import org.nmdp.gl.AlleleList;
 import org.nmdp.gl.Genotype;
 import org.nmdp.gl.GenotypeList;
 import org.nmdp.gl.Haplotype;
@@ -47,11 +48,9 @@ import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.domain.MatchResult;
-import org.nmdp.service.epitope.freq.DbiFrequencyResolver;
-import org.nmdp.service.epitope.freq.FrequencyResolver;
-import org.nmdp.service.epitope.freq.IFrequencyResolver;
 import org.nmdp.service.epitope.gl.GlResolver;
 import org.nmdp.service.epitope.gl.filter.GlStringFilter;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFrequency;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGradeThreshold;
 import org.nmdp.service.epitope.trace.Trace;
 import org.slf4j.Logger;
@@ -68,11 +67,11 @@ public class MatchServiceImpl implements MatchService {
 	private EpitopeService epitopeService;
 	private GlClient glClient;
 	private Function<String, GenotypeList> glResolver;
-    private Function<AllelePair, Double> freqResolver;
-    private IFrequencyResolver freqResolverImpl;
+    private FrequencyService freqService;
 	private Function<String, String> glStringFilter;
 	private double matchGradeThreshold;
 	Logger logger = LoggerFactory.getLogger(getClass());
+    private Double baselineFreq;
 
 	@Inject
 	public MatchServiceImpl(
@@ -80,16 +79,16 @@ public class MatchServiceImpl implements MatchService {
 			@GlResolver Function<String, GenotypeList> glResolver, 
 			GlClient glClient, 
 			@GlStringFilter Function<String, String> glStringFilter, 
-			@FrequencyResolver Function<AllelePair, Double> freqResolver, // supports caching
-			IFrequencyResolver freqResolverImpl,
-			@MatchGradeThreshold Double matchGradeThreshold) 
+			FrequencyService freqService,
+			@MatchGradeThreshold Double matchGradeThreshold,
+	        @BaselineAlleleFrequency Double baselineFreq) 
 	{
 		this.epitopeService = epitopeService;
 		this.glResolver = glResolver;
-        this.freqResolver = freqResolver;
-        this.freqResolverImpl = freqResolverImpl;
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
+        this.freqService = freqService;
+        this.baselineFreq = baselineFreq;
 		this.matchGradeThreshold = (null != matchGradeThreshold) ? matchGradeThreshold : 0.01;
 	}
 	
@@ -141,40 +140,21 @@ public class MatchServiceImpl implements MatchService {
 	{
 		if (recipRace == null) recipRace = UNK;
 		if (donorRace == null) donorRace = UNK;
-		Set<AllelePair> ralps = getAllelePairs(recipientGl, recipRace);
-		Set<AllelePair> dalps = getAllelePairs(donorGl, donorRace);
+		if (Trace.isEnabled()) Trace.setContext("r:");
+		Map<AllelePair, Double> ralps = getAllelePairs(recipientGl, recipRace);
+        if (Trace.isEnabled()) Trace.setContext("d:");
+		Map<AllelePair, Double> dalps = getAllelePairs(donorGl, donorRace);
+        if (Trace.isEnabled()) Trace.setContext("m:");
 		return getMatch(ralps, dalps);
 	}
 
-//    private void traceAllelePair(String label, AllelePair p, Double freq) {
-//        boolean ist = Trace.isEnabled();
-//        StringBuffer sb = new StringBuffer(label);
-//        sb.append(p.getA1()).append(":")
-//            .append(freqResolver.getFrequency(p.getA1().getGlstring(), p.getRace()))
-//            .append("+")
-//            .append(p.getA1()).append(":")
-//            .append(freqResolver.getFrequency(p.getA2().getGlstring(), p.getRace()))
-//            .append(" -> ")
-//            .append(freq);
-//        Trace.add(sb.toString());
-//    }
-
-    private String getAllelePairTrace(AllelePair p) {
-        StringBuffer sb = new StringBuffer()
-            .append(p.getA1()).append("(g:").append(p.getG1()).append(",p:")
-            .append(freqResolverImpl.getFrequency(p.getA1().getGlstring(), p.getRace()))
-            .append(")+")
-            .append(p.getA2()).append("(g:").append(p.getG2()).append(",p:")
-            .append(freqResolverImpl.getFrequency(p.getA2().getGlstring(), p.getRace()))
-            .append(")");
-        return sb.toString();
-    }
-    
-    private String getMatchTrace(AllelePair rp, AllelePair dp, MatchGrade mg, Double p) {
+    private String getMatchTrace(AllelePair rp, double rprob, AllelePair dp, double dprob, MatchGrade mg, Double p) {
         StringBuffer sb = new StringBuffer("r:")
-            .append(getAllelePairTrace(rp))
+            .append(rp.getA1().getGlstring()).append("(g:").append(rp.getG1()).append(")+")
+            .append(rp.getA2().getGlstring()).append("(g:").append(rp.getG2()).append("):p:").append(rprob)
             .append(",d:")
-            .append(getAllelePairTrace(dp))
+            .append(dp.getA1().getGlstring()).append("(g:").append(dp.getG1()).append(")+")
+            .append(dp.getA2().getGlstring()).append("(g:").append(dp.getG2()).append("):p:").append(dprob)
             .append(",m:")
             .append(mg)
             .append("(p:")
@@ -182,30 +162,26 @@ public class MatchServiceImpl implements MatchService {
             .append(")");
         return sb.toString();
     }
-	
-	MatchResult getMatch(Set<AllelePair> ralps, Set<AllelePair> dalps) {
-	    EnumMap<MatchGrade, Double> pmap = new EnumMap<MatchGrade, Double>(MatchGrade.class);
+
+    class DoubleContainer {
+        double d = 0;
+        public double get() { return d; }
+        public void set(double d) { this.d = d; }
+        public void add(double d) { this.d += d; }
+    }
+    
+	MatchResult getMatch(Map<AllelePair, Double> ralps, Map<AllelePair, Double> dalps) {
+	    EnumMap<MatchGrade, DoubleContainer> pmap = new EnumMap<MatchGrade, DoubleContainer>(MatchGrade.class);
 	    for (MatchGrade grade : MatchGrade.values()) {
-	        pmap.put(grade, 0.0);
+	        pmap.put(grade, new DoubleContainer());
 	    }
 		MatchGrade grade = null;
-		for (AllelePair rp : ralps) {
-			Double rf = freqResolver.apply(rp);
-			if (rf == 0.0) {
-			    if (Trace.isEnabled()) Trace.add("r:" + getAllelePairTrace(rp) + " (dropped)");
-			    continue;
-			}
-			for (AllelePair dp : dalps) {
-				Double df = freqResolver.apply(dp);
-				if (df == 0.0) {
-	                if (Trace.isEnabled()) Trace.add("d:" + getAllelePairTrace(dp) + " (dropped)");
-				    continue;
-				}
-				grade = getMatchGrade(rp, dp);
-				if (Trace.isEnabled()) Trace.add(getMatchTrace(rp, dp, grade, rf*df));
-				Double p = pmap.get(grade);
-				p = (null == p) ? new Double(p) : new Double(rf * df + p);
-				pmap.put(grade, p);
+		for (Map.Entry<AllelePair, Double> rp : ralps.entrySet()) {
+			for (Map.Entry<AllelePair, Double> dp : dalps.entrySet()) {
+				grade = getMatchGrade(rp.getKey(), dp.getKey());
+				double f = rp.getValue() * dp.getValue();
+				if (Trace.isEnabled()) Trace.add(getMatchTrace(rp.getKey(), rp.getValue(), dp.getKey(), dp.getValue(), grade, f));
+				pmap.get(grade).add(f);
 //				if (logger.isTraceEnabled()) {
 //					logger.trace(grade + ":rp:" + rp + ",dp:" + dp + " -> " + rf + "*" + df + " -> " + (rf * df));
 //				}
@@ -214,43 +190,47 @@ public class MatchServiceImpl implements MatchService {
 		normalizeProbabilities(pmap);
 		logger.debug("finished with: " + pmap);
 		grade = UNKNOWN;
-        if (pmap.get(GVH_NONPERMISSIVE) >= matchGradeThreshold) grade = GVH_NONPERMISSIVE;
-        if (pmap.get(HVG_NONPERMISSIVE) >= matchGradeThreshold) grade = HVG_NONPERMISSIVE;
-        if (pmap.get(PERMISSIVE) >= matchGradeThreshold) grade = PERMISSIVE;
-        if (pmap.get(MATCH) >= matchGradeThreshold) grade = MATCH;
+        if (pmap.get(GVH_NONPERMISSIVE).get() >= matchGradeThreshold) grade = GVH_NONPERMISSIVE;
+        if (pmap.get(HVG_NONPERMISSIVE).get() >= matchGradeThreshold) grade = HVG_NONPERMISSIVE;
+        if (pmap.get(PERMISSIVE).get() >= matchGradeThreshold) grade = PERMISSIVE;
+        if (pmap.get(MATCH).get() >= matchGradeThreshold) grade = MATCH;
 		// return both probabilities and match grade
 		return new MatchResult(
-		        pmap.get(MATCH),
-		        pmap.get(PERMISSIVE),
-		        pmap.get(HVG_NONPERMISSIVE),
-		        pmap.get(GVH_NONPERMISSIVE),
-		        pmap.get(UNKNOWN),
+		        pmap.get(MATCH).get(),
+		        pmap.get(PERMISSIVE).get(),
+		        pmap.get(HVG_NONPERMISSIVE).get(),
+		        pmap.get(GVH_NONPERMISSIVE).get(),
+		        pmap.get(UNKNOWN).get(),
 		        grade);
 	}
 
-	private void normalizeProbabilities(EnumMap<MatchGrade, Double> pmap) {
+	private void normalizeProbabilities(EnumMap<MatchGrade, DoubleContainer> pmap) {
         double total = 0.0;
-        for (double d : pmap.values()) { total += d; }
-        for (Map.Entry<MatchGrade, Double> entry : pmap.entrySet()) {
-            double newValue = (double)Math.round(entry.getValue() / total * 1000) / 1000;
-            entry.setValue(newValue);
+        for (DoubleContainer dc : pmap.values()) { total += dc.get(); }
+        for (DoubleContainer dc : pmap.values()) {
+            double newValue = (double)Math.round(dc.get() / total * 1000) / 1000;
+            dc.set(newValue);
         }
     }
-
-    Set<AllelePair> getAllelePairs(GenotypeList gl, DetailRace race) {
-		Locus dpb1 = null;
+	
+	public Stream<Allele> getLocusAlleles(Locus locus, Haplotype h) {
+	    return h.getAlleleLists().stream()
+	            .flatMap(al -> al.getAlleles().stream())
+	            .filter(a -> a.getLocus().equals(locus));
+	}
+	
+    Map<AllelePair, Double> getAllelePairs(GenotypeList gl, DetailRace race) {
+		Locus dpb1;
 		try {
 			dpb1 = glClient.createLocus("HLA-DPB1");
 		} catch (GlClientException e) {
 			throw new RuntimeException("unable to create DPB1 locus", e);
 		}
-		Set<AllelePair> pl = new HashSet<>();
+		Map<AllelePair, Double> pm = new HashMap<>();
 		for (Genotype g : gl.getGenotypes()) {
 			List<Haplotype> hl = g.getHaplotypes();
-			Haplotype h1 = null, h2 = null;
+			Haplotype h1, h2;
 			switch (hl.size()) {
-			case 0:
-				throw new RuntimeException("no haplotypes found for gl: " + gl);
 			case 2:
 				h1 = hl.get(0);
 				h2 = hl.get(1);
@@ -259,22 +239,50 @@ public class MatchServiceImpl implements MatchService {
 				h1 = hl.get(0);
 				h2 = hl.get(0);
 				break;
+            case 0:
+                throw new RuntimeException("no haplotypes found for gl: " + gl);
 			default:
 				throw new RuntimeException("only expecting 2 haplotypes for gl: " + gl);
 			}
-			for (AlleleList al1 : h1.getAlleleLists()) {
-				for(Allele a1 : al1.getAlleles()) {
-					if (!a1.getLocus().equals(dpb1)) continue;
-					for (AlleleList al2 : h2.getAlleleLists()) {
-						for (Allele a2 : al2.getAlleles()) {
-							if (!a2.getLocus().equals(dpb1)) continue;
-							pl.add(new AllelePair(a1, epitopeService.getGroupForAllele(a1), a2, epitopeService.getGroupForAllele(a2), race));
-						}
-					}
-				}
-			}
+			boolean a1hi = getLocusAlleles(dpb1, h1).count() == 1;
+            boolean a2hi = getLocusAlleles(dpb1, h2).count() == 1;
+            Set<Allele> dropTraceSet = new HashSet<>();
+            getLocusAlleles(dpb1, h1).forEach(a1 -> {
+                double a1f = a1hi ? 1.0 : freqService.getFrequency(a1.getGlstring(), race);
+                if (0.0 == a1f) {
+                    if (Trace.isEnabled() && !dropTraceSet.contains(a1)) {
+                        Trace.add(a1.getGlstring() + "(p:0.0,dropped)");
+                        dropTraceSet.add(a1);
+                    }
+                    return;
+                }
+                getLocusAlleles(dpb1, h2).forEach(a2 -> {
+                    double a2f = a2hi ? 1.0 : freqService.getFrequency(a2.getGlstring(), race);
+                    if (0.0 == a2f) {
+                        if (Trace.isEnabled() && !dropTraceSet.contains(a2)) {
+                            Trace.add(a2.getGlstring() + "(p:0.0,dropped)");
+                            dropTraceSet.add(a2);
+                        }
+                        return;
+                    }
+                    double f = a1f * a2f;
+                    if (h1 != h2) f *= 2;
+                    Integer g1 = epitopeService.getGroupForAllele(a1);
+                    Integer g2 = epitopeService.getGroupForAllele(a2); 
+                    if (Trace.isEnabled()) {
+                        Trace.add(a1.getGlstring() + "(g:" + g1 + ",p:" + a1f + ")+"
+                                + a2.getGlstring() + "(g:" + g2 + ",p:" + a2f + ")");
+                    }
+                    AllelePair ap = new AllelePair(a1, g1, a2, g2, race);
+                    pm.put(ap, f);
+//                    Double existing = pm.put(ap, f);
+//                    if (existing != null) {
+//                        pm.put(ap, existing + f); // eriktodo: verify genotype probability
+//                    }
+                });
+            });
 		}
-		return pl;
+		return pm;
 	}
 
 }

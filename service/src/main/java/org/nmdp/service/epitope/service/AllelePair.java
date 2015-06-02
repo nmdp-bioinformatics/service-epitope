@@ -59,16 +59,39 @@ public class AllelePair {
 	}
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((a1 == null) ? 0 : a1.hashCode());
-        result = prime * result + ((a2 == null) ? 0 : a2.hashCode());
-        result = prime * result + ((g1 == null) ? 0 : g1.hashCode());
-        result = prime * result + ((g2 == null) ? 0 : g2.hashCode());
-        result = prime * result + ((race == null) ? 0 : race.hashCode());
-        return result;
+	public String toString() {
+		return "AllelePair [a1=" + a1 + ", a2=" + a2 + ", race=" + race + "]";
+	}
+
+	public Allele getA1() {
+		return a1;
+	}
+	
+	public Integer getG1() {
+	    return g1;
+	}
+
+	public Allele getA2() {
+		return a2;
+	}
+
+    public Integer getG2() {
+        return g2;
     }
+
+    public Integer getLowG() {
+        if (g1 == null || g2 == null) return null;
+        return (g1.compareTo(g2) < 0) ? g1 : g2;
+    }
+    
+    public Integer getHighG() {
+        if (g1 == null || g2 == null) return null;
+        return (g1.compareTo(g2) > 0) ? g1 : g2;
+    }
+    
+    public DetailRace getRace() {
+		return race;
+	}
 
     public boolean typeEquals(AllelePair other) {
         if (this == other)
@@ -86,9 +109,20 @@ public class AllelePair {
         } else if (!a2.equals(other.a2))
             return false;
         return true;
-        
     }
-    
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((a1 == null) ? 0 : a1.hashCode());
+        result = prime * result + ((a2 == null) ? 0 : a2.hashCode());
+        result = prime * result + ((g1 == null) ? 0 : g1.hashCode());
+        result = prime * result + ((g2 == null) ? 0 : g2.hashCode());
+        result = prime * result + ((race == null) ? 0 : race.hashCode());
+        return result;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -122,40 +156,5 @@ public class AllelePair {
             return false;
         return true;
     }
-
-    @Override
-	public String toString() {
-		return "AllelePair [a1=" + a1 + ", a2=" + a2 + ", race=" + race + "]";
-	}
-
-	public Allele getA1() {
-		return a1;
-	}
-	
-	public Integer getG1() {
-	    return g1;
-	}
-
-	public Allele getA2() {
-		return a2;
-	}
-
-    public Integer getG2() {
-        return g2;
-    }
-
-    public Integer getLowG() {
-        if (g1 == null || g2 == null) return null;
-        return (g1.compareTo(g2) < 0) ? g1 : g2;
-    }
     
-    public Integer getHighG() {
-        if (g1 == null || g2 == null) return null;
-        return (g1.compareTo(g2) > 0) ? g1 : g2;
-    }
-    
-    public DetailRace getRace() {
-		return race;
-	}	
-
 }

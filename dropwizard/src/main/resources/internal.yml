@@ -17,7 +17,7 @@ logging:
     # epitopeservice
     org.nmdp.service.epitope: DEBUG
     org.nmdp.epitope.service.service.MatchServiceImpl: TRACE
-    # org.nmdp.service.epitope.db.DbiManager: TRACE
+    #org.nmdp.service.epitope.db.DbiManagerImpl: TRACE
 
 dataSourceFactory:
 

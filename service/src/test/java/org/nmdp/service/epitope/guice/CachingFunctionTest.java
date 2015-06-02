@@ -30,16 +30,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import org.nmdp.service.epitope.guice.CachingResolver;
+import org.nmdp.service.epitope.guice.CachingFunction;
 
 import com.google.common.base.Function;
 
-public class CachingResolverTest {
+public class CachingFunctionTest {
 	
 	@Test
 	public void testApply() throws Exception {
 		Function<String, String> resolver = mock(Function.class);
-		CachingResolver<String, String> cachingResolver = new CachingResolver<String, String>(resolver, Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE);
+		CachingFunction<String, String> cachingResolver = new CachingFunction<String, String>(resolver, Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE);
 		when(resolver.apply("key")).thenReturn("value1").thenReturn("value2");
 		String test1 = cachingResolver.apply("key");
 		String test2 = cachingResolver.apply("key");

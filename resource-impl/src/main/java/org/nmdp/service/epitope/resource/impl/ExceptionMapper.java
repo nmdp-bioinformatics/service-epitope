@@ -110,32 +110,20 @@ public class ExceptionMapper implements javax.ws.rs.ext.ExceptionMapper<RuntimeE
 	static final Map<String, Function<ExceptionContext, String>> entityBuilderMap;
 	static {
 		entityBuilderMap = new HashMap<>(); 
-		entityBuilderMap.put("text/plain", new Function<ExceptionContext, String>() {
-			@Override
-			public String apply(ExceptionContext context) {
-				return context.getMessage();
-			}
-		});
-		entityBuilderMap.put("application/json", new Function<ExceptionContext, String>() { 
-			@Override
-			public String apply(ExceptionContext context) {
-				return "{\"code\": \"" + context.getCode() + "\", \"message\": \"" 
-						+ context.getMessage(JSON_ESCAPER) + "\"}";
-			}
-		});
-		entityBuilderMap.put("text/html", new Function<ExceptionContext, String>() { 
-			@Override
-			public String apply(ExceptionContext context) {
+		entityBuilderMap.put("text/plain", c -> c.getMessage());
+		entityBuilderMap.put("application/json", c ->
+		        "{\"code\": \"" + c.getCode() + "\", \"message\": \"" 
+				+ c.getMessage(JSON_ESCAPER) + "\"}");
+		entityBuilderMap.put("text/html", c -> {
 				StringBuilder sb = new StringBuilder("<html><head/><body>")
 					.append("<h2>Server Error:</h2>")
-					.append("<h3>").append(context.getMessage(HTML_ESCAPER)).append("</h3>");
-				if (null != context.getException()) {
+					.append("<h3>").append(c.getMessage(HTML_ESCAPER)).append("</h3>");
+				if (null != c.getException()) {
 					sb.append("<h3>trace</h3>")
-						.append("<pre>").append(context.getTrace(HTML_ESCAPER)).append("</pre>");
+						.append("<pre>").append(c.getTrace(HTML_ESCAPER)).append("</pre>");
 				}
 				sb.append("</body></html>");
 				return sb.toString();
-			}
 		});
 	}
 	

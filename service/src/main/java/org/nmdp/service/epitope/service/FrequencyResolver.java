@@ -21,23 +21,23 @@
 
 */
 
-package org.nmdp.service.epitope.freq;
+package org.nmdp.service.epitope.service;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import com.google.inject.BindingAnnotation;
+import org.nmdp.service.epitope.domain.DetailRace;
 
 /**
- * Guice binding annotation to indicate FrequencyResolver.  Attached to the type Function<AllelePair, Double>,
- * which takes an AllelePair, and returns the frequency within its population, if known.
+ * Operation that returns a frequency for the given allele and {@link DetailRace}. 
+ * <p>
+ * This is a {@link FunctionalInterface} whose functional method is {@link #getFrequency(String, DetailRace)}.
  */
-@BindingAnnotation
-@Target({FIELD, PARAMETER, METHOD})
-@Retention(RUNTIME)
-public @interface FrequencyResolver {}
+@FunctionalInterface
+public interface FrequencyResolver {
+
+    /**
+     * Returns a frequency for the given allele and {@link DetailRace}.
+     * @param allele the allele for which to return a frequency.
+     * @param race the population for which to return a frequency.
+     * @return a frequency for the given allele and {@link DetailRace} if known, or null otherwise.
+     */
+    public Double getFrequency(String allele, DetailRace race);    
+}

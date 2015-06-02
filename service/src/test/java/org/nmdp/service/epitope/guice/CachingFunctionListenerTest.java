@@ -36,7 +36,7 @@ import com.google.common.base.Function;
 
 import edu.umd.cs.mtc.MultithreadedTestCase;
 
-public class CachingResolverListenerTest extends MultithreadedTestCase {
+public class CachingFunctionListenerTest extends MultithreadedTestCase {
 
 	int resolverClock;
 	int cacheClock;
