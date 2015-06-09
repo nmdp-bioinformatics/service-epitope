@@ -94,7 +94,7 @@ public class ExceptionMapper implements javax.ws.rs.ext.ExceptionMapper<RuntimeE
 			return getMessage(null);
 		}
 		public String getMessage(Escaper escaper) {
-			return (null == escaper) ? message : escaper.escape(message);
+			return (null == escaper || null == message) ? message : escaper.escape(message);
 		}
 		public Exception getException() {
 			return exception;

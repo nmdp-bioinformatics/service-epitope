@@ -1,5 +1,6 @@
 package org.nmdp.service.epitope.db;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,5 +26,13 @@ public interface DbiManager {
     public abstract Double getFrequency(String allele, DetailRace race);
 
     public abstract Set<DetailRace> getRacesWithFrequencies();
+
+    public void loadGGroups(Iterator<GGroupRow> rowIter, boolean reload);
+
+    Long getDatasetDate(String dataset);
+
+    void updateDatasetDate(String dataset, Long date);
+
+    String getGGroupForAllele(String locus, String allele);
 
 }

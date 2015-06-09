@@ -26,9 +26,10 @@ package org.nmdp.service.epitope.guice;
 import static com.google.common.base.Functions.compose;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.GenotypeList;
@@ -41,6 +42,7 @@ import org.nmdp.service.epitope.gl.GlStringResolver;
 import org.nmdp.service.epitope.gl.LocalGlClientModule;
 import org.nmdp.service.epitope.gl.filter.AlleleCodeFilter;
 import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
+import org.nmdp.service.epitope.gl.filter.GGroupFilter;
 import org.nmdp.service.epitope.gl.filter.GlStringFilter;
 import org.nmdp.service.epitope.gl.filter.PermissiveAlleleFilter;
 import org.nmdp.service.epitope.group.DbiGroupResolver;
@@ -52,6 +54,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
@@ -60,6 +63,8 @@ import org.nmdp.service.epitope.service.FrequencyService;
 import org.nmdp.service.epitope.service.FrequencyServiceImpl;
 import org.nmdp.service.epitope.service.MatchService;
 import org.nmdp.service.epitope.service.MatchServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.inject.AbstractModule;
@@ -68,6 +73,8 @@ import com.google.inject.Singleton;
 
 public class LocalServiceModule extends AbstractModule {
 
+    Logger log = LoggerFactory.getLogger(getClass());
+    
 	@Override
 	protected void configure() {
 		
@@ -89,25 +96,31 @@ public class LocalServiceModule extends AbstractModule {
 	    return (allele, race) -> cf.apply(new AlleleRace(allele, race));
     }
 	
-	@Provides
-	@NmdpV3AlleleCodeUrls 
-	public URL[] getNmdpV3AlleleCodeUrl(@NmdpV3AlleleCodeUrls String[] urlSpecs) throws MalformedURLException {
-		URL[] urls = new URL[urlSpecs.length];
-		for (int i = 0; i < urlSpecs.length; i++) {
-			File f = new File(urlSpecs[i]);
-			if (f.isFile()) {
-				urls[i] = f.toURI().toURL();
-			} else {
-				try {
-					urls[i] = new URL(urlSpecs[i]);
-				} catch (Exception e) { 
-					continue; 
-				}
-			}
-		}
-		return urls;
-	}
-	
+    @Provides
+    @NmdpV3AlleleCodeUrls 
+    public URL[] getNmdpV3AlleleCodeUrls(@NmdpV3AlleleCodeUrls String[] urls) {
+        return getUrls(urls);
+    }
+    
+    @Provides
+    @HlaAmbigUrls 
+    public URL[] getHlaAmbigUrls(@HlaAmbigUrls String[] urls) {
+        return getUrls(urls);
+    }
+
+    private URL[] getUrls(String[] urls) {
+        return Arrays.stream(urls).map(url -> { 
+            try {
+                File f = new File(url);
+                if (f.isFile()) return f.toURI().toURL();
+                else return new URL(url);
+            } catch (Exception e) {
+                log.error("failed to handle url: " + url, e);
+                return null; 
+            }
+        }).filter(u -> u != null).collect(Collectors.toList()).toArray(new URL[0]);
+    }
+    
 	/**
 	 * resolve allele codes from alpha.v3.zip file
 	 */
@@ -143,8 +156,9 @@ public class LocalServiceModule extends AbstractModule {
 	 */
 	@Provides
 	@GlStringFilter
-	public Function<String, String> getGlStringFilter(ArsAlleleFilter arsAlleleFilter, AlleleCodeFilter alleleCodeFilter, PermissiveAlleleFilter permissiveAlleleFilter) {
-		return compose(arsAlleleFilter, compose(alleleCodeFilter, permissiveAlleleFilter));
+	public Function<String, String> getGlStringFilter(ArsAlleleFilter arsAlleleFilter, GGroupFilter gGroupFilter, AlleleCodeFilter alleleCodeFilter, PermissiveAlleleFilter permissiveAlleleFilter) {
+	    // todo: check validity
+	    return compose(arsAlleleFilter, compose(gGroupFilter, compose(alleleCodeFilter, permissiveAlleleFilter)));
 	}
 	
 }

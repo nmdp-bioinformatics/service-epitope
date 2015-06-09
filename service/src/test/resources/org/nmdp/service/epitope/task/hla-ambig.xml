@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>  <tns:ambiguityData xmlns:tns="http://www.example.org/ambig-aw"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.example.org/ambig-aw ambig-aw.xsd ">
+    <tns:releaseVersion currentRelease="3.20.0" date="20150417" />
+    <tns:geneList>
+        <tns:gene geneSystem="HLA" name="A">
+            <tns:gGroupsList>
+                <tns:gGroup name="A*02:10:01G" gid="HGG00184">
+                    <tns:gGroupAllele name="A*02:10" alleleid="HLA00015" />
+                    <tns:gGroupAllele name="A*02:453" alleleid="HLA10222" />
+                </tns:gGroup>
+                <tns:gGroup name="A*02:11:01G" gid="HGG00007">
+                    <tns:gGroupAllele name="A*02:11:01" alleleid="HLA00016" />
+                    <tns:gGroupAllele name="A*02:69" alleleid="HLA01903" />
+                </tns:gGroup>
+            </tns:gGroupsList>
+            <tns:removedAllelesList>
+            </tns:removedAllelesList>
+        </tns:gene>
+        <tns:gene geneSystem="HLA" name="DPB1">
+            <tns:gGroupsList>
+                <tns:gGroup name="DPB1*01:01:01G" gid="HGG0198">
+                    <tns:gGroupAllele name="DPB1*01:01:01" alleleid="HLA00514" />
+                    <tns:gGroupAllele name="DPB1*417:01" alleleid="HLA12847" />
+                </tns:gGroup>
+                <tns:gGroup name="DPB1*01:01:02G" gid="HGG00188">
+                    <tns:gGroupAllele name="DPB1*01:01:02" alleleid="HLA00515" />
+                    <tns:gGroupAllele name="DPB1*162:01" alleleid="HLA09478" />
+                </tns:gGroup>
+            </tns:gGroupsList>
+            <tns:removedAllelesList>
+            </tns:removedAllelesList>
+        </tns:gene>
+    </tns:geneList>
+</tns:ambiguityData>
