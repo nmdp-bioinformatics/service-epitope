@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.nmdp.gl.Allele;
@@ -71,7 +72,6 @@ public class MatchServiceImpl implements MatchService {
 	private Function<String, String> glStringFilter;
 	private double matchGradeThreshold;
 	Logger logger = LoggerFactory.getLogger(getClass());
-    private Double baselineFreq;
 
 	@Inject
 	public MatchServiceImpl(
@@ -88,7 +88,6 @@ public class MatchServiceImpl implements MatchService {
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
         this.freqService = freqService;
-        this.baselineFreq = baselineFreq;
 		this.matchGradeThreshold = (null != matchGradeThreshold) ? matchGradeThreshold : 0.01;
 	}
 	
@@ -182,13 +181,16 @@ public class MatchServiceImpl implements MatchService {
 				double f = rp.getValue() * dp.getValue();
 				if (Trace.isEnabled()) Trace.add(getMatchTrace(rp.getKey(), rp.getValue(), dp.getKey(), dp.getValue(), grade, f));
 				pmap.get(grade).add(f);
-//				if (logger.isTraceEnabled()) {
-//					logger.trace(grade + ":rp:" + rp + ",dp:" + dp + " -> " + rf + "*" + df + " -> " + (rf * df));
-//				}
+                //if (logger.isTraceEnabled()) {
+                //	logger.trace(grade + ":rp:" + rp + ",dp:" + dp + " -> " + rf + "*" + df + " -> " + (rf * df));
+                //}
 			}
 		}
-		normalizeProbabilities(pmap);
-		logger.debug("finished with: " + pmap);
+		// normalize/round probabilities (should i do this?)
+        Double total = pmap.values().stream().map(dc -> dc.get()).collect(Collectors.summingDouble(d -> d));
+        pmap.values().forEach(dc -> dc.set((double)Math.round(dc.get() / total * 1000) / 1000));
+
+        logger.debug("finished with: " + pmap);
 		grade = UNKNOWN;
         if (pmap.get(GVH_NONPERMISSIVE).get() >= matchGradeThreshold) grade = GVH_NONPERMISSIVE;
         if (pmap.get(HVG_NONPERMISSIVE).get() >= matchGradeThreshold) grade = HVG_NONPERMISSIVE;
@@ -203,15 +205,6 @@ public class MatchServiceImpl implements MatchService {
 		        pmap.get(UNKNOWN).get(),
 		        grade);
 	}
-
-	private void normalizeProbabilities(EnumMap<MatchGrade, DoubleContainer> pmap) {
-        double total = 0.0;
-        for (DoubleContainer dc : pmap.values()) { total += dc.get(); }
-        for (DoubleContainer dc : pmap.values()) {
-            double newValue = (double)Math.round(dc.get() / total * 1000) / 1000;
-            dc.set(newValue);
-        }
-    }
 	
 	public Stream<Allele> getLocusAlleles(Locus locus, Haplotype h) {
 	    return h.getAlleleLists().stream()
@@ -275,12 +268,15 @@ public class MatchServiceImpl implements MatchService {
                     }
                     AllelePair ap = new AllelePair(a1, g1, a2, g2, race);
                     pm.put(ap, f);
-//                    Double existing = pm.put(ap, f);
-//                    if (existing != null) {
-//                        pm.put(ap, existing + f); // eriktodo: verify genotype probability
-//                    }
+                    //Double existing = pm.put(ap, f);
+                    //if (existing != null) {
+                    //    pm.put(ap, existing + f); // eriktodo: verify genotype probability
+                    //}
                 });
             });
+            // normalize
+            Double total = pm.values().stream().collect(Collectors.summingDouble(d -> d));
+            pm.entrySet().forEach(e -> e.setValue(e.getValue() / total));
 		}
 		return pm;
 	}

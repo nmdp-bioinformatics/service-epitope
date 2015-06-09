@@ -23,18 +23,22 @@
 
 package org.nmdp.service.epitope.db;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.nmdp.service.epitope.domain.DetailRace;
 import org.skife.jdbi.v2.DBI;
-import org.skife.jdbi.v2.Folder2;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.PreparedBatch;
 import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.logging.SLF4JLog;
@@ -42,13 +46,11 @@ import org.skife.jdbi.v2.logging.SLF4JLog.Level;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.util.DoubleMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
+import org.skife.jdbi.v2.util.LongMapper;
 import org.skife.jdbi.v2.util.StringMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 public class DbiManagerImpl implements DbiManager {
@@ -56,7 +58,7 @@ public class DbiManagerImpl implements DbiManager {
 	private final DBI dbi;
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	private ImmutableSet<DetailRace> raceSet;
+	private Set<DetailRace> raceSet;
 
 	@Inject
 	public DbiManagerImpl(DBI dbi) {
@@ -70,20 +72,18 @@ public class DbiManagerImpl implements DbiManager {
 			return r.getString("locus") + "*" + r.getString("allele");
 		}};
 	
-	
 	/* (non-Javadoc)
      * @see org.nmdp.service.epitope.db.DbiManager#getAlleleGroupMap()
      */
 	@Override
     public Map<String, Integer> getAlleleGroupMap() {
 		try (Handle handle = dbi.open()) {
-			Map<String, Integer> alleleGroupMap = new HashMap<>();
 			Query<Map<String, Object>> query = handle.createQuery(
 					"select locus, allele, immune_group from allele_group");
-			for (Map<String, Object> row : query) {
-				alleleGroupMap.put((String)row.get("locus") + "*" + row.get("allele"), (Integer)row.get("immune_group"));
-			}
-			return alleleGroupMap;
+			return StreamSupport.stream(query.spliterator(), false)
+			        .collect(Collectors.<Map<String, Object>, String, Integer>toMap(
+			        m -> (String)m.get("locus") + "*" + m.get("allele"),
+			        m -> (Integer)m.get("immune_group")));
 		}
 	}		
 	
@@ -122,27 +122,12 @@ public class DbiManagerImpl implements DbiManager {
     public Map<Integer, List<String>> getGroupAlleleMap() {
 		// todo simpler with ordered list
 		try (Handle handle = dbi.open()) {
-			Map<Integer, List<String>> groupAlleleMap = new HashMap<>();
 			Query<Map<String, Object>> query = handle.createQuery(
 					"select immune_group, locus, allele from allele_group order by immune_group, allele");
-			query.fold(groupAlleleMap, new Folder2<Map<Integer, List<String>>>() {
-				@Override
-				public Map<Integer, List<String>> fold(
-						Map<Integer, List<String>> groupAlleleMap,
-						ResultSet rs,
-						StatementContext ctx) throws SQLException 
-				{
-					Integer group = rs.getInt("immune_group");
-					List<String> alleleList = groupAlleleMap.get(group);
-					if (null == alleleList) {
-						alleleList = new ArrayList<>();
-						groupAlleleMap.put(group, alleleList);
-					}
-					alleleList.add(rs.getString("locus") + "*" + rs.getString("allele"));
-					return groupAlleleMap;
-				}
-			});
-			return groupAlleleMap;
+			return StreamSupport.stream(query.spliterator(), false)
+			        .collect(groupingBy(m -> (Integer)m.get("immune_group"),
+			                mapping(n -> n.get("locus") + "*" + n.get("allele"), 
+			                        Collectors.toList())));
 		}
 	}
 	
@@ -175,13 +160,12 @@ public class DbiManagerImpl implements DbiManager {
 	
 	private Map<String, Double> getAlleleFrequenciesForRace(String race) {
 		try (Handle handle = dbi.open()) {
-			Map<String, Double> alleleFreqMap = new HashMap<>();
 			Query<Map<String, Object>> query = handle.createQuery(
 					"select locus, allele, frequency from race_freq where detail_race = :detail_race");
-			for (Map<String, Object> row : query) {
-				alleleFreqMap.put((String)row.get("locus") + "*" + (String)row.get("allele"), (Double)row.get("frequency"));
-			}
-			return alleleFreqMap;
+			return StreamSupport.stream(query.spliterator(), false)
+			        .collect(Collectors.toMap(
+			                m -> (String)m.get("locus") + "*" + (String)m.get("allele"), 
+			                m -> (Double)m.get("frequency")));
 		}
 	}
 	
@@ -223,10 +207,12 @@ public class DbiManagerImpl implements DbiManager {
 
     private void initRacesWithFrequencies() {
         try (Handle handle = dbi.open()) {
-            List<String> list = handle.createQuery("select distinct detail_race from race_freq")
+            this.raceSet = handle.createQuery("select distinct detail_race from race_freq")
                 .map(StringMapper.FIRST)
-                .list();
-            this.raceSet = FluentIterable.from(list).transform(r -> DetailRace.valueOf(r)).toSet();
+                .list()
+                .stream()
+                .map(r -> DetailRace.valueOf(r))
+                .collect(Collectors.toSet());
         }
     }
 	
@@ -237,4 +223,48 @@ public class DbiManagerImpl implements DbiManager {
     public Set<DetailRace> getRacesWithFrequencies() {
         return this.raceSet;
     }
+
+    @Override
+    public Long getDatasetDate(String dataset) {
+        try (Handle handle = dbi.open()) {
+            return handle.createQuery("select modification_date from dataset_date where dataset = :dataset")
+                    .bind("dataset", dataset)
+                    .map(LongMapper.FIRST)
+                    .first();
+        }
+    }
+    
+    @Override
+    public void updateDatasetDate(String dataset, Long date) {
+        try (Handle handle = dbi.open()) {
+            handle.createStatement("insert or replace into dataset_date (dataset, modification_date) values (:dataset, :date)")
+                .bind("dataset", dataset)
+                .bind("date", date)
+                .execute();
+        }
+    }
+    
+    @Override
+    public void loadGGroups(Iterator<GGroupRow> rowIter, boolean reload) {
+        try (Handle handle = dbi.open()) {
+            if (reload) {
+                handle.createStatement("delete from hla_g_group").execute();
+            }
+            PreparedBatch batch = handle.prepareBatch("insert into hla_g_group(g_group, locus, allele) values (?, ?, ?)");
+            rowIter.forEachRemaining(g -> batch.add(g.getGGroup(), g.getLocus(), g.getAllele()));
+            batch.execute();
+        }
+    }
+    
+    @Override
+    public String getGGroupForAllele(String locus, String allele) {
+        try (Handle handle = dbi.open()) {
+            return handle.createQuery("select g_group from hla_g_group where locus = :locus and allele = :allele")
+                    .bind("locus", locus)
+                    .bind("allele", allele)
+                    .map(StringMapper.FIRST)
+                    .first();
+        }
+    }
+    
 }

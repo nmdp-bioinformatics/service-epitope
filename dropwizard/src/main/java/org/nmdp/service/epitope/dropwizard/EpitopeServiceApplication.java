@@ -29,6 +29,7 @@ import io.dropwizard.flyway.FlywayBundle;
 import io.dropwizard.flyway.FlywayFactory;
 import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.jdbi.bundles.DBIExceptionsBundle;
+import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -41,6 +42,7 @@ import org.nmdp.service.epitope.resource.impl.AlleleResource;
 import org.nmdp.service.epitope.resource.impl.GroupResource;
 import org.nmdp.service.epitope.resource.impl.MatchResource;
 import org.nmdp.service.epitope.resource.impl.ResourceModule;
+import org.nmdp.service.epitope.task.GGroupInitializer;
 import org.skife.jdbi.v2.DBI;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -108,11 +110,15 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 						DBI dbi = new DBIFactory().build(environment, configuration.getDataSourceFactory(), "sqlite");
 						bind(DBI.class).toInstance(dbi);
 					}});
-    	environment.getObjectMapper()
+
+	    environment.getObjectMapper()
     			.enable(SerializationFeature.INDENT_OUTPUT)
                 .setSerializationInclusion(Include.NON_NULL)
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-    	
+
+	    environment.lifecycle().manage(
+	            getStartHook(() -> injector.getInstance(GGroupInitializer.class).loadGGroups()));
+	    
     	final AlleleResource alleleResource = injector.getInstance(AlleleResource.class);
     	environment.jersey().register(alleleResource);
     	
@@ -129,6 +135,15 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     	environment.healthChecks().register("glClient",  glClientHealthCheck);
     }
 
+	public Managed getStartHook(Runnable hook) {
+        return new Managed() {
+            @Override public void stop() throws Exception {}
+            @Override public void start() throws Exception {
+                hook.run();
+            }
+        };
+	}
+	
 	@Override
 	public void configureSwagger(SwaggerConfig config) {
 	    config.setApiVersion("1.0");

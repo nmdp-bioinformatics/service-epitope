@@ -190,4 +190,16 @@ public @interface ConfigurationBindings {
     @Retention(RUNTIME)
     public @interface MatchGradeThreshold {}
 
+
+    /**
+     * URLs for HLA Ambiguity file, published quarterly
+     * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/xml/hla_ambigs.xml.zip)
+     */
+    @BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+    public @interface HlaAmbigUrls {
+    }
+
+    
 }

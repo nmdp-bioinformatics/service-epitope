@@ -41,6 +41,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.Group1Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.Group2Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.Group3Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGradeThreshold;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
@@ -96,6 +97,11 @@ public class EpitopeServiceConfiguration extends Configuration {
      * https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
      */
     private String[] nmdpV3AlleleCodeUrls = { "https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip" };
+    
+    /**
+     * https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
+     */
+    private String[] hlaAmbigUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/xml/hla_ambigs.xml.zip" };
     
     /**
      * number of milliseconds the group cache should be kept before refreshing it from the underlying resolver
@@ -332,9 +338,20 @@ public class EpitopeServiceConfiguration extends Configuration {
 	}
 
     @JsonProperty
-	public void setNmdpV3AlleleCodeUrls(String[] nmdpV3AlleleCodeUrls) {
-		this.nmdpV3AlleleCodeUrls = nmdpV3AlleleCodeUrls;
-	}
+    public void setNmdpV3AlleleCodeUrls(String[] nmdpV3AlleleCodeUrls) {
+        this.nmdpV3AlleleCodeUrls = nmdpV3AlleleCodeUrls;
+    }
+
+    @JsonProperty
+    @HlaAmbigUrls
+    public String[] getHlaAmbigUrls() {
+        return hlaAmbigUrls;
+    }
+
+    @JsonProperty
+    public void setHlaAmbigUrls(String[] hlaAmbigUrls) {
+        this.hlaAmbigUrls = hlaAmbigUrls;
+    }
 
     @JsonProperty
     @NmdpV3AlleleCodeRefreshMillis
