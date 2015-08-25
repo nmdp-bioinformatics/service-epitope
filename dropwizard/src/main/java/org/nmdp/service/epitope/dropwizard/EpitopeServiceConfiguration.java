@@ -23,10 +23,6 @@
 
 package org.nmdp.service.epitope.dropwizard;
 
-import io.dropwizard.Configuration;
-import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.flyway.FlywayFactory;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -41,6 +37,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.Group1Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.Group2Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.Group3Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGradeThreshold;
@@ -50,6 +47,10 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls
 import org.nmdp.service.epitope.guice.ConfigurationBindings.ResolveCodes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.dropwizard.Configuration;
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.flyway.FlywayFactory;
 
 public class EpitopeServiceConfiguration extends Configuration {
 	
@@ -99,11 +100,16 @@ public class EpitopeServiceConfiguration extends Configuration {
     private String[] nmdpV3AlleleCodeUrls = { "https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip" };
     
     /**
-     * https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
+     * IMGT ambiguous allele file locations 
      */
     private String[] hlaAmbigUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/xml/hla_ambigs.xml.zip" };
     
     /**
+     * IMGT allele name file locations
+     */
+    private String[] hlaAlleleUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/Allelelist.txt" };
+    
+	/**
      * number of milliseconds the group cache should be kept before refreshing it from the underlying resolver
      */
 	private long groupCacheMillis = 60 * 60 * 1000L; 
@@ -351,6 +357,17 @@ public class EpitopeServiceConfiguration extends Configuration {
     @JsonProperty
     public void setHlaAmbigUrls(String[] hlaAmbigUrls) {
         this.hlaAmbigUrls = hlaAmbigUrls;
+    }
+
+    @JsonProperty
+    @HlaAlleleUrls
+    public String[] getHlaAlleleUrls() {
+        return hlaAlleleUrls;
+    }
+
+    @JsonProperty
+    public void setHlaAlleleUrls(String[] hlaAlleleUrls) {
+        this.hlaAlleleUrls = hlaAlleleUrls;
     }
 
     @JsonProperty

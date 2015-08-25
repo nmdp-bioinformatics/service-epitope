@@ -23,17 +23,6 @@
 
 package org.nmdp.service.epitope.dropwizard;
 
-import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.db.ManagedDataSource;
-import io.dropwizard.flyway.FlywayBundle;
-import io.dropwizard.flyway.FlywayFactory;
-import io.dropwizard.jdbi.DBIFactory;
-import io.dropwizard.jdbi.bundles.DBIExceptionsBundle;
-import io.dropwizard.lifecycle.Managed;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-
-import org.flywaydb.core.Flyway;
 import org.nmdp.service.common.domain.ConfigurationModule;
 import org.nmdp.service.common.dropwizard.CommonServiceApplication;
 import org.nmdp.service.epitope.guice.ConfigurationBindings;
@@ -42,6 +31,7 @@ import org.nmdp.service.epitope.resource.impl.AlleleResource;
 import org.nmdp.service.epitope.resource.impl.GroupResource;
 import org.nmdp.service.epitope.resource.impl.MatchResource;
 import org.nmdp.service.epitope.resource.impl.ResourceModule;
+import org.nmdp.service.epitope.task.AlleleInitializer;
 import org.nmdp.service.epitope.task.GGroupInitializer;
 import org.skife.jdbi.v2.DBI;
 
@@ -53,6 +43,15 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.model.ApiInfo;
+
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.flyway.FlywayBundle;
+import io.dropwizard.flyway.FlywayFactory;
+import io.dropwizard.jdbi.DBIFactory;
+import io.dropwizard.jdbi.bundles.DBIExceptionsBundle;
+import io.dropwizard.lifecycle.Managed;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
 
 /**
  * Dropwizard main application wrapper
@@ -118,6 +117,9 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 
 	    environment.lifecycle().manage(
 	            getStartHook(() -> injector.getInstance(GGroupInitializer.class).loadGGroups()));
+	    
+	    environment.lifecycle().manage(
+	            getStartHook(() -> injector.getInstance(AlleleInitializer.class).loadAlleles()));
 	    
     	final AlleleResource alleleResource = injector.getInstance(AlleleResource.class);
     	environment.jersey().register(alleleResource);

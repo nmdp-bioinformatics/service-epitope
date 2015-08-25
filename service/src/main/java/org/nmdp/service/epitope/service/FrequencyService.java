@@ -1,5 +1,7 @@
 package org.nmdp.service.epitope.service;
 
+import java.util.List;
+
 import org.nmdp.service.epitope.domain.DetailRace;
 
 /**
@@ -14,4 +16,5 @@ public interface FrequencyService {
      * @return frequency of the allele within the specified population.
      */
     public double getFrequency(String allele, DetailRace race);
+    
 }

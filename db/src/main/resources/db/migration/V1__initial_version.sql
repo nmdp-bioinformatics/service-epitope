@@ -29,6 +29,11 @@ CREATE TABLE hla_g_group (
     locus text not null,
     allele not null
 );
+CREATE TABLE hla_allele (
+    hla_allele_id integer primary key,
+    locus text not null,
+    allele not null
+);
 CREATE TABLE dataset_date (        
     dataset_date_id text primary key,
     dataset text unique not null,
