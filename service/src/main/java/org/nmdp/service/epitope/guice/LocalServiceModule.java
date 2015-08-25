@@ -54,6 +54,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.nmdp.service.epitope.service.EpitopeService;
@@ -105,6 +106,12 @@ public class LocalServiceModule extends AbstractModule {
     @Provides
     @HlaAmbigUrls 
     public URL[] getHlaAmbigUrls(@HlaAmbigUrls String[] urls) {
+        return getUrls(urls);
+    }
+    
+    @Provides
+    @HlaAlleleUrls 
+    public URL[] getHlaAlleleUrls(@HlaAlleleUrls String[] urls) {
         return getUrls(urls);
     }
 

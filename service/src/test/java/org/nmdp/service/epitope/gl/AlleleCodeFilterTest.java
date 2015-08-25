@@ -35,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.gl.filter.AlleleCodeFilter;
 
 import com.google.common.base.Function;
@@ -45,6 +46,9 @@ public class AlleleCodeFilterTest {
 	@Mock
 	private Function<String, String> resolver;
 	
+	@Mock
+	private DbiManager dbi;
+	
 	@Captor
 	private ArgumentCaptor<String> gl;
 	
@@ -52,7 +56,7 @@ public class AlleleCodeFilterTest {
 
 	@Before
 	public void setUp() throws Exception {
-		alleleCodeFilter = new AlleleCodeFilter(resolver);
+		alleleCodeFilter = new AlleleCodeFilter(resolver, dbi);
 	}
 
 	@After

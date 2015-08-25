@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
+import org.nmdp.service.epitope.db.DbiManager;
 
 import com.google.common.base.Function;
 import com.google.inject.Inject;
@@ -42,9 +43,12 @@ public class AlleleCodeFilter implements Function<String, String> {
 
 	private final Pattern ALLELE_GROUP_PAT = Pattern.compile("(?<=^|[/~+|^])[^/~+|^*]+\\*\\d+:[A-Z]+(?=$|[/~+|^])", CASE_INSENSITIVE);
 
+	private DbiManager dbi;
+
 	@Inject
-	public AlleleCodeFilter(@AlleleCodeResolver Function<String, String> alleleCodeResolver) {
+	public AlleleCodeFilter(@AlleleCodeResolver Function<String, String> alleleCodeResolver, DbiManager dbi) {
 		this.alleleCodeResolver = alleleCodeResolver;
+		this.dbi = dbi;
 	}
 
 	/**

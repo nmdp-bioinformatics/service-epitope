@@ -26,7 +26,6 @@ package org.nmdp.service.epitope.allelecode;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -38,9 +37,8 @@ import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
+import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeRefreshMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.nmdp.service.epitope.task.URLProcessor;
@@ -55,12 +53,12 @@ import com.google.inject.Singleton;
 @Singleton
 public class NmdpV3AlleleCodeResolver implements Function<String, String> {
 
-	private static class AlleleCodeExpansion {
+	private class AlleleCodeExpansion {
 		private List<String> alleleList;
 		private boolean familyIncluded;
-		public AlleleCodeExpansion(String alleles, boolean prefixIncluded) {
+		public AlleleCodeExpansion(List<String> alleleList, boolean prefixIncluded) {
 			this.familyIncluded = prefixIncluded;
-			this.alleleList = Splitter.on("/").splitToList(alleles);
+			this.alleleList = alleleList;
 		}
 		public List<String> getAlleleList() {
 			return alleleList;
@@ -70,7 +68,7 @@ public class NmdpV3AlleleCodeResolver implements Function<String, String> {
 		}
 	}
 	
-	private static final Pattern ALLELE_CODE_PAT = Pattern.compile("((?:HLA-)?[A-Z0-9]+\\*)?(\\d+:)([A-Z]+)", CASE_INSENSITIVE);
+	private static final Pattern ALLELE_CODE_PAT = Pattern.compile("((?:HLA-)?[A-Z0-9]+\\*)?(\\d+):([A-Z]+)", CASE_INSENSITIVE);
 	Map<String, AlleleCodeExpansion> alleleCodeMap = new HashMap<>();
 	URLProcessor urlProcessor;
 	long lastModified = 0;
@@ -83,10 +81,13 @@ public class NmdpV3AlleleCodeResolver implements Function<String, String> {
         }
         logger.info("reload AlleleCodeMap complete");
     };
+    
+	private DbiManager dbi;
 
 	@Inject
-	public NmdpV3AlleleCodeResolver(@NmdpV3AlleleCodeUrls URL[] urls, @NmdpV3AlleleCodeRefreshMillis final long refreshMillis) {
+	public NmdpV3AlleleCodeResolver(@NmdpV3AlleleCodeUrls URL[] urls, @NmdpV3AlleleCodeRefreshMillis final long refreshMillis, DbiManager dbi) {
 		urlProcessor = new URLProcessor(urls, true);
+		this.dbi = dbi;
 		lastModified = urlProcessor.process(streamConsumer, lastModified);
 		if (refreshMillis > 0) {
 			new Timer("NmdpV3AlleleCodeResolverRefreshThread", true).schedule(new TimerTask() {
@@ -112,7 +113,8 @@ public class NmdpV3AlleleCodeResolver implements Function<String, String> {
 					if (parsed.size() != 3) {
 						throw new RuntimeException("failed to parse file on line " + i + ", expected 3 fields: " + s);
 					}
-					newMap.put(parsed.get(1), new AlleleCodeExpansion(parsed.get(2), ("*".equals(parsed.get(0)))));
+					List<String> alleleList = Splitter.on("/").splitToList(parsed.get(2));
+					newMap.put(parsed.get(1), new AlleleCodeExpansion(alleleList, ("*".equals(parsed.get(0)))));
 				}
 			} finally {
 				inputStream.close();
@@ -135,22 +137,27 @@ public class NmdpV3AlleleCodeResolver implements Function<String, String> {
 		String family = matcher.group(2);
 		String code = matcher.group(3);
 		AlleleCodeExpansion expansion = null;
-		synchronized (this.alleleCodeMap) {
-			expansion = alleleCodeMap.get(code);
+		if (code.equals("XX")) {
+			List<String> alleles = dbi.getFamilyAlleleMap().get(family);
+			expansion = new AlleleCodeExpansion(alleles, true);
+		} else {
+			synchronized (this.alleleCodeMap) {
+				expansion = alleleCodeMap.get(code);
+			}
 		}
 		if (null == expansion) {
 			throw new RuntimeException("unrecognized allele code: " + alleleCode);
 		}
 		List<String> alleleList = expansion.getAlleleList();
-		boolean includeFamily = !expansion.isFamilyIncluded();
+		boolean familyIncluded = expansion.isFamilyIncluded();
 		StringBuilder sb = new StringBuilder();
 		if (null != prefix) sb.append(prefix);
-		if (!expansion.isFamilyIncluded()) sb.append(family);
+		if (!familyIncluded) sb.append(family).append(":");
 		sb.append(alleleList.get(0));
 		for (String allele : alleleList.subList(1,  alleleList.size())) {
 			sb.append("/");
 			if (null != prefix) sb.append(prefix);
-			if (includeFamily) sb.append(family);
+			if (!familyIncluded) sb.append(family).append(":");
 			sb.append(allele);
 		}
 		return sb.toString();

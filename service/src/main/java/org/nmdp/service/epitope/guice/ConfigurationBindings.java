@@ -24,8 +24,8 @@
 package org.nmdp.service.epitope.guice;
 
 import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
@@ -201,5 +201,14 @@ public @interface ConfigurationBindings {
     public @interface HlaAmbigUrls {
     }
 
+    /**
+     * URLs for HLA allele file, published quarterly
+     * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/Allelelist.txt)
+     */
+    @BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+    public @interface HlaAlleleUrls {
+    }
     
 }

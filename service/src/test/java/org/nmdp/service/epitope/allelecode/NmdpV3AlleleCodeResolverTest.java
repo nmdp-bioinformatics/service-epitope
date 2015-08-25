@@ -25,29 +25,35 @@ package org.nmdp.service.epitope.allelecode;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getMockUrl;
 
 import java.net.URL;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
+import org.nmdp.service.epitope.db.DbiManager;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NmdpV3AlleleCodeResolverTest {
 
 	private NmdpV3AlleleCodeResolver resolver;
 
+	@Mock
+	DbiManager dbi = null;
+	
 	@Before
 	public void setUp() throws Exception {
 		URL url = getMockUrl("\n*\tAFC\t01:01/02:01/02:02/03:01\n", true);
-		resolver = new NmdpV3AlleleCodeResolver(new URL[]{url}, 0);
+		resolver = new NmdpV3AlleleCodeResolver(new URL[]{url}, 0, dbi);
 	}
 
 	@Test
@@ -57,4 +63,12 @@ public class NmdpV3AlleleCodeResolverTest {
 		assertThat(test, containsInAnyOrder("HLA-DPB1*01:01", "HLA-DPB1*02:01", "HLA-DPB1*02:02", "HLA-DPB1*03:01"));
 	}
 
+	@Test
+	public void testApply_XXCode() throws Exception {
+		when(dbi.getFamilyAlleleMap()).thenReturn(ImmutableMap.of("04", ImmutableList.of("04:01", "04:02", "04:03")));
+		String resolved = resolver.apply("HLA-DPB1*04:XX");
+		List<String> test = Splitter.on("/").splitToList(resolved);
+		assertThat(test, containsInAnyOrder("HLA-DPB1*04:01", "HLA-DPB1*04:02", "HLA-DPB1*04:03"));
+	}
+	
 }

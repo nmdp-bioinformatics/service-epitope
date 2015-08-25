@@ -59,12 +59,14 @@ public class DbiManagerImpl implements DbiManager {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	private Set<DetailRace> raceSet;
+	private Map<String, List<String>> familyAlleleMap;
 
 	@Inject
 	public DbiManagerImpl(DBI dbi) {
 		this.dbi = dbi;
 		dbi.setSQLLog(new SLF4JLog(logger, Level.TRACE));
 		initRacesWithFrequencies();
+		initFamilyAlleleMap();
 	}
 	
 	ResultSetMapper<String> LOCUS_ALLELE = new ResultSetMapper<String>() {
@@ -72,8 +74,8 @@ public class DbiManagerImpl implements DbiManager {
 			return r.getString("locus") + "*" + r.getString("allele");
 		}};
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getAlleleGroupMap()
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public Map<String, Integer> getAlleleGroupMap() {
@@ -87,8 +89,8 @@ public class DbiManagerImpl implements DbiManager {
 		}
 	}		
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getGroupForAllele(java.lang.String)
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public Integer getGroupForAllele(String allele) {
@@ -101,8 +103,8 @@ public class DbiManagerImpl implements DbiManager {
  		}
 	}
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getAllelesForGroup(java.lang.Integer)
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public List<String> getAllelesForGroup(Integer group) {
@@ -115,8 +117,8 @@ public class DbiManagerImpl implements DbiManager {
  		}
 	}
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getGroupAlleleMap()
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public Map<Integer, List<String>> getGroupAlleleMap() {
@@ -131,8 +133,8 @@ public class DbiManagerImpl implements DbiManager {
 		}
 	}
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getBroadRaceForDetailRace(java.lang.String)
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public String getBroadRaceForDetailRace(String detailRace) {
@@ -145,8 +147,8 @@ public class DbiManagerImpl implements DbiManager {
  		}
 	}
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getAlleleFrequenciesForDetailRace(java.lang.String)
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public Map<String, Double> getAlleleFrequenciesForDetailRace(String detailRace) {
@@ -169,8 +171,8 @@ public class DbiManagerImpl implements DbiManager {
 		}
 	}
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getAllelesForCode(java.lang.String, java.lang.String)
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public List<String> getAllelesForCode(String locus, String code) {
@@ -184,8 +186,8 @@ public class DbiManagerImpl implements DbiManager {
 		}
 	}
 	
-	/* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getFrequency(java.lang.String, org.nmdp.service.epitope.domain.DetailRace)
+    /** 
+     * {@inheritDoc} 
      */
 	@Override
     public Double getFrequency(String allele, DetailRace race) {
@@ -216,14 +218,41 @@ public class DbiManagerImpl implements DbiManager {
         }
     }
 	
-    /* (non-Javadoc)
-     * @see org.nmdp.service.epitope.db.DbiManager#getRacesWithFrequencies()
+    /** 
+     * {@inheritDoc} 
      */
     @Override
     public Set<DetailRace> getRacesWithFrequencies() {
         return this.raceSet;
     }
 
+    /** 
+     * {@inheritDoc} 
+     */
+    @Override
+    public Map<String, List<String>> getFamilyAlleleMap() {
+        return this.familyAlleleMap;
+    }
+
+    private void initFamilyAlleleMap() {
+        try (Handle handle = dbi.open()) {
+            this.familyAlleleMap = handle.createQuery("select distinct allele from ("
+            		+ " select allele from race_freq where locus='HLA-DPB1'"
+            		+ " union select allele from allele_group where locus='HLA-DPB1'"
+            		+ " union select allele from hla_g_group where locus='HLA-DPB1')")
+                .map(StringMapper.FIRST)
+                .list()
+                .stream()
+                .collect(Collectors.groupingBy(a -> a.substring(0, a.indexOf(":"))));
+
+            //personStream.collect(groupingBy(person::getCity));
+            
+        }
+    }
+    
+    /** 
+     * {@inheritDoc} 
+     */
     @Override
     public Long getDatasetDate(String dataset) {
         try (Handle handle = dbi.open()) {
@@ -234,6 +263,9 @@ public class DbiManagerImpl implements DbiManager {
         }
     }
     
+    /** 
+     * {@inheritDoc} 
+     */
     @Override
     public void updateDatasetDate(String dataset, Long date) {
         try (Handle handle = dbi.open()) {
@@ -244,6 +276,9 @@ public class DbiManagerImpl implements DbiManager {
         }
     }
     
+    /** 
+     * {@inheritDoc} 
+     */
     @Override
     public void loadGGroups(Iterator<GGroupRow> rowIter, boolean reload) {
         try (Handle handle = dbi.open()) {
@@ -256,6 +291,24 @@ public class DbiManagerImpl implements DbiManager {
         }
     }
     
+    /** 
+     * {@inheritDoc} 
+     */
+    @Override
+    public void loadAlleles(Iterator<AlleleRow> rowIter, boolean reload) {
+        try (Handle handle = dbi.open()) {
+            if (reload) {
+                handle.createStatement("delete from hla_allele").execute();
+            }
+            PreparedBatch batch = handle.prepareBatch("insert into hla_allele(locus, allele) values (?, ?)");
+            rowIter.forEachRemaining(g -> batch.add(g.getLocus(), g.getAllele()));
+            batch.execute();
+        }
+    }
+    
+    /** 
+     * {@inheritDoc} 
+     */
     @Override
     public String getGGroupForAllele(String locus, String allele) {
         try (Handle handle = dbi.open()) {
