@@ -29,7 +29,9 @@ package org.nmdp.service.epitope.domain;
 public enum MatchGrade {
 	MATCH,
 	PERMISSIVE,
+	POTENTIAL,
 	GVH_NONPERMISSIVE,
 	HVG_NONPERMISSIVE,
+	NONPERMISSIVE_UNDEFINED,
 	UNKNOWN
 }
