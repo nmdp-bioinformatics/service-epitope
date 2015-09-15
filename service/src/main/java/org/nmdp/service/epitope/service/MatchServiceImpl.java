@@ -27,7 +27,9 @@ import static org.nmdp.service.epitope.domain.DetailRace.UNK;
 import static org.nmdp.service.epitope.domain.MatchGrade.GVH_NONPERMISSIVE;
 import static org.nmdp.service.epitope.domain.MatchGrade.HVG_NONPERMISSIVE;
 import static org.nmdp.service.epitope.domain.MatchGrade.MATCH;
+import static org.nmdp.service.epitope.domain.MatchGrade.NONPERMISSIVE_UNDEFINED;
 import static org.nmdp.service.epitope.domain.MatchGrade.PERMISSIVE;
+import static org.nmdp.service.epitope.domain.MatchGrade.POTENTIAL;
 import static org.nmdp.service.epitope.domain.MatchGrade.UNKNOWN;
 
 import java.util.EnumMap;
@@ -97,19 +99,23 @@ public class MatchServiceImpl implements MatchService {
 			return MatchGrade.MATCH;
 		}
 		Integer recipLow = recipAllelePair.getLowG();
+		Integer recipHi = recipAllelePair.getHighG();
 		Integer donorLow = donorAllelePair.getLowG();
+		Integer donorHi = donorAllelePair.getHighG();
 		MatchGrade matchGrade = null;
 		if (recipLow == null || donorLow == null) {
 			matchGrade = MatchGrade.UNKNOWN;
+		} else if (0 == recipHi && 0 == donorHi) {
+			matchGrade = MatchGrade.PERMISSIVE;
+		} else if (0 == recipHi) {
+			matchGrade = MatchGrade.GVH_NONPERMISSIVE;
+		} else if (0 == donorHi) {
+			matchGrade = MatchGrade.HVG_NONPERMISSIVE;
+		} else if (recipLow.compareTo(donorLow) == 0) {
+	        matchGrade = MatchGrade.PERMISSIVE;
 		} else {
-	        if (0 == recipLow) recipLow = recipAllelePair.getHighG(); // special handling for null alleles
-	        if (0 == donorLow) donorLow = donorAllelePair.getHighG(); // special handling for null alleles
-		    if (recipLow.compareTo(donorLow) == 0) {
-		        matchGrade = MatchGrade.PERMISSIVE;
-    		} else {
-    			matchGrade = (recipLow.compareTo(donorLow) < 0) 
-    					? MatchGrade.GVH_NONPERMISSIVE : MatchGrade.HVG_NONPERMISSIVE;
-    		}
+			matchGrade = (recipLow.compareTo(donorLow) < 0) 
+					? MatchGrade.GVH_NONPERMISSIVE : MatchGrade.HVG_NONPERMISSIVE;
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("Matched:rp:" + recipAllelePair + ",dp:" + donorAllelePair 
@@ -167,8 +173,14 @@ public class MatchServiceImpl implements MatchService {
         public double get() { return d; }
         public void set(double d) { this.d = d; }
         public void add(double d) { this.d += d; }
+        public String toString() { return Double.toString(d); }
     }
     
+	/**
+	 * @param ralps
+	 * @param dalps
+	 * @return
+	 */
 	MatchResult getMatch(Map<AllelePair, Double> ralps, Map<AllelePair, Double> dalps) {
 	    EnumMap<MatchGrade, DoubleContainer> pmap = new EnumMap<MatchGrade, DoubleContainer>(MatchGrade.class);
 	    for (MatchGrade grade : MatchGrade.values()) {
@@ -191,11 +203,30 @@ public class MatchServiceImpl implements MatchService {
         pmap.values().forEach(dc -> dc.set((double)Math.round(dc.get() / total * 1000) / 1000));
 
         logger.debug("finished with: " + pmap);
-		grade = UNKNOWN;
-        if (pmap.get(GVH_NONPERMISSIVE).get() >= matchGradeThreshold) grade = GVH_NONPERMISSIVE;
-        if (pmap.get(HVG_NONPERMISSIVE).get() >= matchGradeThreshold) grade = HVG_NONPERMISSIVE;
-        if (pmap.get(PERMISSIVE).get() >= matchGradeThreshold) grade = PERMISSIVE;
-        if (pmap.get(MATCH).get() >= matchGradeThreshold) grade = MATCH;
+
+        boolean m = pmap.get(MATCH).get() > 0;
+		boolean p = pmap.get(PERMISSIVE).get() > 0;
+		boolean hvg = pmap.get(HVG_NONPERMISSIVE).get() > 0;
+		boolean gvh = pmap.get(GVH_NONPERMISSIVE).get() > 0;
+		boolean u = pmap.get(UNKNOWN).get() > 0;
+		if (m) {
+			if (p || hvg || gvh || u) { grade = POTENTIAL; } 
+			else { grade = MATCH; }
+		} else if (p) {
+			if (hvg || gvh || u) { grade = POTENTIAL; } 
+			else { grade = PERMISSIVE; }
+		} else if (hvg) {
+			if (gvh || u) { grade = NONPERMISSIVE_UNDEFINED; } 
+			else { grade = HVG_NONPERMISSIVE; }
+		} else if (gvh) {
+			if (u) { grade = NONPERMISSIVE_UNDEFINED; } 
+			else { grade = GVH_NONPERMISSIVE; }
+		} else if (u) {
+			grade = UNKNOWN;
+		} else {
+			throw new RuntimeException("no recognized match grades possible");
+		}
+
 		// return both probabilities and match grade
 		return new MatchResult(
 		        pmap.get(MATCH).get(),
@@ -211,6 +242,7 @@ public class MatchServiceImpl implements MatchService {
 	            .flatMap(al -> al.getAlleles().stream())
 	            .filter(a -> a.getLocus().equals(locus));
 	}
+	
 	
     Map<AllelePair, Double> getAllelePairs(GenotypeList gl, DetailRace race) {
 		Locus dpb1;

@@ -108,16 +108,62 @@ public class MatchServiceImplTest {
 	}
 
 	@Test
-	public void testGetMatch() throws Exception {
+	public void testGetMatch_Ambig_P_HVG_GVH() throws Exception {
 		GenotypeList rgl = new GenotypeList("1", aGenotype(
-				anAlleleList(group1Alleles().get(0), group2Alleles().get(0)),
-				anAlleleList(group2Alleles().get(0), group3Alleles().get(0))));
+				anAlleleList(
+						group1Alleles().get(0), 
+						group2Alleles().get(0)),
+				anAlleleList(
+						group2Alleles().get(0), 
+						group3Alleles().get(0))));
 		GenotypeList dgl = new GenotypeList("1", aGenotype( 
-				anAlleleList(group1Alleles().get(1), group2Alleles().get(1)),
-				anAlleleList(group2Alleles().get(1), group3Alleles().get(1))));
+				anAlleleList(
+						group1Alleles().get(1), 
+						group2Alleles().get(1)),
+				anAlleleList(
+						group2Alleles().get(1), 
+						group3Alleles().get(1))));
 		when(freqService.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1.0E-5);
 		MatchResult test = service.getMatch(rgl, null, dgl, null);
-		assertThat(test.getMatchGrade(), equalTo(MatchGrade.PERMISSIVE));
+		assertThat(test.getMatchGrade(), equalTo(MatchGrade.POTENTIAL));
+	}
+	
+	@Test
+	public void testGetMatch_Ambig_A_P_HVG_GVH() throws Exception {
+		GenotypeList rgl = new GenotypeList("1", aGenotype(
+				anAlleleList(
+						group1Alleles().get(0),
+						group3Alleles().get(0)),
+				anAlleleList(
+						group1Alleles().get(0), 
+						group2Alleles().get(0))));
+		GenotypeList dgl = new GenotypeList("1", aGenotype( 
+				anAlleleList(
+						group3Alleles().get(0)), 
+				anAlleleList(
+						group1Alleles().get(0), 
+						group2Alleles().get(0))));
+		when(freqService.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1.0E-5);
+		MatchResult test = service.getMatch(rgl, null, dgl, null);
+		assertThat(test.getMatchGrade(), equalTo(MatchGrade.POTENTIAL));
+	}
+	
+	@Test
+	public void testGetMatch_HVG_GVH() throws Exception {
+		GenotypeList rgl = new GenotypeList("1", aGenotype(
+				anAlleleList(
+						group3Alleles().get(0)),
+				anAlleleList(
+						group1Alleles().get(0), 
+						group3Alleles().get(0))));
+		GenotypeList dgl = new GenotypeList("1", aGenotype( 
+				anAlleleList(
+						group2Alleles().get(0)), 
+				anAlleleList(
+						group2Alleles().get(0))));
+		when(freqService.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1.0E-5);
+		MatchResult test = service.getMatch(rgl, null, dgl, null);
+		assertThat(test.getMatchGrade(), equalTo(MatchGrade.NONPERMISSIVE_UNDEFINED));
 	}
 	
 }
