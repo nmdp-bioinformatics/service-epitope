@@ -111,11 +111,16 @@ public class MatchServiceImpl implements MatchService {
 			matchGrade = MatchGrade.GVH_NONPERMISSIVE;
 		} else if (0 == donorHi) {
 			matchGrade = MatchGrade.HVG_NONPERMISSIVE;
-		} else if (recipLow.compareTo(donorLow) == 0) {
-	        matchGrade = MatchGrade.PERMISSIVE;
 		} else {
-			matchGrade = (recipLow.compareTo(donorLow) < 0) 
-					? MatchGrade.GVH_NONPERMISSIVE : MatchGrade.HVG_NONPERMISSIVE;
+			if (0 == recipLow) recipLow = recipHi;
+			if (0 == donorLow) donorLow = donorHi;
+			if (recipLow.compareTo(donorLow) == 0) {
+				matchGrade = MatchGrade.PERMISSIVE;
+			} else if (recipLow.compareTo(donorLow) > 0) {
+				matchGrade = MatchGrade.HVG_NONPERMISSIVE;
+			} else if (recipLow.compareTo(donorLow) < 0) {
+				matchGrade = MatchGrade.GVH_NONPERMISSIVE;
+			} 
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("Matched:rp:" + recipAllelePair + ",dp:" + donorAllelePair 
