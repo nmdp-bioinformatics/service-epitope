@@ -1,1 +1,1 @@
-docker run -d --name epitope-service -p 8080-8081:8080-8081 epitope-service:${project.version}
+docker run -d --name epitope-service -p 48080-48081:48080-48081 epitope-service:${project.version}
