@@ -1,4 +1,4 @@
-FROM java:7
+FROM java:8
 MAINTAINER Erik Pearson
 
 RUN mkdir /opt/epitope-service
@@ -11,9 +11,5 @@ RUN mkdir /var/opt/epitope-service \
 
 VOLUME /var/opt/epitope-service
 
-EXPOSE 8080
-EXPOSE 8081
-
 WORKDIR /var/opt/epitope-service
 CMD java -jar /opt/epitope-service/${project.build.finalName}.jar server internal.yml
-
