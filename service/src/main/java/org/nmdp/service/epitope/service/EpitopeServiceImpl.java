@@ -27,10 +27,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
+import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.gl.filter.GlStringFilter;
 import org.nmdp.service.epitope.group.GroupResolver;
 
@@ -53,12 +55,14 @@ public class EpitopeServiceImpl implements EpitopeService {
 	private ImmutableListMultimap<Allele, Integer> alleleGroupMap;
 	private GlClient glClient;
 	private Function<String, String> glStringFilter;
+	private DbiManager dbi;
 
 	@Inject
-	public EpitopeServiceImpl(@GroupResolver Function<Integer, List<Allele>> groups, GlClient glClient, @GlStringFilter Function<String, String> glStringFilter) {
+	public EpitopeServiceImpl(@GroupResolver Function<Integer, List<Allele>> groups, GlClient glClient, @GlStringFilter Function<String, String> glStringFilter, DbiManager dbi) {
 		this.groupResolver = groups;
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
+		this.dbi = dbi;
 		
 		// todo: refresh cache on underlying changes
 		// see cacheresolver.addListener()
@@ -66,23 +70,36 @@ public class EpitopeServiceImpl implements EpitopeService {
 	}
 	
 	public void buildMaps() {
-		ImmutableListMultimap.Builder<Integer, Allele> builder = ImmutableListMultimap.builder();
-		builder.orderKeysBy(Ordering.natural());
-		builder.orderValuesBy(new Comparator<Allele>() {
+		ImmutableListMultimap.Builder<Allele, Integer> builder = ImmutableListMultimap.builder();
+		builder.orderKeysBy(new Comparator<Allele>() {
 			@Override public int compare(Allele o1, Allele o2) {
 				return o1.getGlstring().compareTo(o2.getGlstring());
 			}
 		});
-		for (int i = 0; i <= 3; i++) {
+		builder.orderValuesBy(Ordering.natural());
+		// handle null alleles
+		groupResolver.apply(0).stream().forEach(allele -> builder.put(allele, 0));
+		for (int i = 1; i <= 3; i++) {
 			Integer group = i;
 			List<Allele> alleles = groupResolver.apply(group);
 			if (null == alleles) {
 			    throw new IllegalStateException("failed to resolve alleles in group: " + group);
 			}
-		    for (Allele allele : alleles) builder.put(group, allele);
+		    for (Allele allele : alleles) {
+		    	builder.put(allele, group);
+		    	List<Allele> gAlleles = dbi.getGGroupAllelesForAllele(allele.getGlstring())
+		    			.stream()
+		    			.map(s -> {
+								try { return glClient.createAllele(s); } 
+								catch (GlClientException e) { throw new RuntimeException("GlClient failed to create allele", e); }})
+		    			.collect(Collectors.toList());
+		    	for (Allele gAllele : gAlleles) {
+			    	if (!allele.equals(gAllele) && null != gAllele) builder.put(gAllele, group);
+		    	}
+		    }
 		}
-		groupAlleleMap = builder.build();
-		alleleGroupMap = groupAlleleMap.inverse();
+		alleleGroupMap = builder.build();
+		groupAlleleMap= alleleGroupMap.inverse();
 	}
 	
 	/**

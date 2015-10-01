@@ -31,6 +31,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFrequency;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.Group1Suffix;
@@ -113,6 +114,11 @@ public class EpitopeServiceConfiguration extends Configuration {
      * number of milliseconds the group cache should be kept before refreshing it from the underlying resolver
      */
 	private long groupCacheMillis = 60 * 60 * 1000L; 
+    
+	/**
+     * number of milliseconds the g group cache should be kept before refreshing it from the underlying resolver
+     */
+	private long gGroupCacheMillis = 60 * 60 * 1000L; 
     
     /**
      * number of milliseconds the gl cache should be kept before refreshing it from the  underlying resolver
@@ -248,6 +254,17 @@ public class EpitopeServiceConfiguration extends Configuration {
     @JsonProperty
     public void setGroupCacheMillis(long groupCacheMillis) {
     	this.groupCacheMillis = groupCacheMillis;
+    }
+
+    @JsonProperty
+	@GGroupCacheMillis
+	public long getGGroupCacheMillis() { 
+		return gGroupCacheMillis;
+	} 
+    
+    @JsonProperty
+    public void setGGroupCacheMillis(long gGroupCacheMillis) {
+    	this.gGroupCacheMillis = gGroupCacheMillis;
     }
 
     @JsonProperty

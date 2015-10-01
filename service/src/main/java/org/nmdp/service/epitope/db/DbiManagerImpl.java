@@ -45,14 +45,17 @@ import org.skife.jdbi.v2.logging.SLF4JLog;
 import org.skife.jdbi.v2.logging.SLF4JLog.Level;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.util.DoubleMapper;
-import org.skife.jdbi.v2.util.IntegerMapper;
 import org.skife.jdbi.v2.util.LongMapper;
 import org.skife.jdbi.v2.util.StringMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Splitter;
 import com.google.inject.Inject;
 
+/*
+ * All string versions of alleles passed into or out of methods include locus.
+ */
 public class DbiManagerImpl implements DbiManager {
 
 	private final DBI dbi;
@@ -73,7 +76,7 @@ public class DbiManagerImpl implements DbiManager {
 		@Override public String map(int index, ResultSet r, StatementContext ctx) throws SQLException {
 			return r.getString("locus") + "*" + r.getString("allele");
 		}};
-	
+		
     /** 
      * {@inheritDoc} 
      */
@@ -89,19 +92,19 @@ public class DbiManagerImpl implements DbiManager {
 		}
 	}		
 	
-    /** 
-     * {@inheritDoc} 
-     */
-	@Override
-    public Integer getGroupForAllele(String allele) {
-		try (Handle handle = dbi.open()) {
-			return handle.createQuery(
-					"select immune_group from allele_group where allele = :allele")
-					.bind("allele", allele)
-					.map(IntegerMapper.FIRST)
-					.first();
- 		}
-	}
+//    /** 
+//     * {@inheritDoc} 
+//     */
+//	@Override
+//    public Integer getGroupForAllele(String allele) {
+//		try (Handle handle = dbi.open()) {
+//			return handle.createQuery(
+//					"select immune_group from allele_group where allele = :allele")
+//					.bind("allele", allele)
+//					.map(IntegerMapper.FIRST)
+//					.first();
+// 		}
+//	}
 	
     /** 
      * {@inheritDoc} 
@@ -192,15 +195,19 @@ public class DbiManagerImpl implements DbiManager {
 	@Override
     public Double getFrequency(String allele, DetailRace race) {
 		try (Handle handle = dbi.open()) {
+        	List<String> alleleParts = Splitter.on('*').splitToList(allele);
 			return handle.createQuery(
 					"select ifnull(drf.frequency, brf.frequency)"
 					+ " from detail_race dr"
 					+ " join race_freq brf on dr.broad_race = brf.detail_race"
 					+ " left join race_freq drf on dr.detail_race = drf.detail_race"
 					+ " where dr.detail_race = :race"
+					+ " and brf.locus = :locus"
 					+ " and brf.allele = :allele"
-					+ " and (drf.allele is null or drf.allele = :allele);")
-					.bind("allele", allele)
+					+ " and (drf.allele is null or "
+					+ "     (drf.allele = :allele and drf.locus = :locus));")
+					.bind("locus", alleleParts.get(0))
+					.bind("allele", alleleParts.get(1))
 					.bind("race", race)
 					.map(DoubleMapper.FIRST)
 					.first();
@@ -310,14 +317,30 @@ public class DbiManagerImpl implements DbiManager {
      * {@inheritDoc} 
      */
     @Override
-    public String getGGroupForAllele(String locus, String allele) {
+    public String getGGroupForAllele(String allele) {
         try (Handle handle = dbi.open()) {
+        	List<String> alleleParts = Splitter.on('*').splitToList(allele);
             return handle.createQuery("select g_group from hla_g_group where locus = :locus and allele = :allele")
-                    .bind("locus", locus)
-                    .bind("allele", allele)
+                    .bind("locus", alleleParts.get(0))
+                    .bind("allele", alleleParts.get(1))
                     .map(StringMapper.FIRST)
                     .first();
         }
     }
-    
+
+	@Override
+	public List<String> getGGroupAllelesForAllele(String allele) {
+        try (Handle handle = dbi.open()) {
+        	List<String> alleleParts = Splitter.on('*').splitToList(allele);
+            return handle.createQuery(
+            		"select a.allele from hla_g_group a"
+            		+ " join hla_g_group g on a.g_group = g.g_group and a.locus = g.locus"
+            		+ " where g.locus = :locus and g.allele = :allele")
+                    .bind("locus", alleleParts.get(0))
+                    .bind("allele", alleleParts.get(1))
+					.map(LOCUS_ALLELE)
+                    .list();
+        }
+	}
+            		
 }

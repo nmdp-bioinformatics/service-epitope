@@ -55,6 +55,7 @@ import org.nmdp.gl.GenotypeList;
 import org.nmdp.gl.Haplotype;
 import org.nmdp.gl.Locus;
 import org.nmdp.gl.client.GlClient;
+import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.service.AllelePair;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
@@ -267,8 +268,18 @@ public class EpitopeServiceTestData {
 	public static Function<String, String> getTestGlStringFilter() {
 		return Functions.identity();
 	}
+
+	public static DbiManager getTestDbiManager() {
+		DbiManager mock = mock(DbiManager.class);
+		doAnswer(new Answer<List<String>>() {
+			@Override public List<String> answer(InvocationOnMock invocation) throws Throwable {
+				return Arrays.asList(invocation.getArgumentAt(0, String.class));
+			}
+		}).when(mock).getGGroupAllelesForAllele(anyString());
+		return mock;
+	}
 	
 	public static EpitopeService getTestEpitopeService() {
-		return new EpitopeServiceImpl(getTestGroupResolver(), getTestGlClient(), getTestGlStringFilter()); 
+		return new EpitopeServiceImpl(getTestGroupResolver(), getTestGlClient(), getTestGlStringFilter(), getTestDbiManager()); 
 	}
 }

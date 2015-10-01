@@ -59,12 +59,6 @@ public class FrequencyServiceImplTest {
 	}
 
 	@Test
-	public void testStripLocus() throws Exception {
-		String test = service.stripLocus("HLA-DPB1*01:01");
-		assertThat(test, equalTo("01:01"));
-	}
-
-	@Test
 	public void testGetFrequency() throws Exception {
 		when(resolver.getFrequency(anyString(), any(DetailRace.class))).thenReturn(.02);
 		Double test = service.getFrequency("HLA-DPB1*01:01", DetailRace.CAU);
