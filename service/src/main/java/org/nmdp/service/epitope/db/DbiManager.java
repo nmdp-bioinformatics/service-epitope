@@ -11,7 +11,7 @@ public interface DbiManager {
 
     Map<String, Integer> getAlleleGroupMap();
 
-    Integer getGroupForAllele(String allele);
+//    Integer getGroupForAllele(String allele);
 
     List<String> getAllelesForGroup(Integer group);
 
@@ -33,7 +33,9 @@ public interface DbiManager {
 
     void updateDatasetDate(String dataset, Long date);
 
-    String getGGroupForAllele(String locus, String allele);
+    String getGGroupForAllele(String allele);
+
+    List<String> getGGroupAllelesForAllele(String allele);
 
     Map<String, List<String>> getFamilyAlleleMap();
 

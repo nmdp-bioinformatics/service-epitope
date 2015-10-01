@@ -21,18 +21,12 @@ public class FrequencyServiceImpl implements FrequencyService {
         this.raceFreqs = dbiManager.getRacesWithFrequencies();
     }
     
-    String stripLocus(String allele) {
-        int i = allele.indexOf('*');
-        if (i < 0) return allele;
-        return allele.substring(i+1);
-    }
-    
     /**
      * {@inheritDoc}
      */
     @Override
     public double getFrequency(String allele, DetailRace race) {
-        Double d = resolver.getFrequency(stripLocus(allele), race);
+        Double d = resolver.getFrequency(allele, race);
         if (null != d) {
             return d;
         } else {

@@ -31,6 +31,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.anAllele;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGroupResolver;
+import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestDbiManager;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group0Alleles;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group1Alleles;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group2Alleles;
@@ -46,6 +47,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
+import org.nmdp.service.epitope.db.DbiManager;
 
 import com.google.common.base.Function;
 
@@ -62,15 +64,18 @@ public class EpitopeServiceImplTest {
 
 	private EpitopeServiceImpl service;
 
+	private DbiManager dbiManager;
+
 	@Before
 	public void setUp() throws Exception {
 		groupResolver = getTestGroupResolver();
-		service = new EpitopeServiceImpl(groupResolver, glClient, glStringFilter);
+		dbiManager = getTestDbiManager();
+		service = new EpitopeServiceImpl(groupResolver, glClient, glStringFilter, dbiManager);
 	}
 
 	@Test
 	public void testGetGroupForAllele() throws Exception {
-		service = new EpitopeServiceImpl(groupResolver, glClient, glStringFilter);
+		service = new EpitopeServiceImpl(groupResolver, glClient, glStringFilter, dbiManager);
 		assertThat(service.getGroupForAllele(group1Alleles().get(0)), equalTo(1));
 		assertThat(service.getGroupForAllele(group2Alleles().get(0)), equalTo(2));
 		assertThat(service.getGroupForAllele(group3Alleles().get(0)), equalTo(3));

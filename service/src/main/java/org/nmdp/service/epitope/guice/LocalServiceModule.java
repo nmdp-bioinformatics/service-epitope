@@ -37,6 +37,8 @@ import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
 import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.db.DbiManagerImpl;
+import org.nmdp.service.epitope.ggroup.DbiGGroupResolver;
+import org.nmdp.service.epitope.ggroup.GGroupResolver;
 import org.nmdp.service.epitope.gl.GlResolver;
 import org.nmdp.service.epitope.gl.GlStringResolver;
 import org.nmdp.service.epitope.gl.LocalGlClientModule;
@@ -51,6 +53,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheMilli
 import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
@@ -148,6 +151,16 @@ public class LocalServiceModule extends AbstractModule {
 		return new CachingFunction<Integer, List<Allele>>(resolver, duration, duration, 3);
 	}
 	
+	/**
+	 * resolve G groups from internal sqlite db
+	 */
+	@Provides
+	@Singleton
+	@GGroupResolver
+	public Function<Allele, List<Allele>> getGGroupResolver(DbiGGroupResolver resolver, @GGroupCacheMillis long duration) {
+		return new CachingFunction<Allele, List<Allele>>(resolver, duration, duration, 3);
+	}
+
 	/**
 	 * resolve gl strings using supplied glclient (see glclient bindings)
 	 */

@@ -45,6 +45,15 @@ public @interface ConfigurationBindings {
 	}
 
 	/**
+	 * number of milliseconds to cache immunogenity groups for
+	 */
+	@BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+	public @interface GGroupCacheMillis {
+	}
+
+	/**
 	 * number of milliseconds to cache genotype lists for
 	 */
 	@BindingAnnotation

@@ -55,7 +55,7 @@ public class GGroupFilter implements Function<String, String> {
         int last = 0;
         while (m.find()) {
             if (m.start() > last) sb.append(gl.substring(last, m.start()));
-            String gg = dbi.getGGroupForAllele(m.group(1), m.group(2));
+            String gg = dbi.getGGroupForAllele(m.group(1) + "*" + m.group(2));
             if (null == gg) {
                 sb.append(m.group());
             } else {
