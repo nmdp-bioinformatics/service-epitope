@@ -72,4 +72,10 @@ public interface EpitopeService {
 	 * @return list of alleles for the given TCE group
 	 */
 	public List<Allele> getAllelesForGroup(Integer group);
+
+	/**
+	 * build TCE group/allele maps
+	 */
+	void buildMaps();
+
 }

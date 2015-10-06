@@ -38,7 +38,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.gl.filter.AlleleCodeFilter;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AlleleCodeFilterTest {

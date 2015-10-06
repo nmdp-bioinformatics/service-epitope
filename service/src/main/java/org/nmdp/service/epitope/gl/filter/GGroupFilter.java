@@ -25,24 +25,27 @@ package org.nmdp.service.epitope.gl.filter;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.nmdp.service.epitope.db.DbiManager;
+import org.nmdp.service.epitope.guice.CachingFunction;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheMillis;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheSize;
 
-import com.google.common.base.Function;
 import com.google.inject.Inject;
 
 public class GGroupFilter implements Function<String, String> {
 
     // locus is not optional
     private static final Pattern ALLELE_PAT = Pattern.compile("(?<=^|[/~+|^])([^/~+|^*]*)\\*(\\d+:\\d+(?=:[A-Z0-9]+)*)(?=$|[/~+|^])", CASE_INSENSITIVE);
-
-    private DbiManager dbi;
+    
+    private Function<String, String> gGroupLookup;
 
     @Inject
-    public GGroupFilter(DbiManager dbi) {
-        this.dbi = dbi;
+    public GGroupFilter(DbiManager dbi, @GGroupCacheMillis long cacheMillis, @GGroupCacheSize long cacheSize) {
+        this.gGroupLookup = new CachingFunction<String, String>(a -> dbi.getGGroupForAllele(a), cacheMillis, cacheMillis, cacheSize);
     }
     
     /**
@@ -55,7 +58,7 @@ public class GGroupFilter implements Function<String, String> {
         int last = 0;
         while (m.find()) {
             if (m.start() > last) sb.append(gl.substring(last, m.start()));
-            String gg = dbi.getGGroupForAllele(m.group(1) + "*" + m.group(2));
+            String gg = gGroupLookup.apply(m.group(1) + "*" + m.group(2));
             if (null == gg) {
                 sb.append(m.group());
             } else {

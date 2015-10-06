@@ -1,6 +1,8 @@
 package org.nmdp.service.epitope.service;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.domain.DetailRace;
@@ -10,32 +12,50 @@ import com.google.inject.Inject;
 
 public class FrequencyServiceImpl implements FrequencyService {
 
-    private FrequencyResolver resolver;
-    private Set<DetailRace> raceFreqs;
     private Double baselineFrequency;
+    Map<DetailRace, Map<String, Double>> raceAlleleFreqMap;
+	private DbiManager dbi;
     
     @Inject
-    public FrequencyServiceImpl(FrequencyResolver resolver, DbiManager dbiManager, @BaselineAlleleFrequency Double baselineFrequency) {
-        this.resolver = resolver;
-        this.baselineFrequency = baselineFrequency;
-        this.raceFreqs = dbiManager.getRacesWithFrequencies();
+    public FrequencyServiceImpl(DbiManager dbi, @BaselineAlleleFrequency Double baselineFrequency) {
+        this.dbi = dbi;
+    	this.baselineFrequency = baselineFrequency;
     }
+    
+	@Override
+	public void buildFrequencyMap() {
+		Map<DetailRace, Map<String, Double>> map = dbi.getRaceAlleleFrequencyMap();
+		List<String> alleles = dbi.getAllelesForLocus("HLA-DPB1");
+		for (Map.Entry<DetailRace, Map<String, Double>> entry: map.entrySet()) {
+			Map.Entry<DetailRace, Map<String, Double>> e = entry;
+			alleles.stream().forEach(a -> addAlleleToMap(e.getValue(), a));
+		}
+		this.raceAlleleFreqMap = map;
+	}
+	
+    /**
+	 * Add the ARS version of the allele to the frequency map
+	 */
+	private void addAlleleToMap(Map<String, Double> map, String allele) {
+		if (map.containsKey(allele)) return;
+		int to = 0;
+		for (int i = 0; i < 2; i++) {
+			to = allele.indexOf(":", to);
+		}
+		if (to == -1) return;
+		Double arsFreq = map.get(allele.substring(0, to));
+		if (null != arsFreq) map.put(allele, arsFreq);
+	}
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public double getFrequency(String allele, DetailRace race) {
-        Double d = resolver.getFrequency(allele, race);
-        if (null != d) {
-            return d;
-        } else {
-            if (raceFreqs.contains(race)) {
-                return 0;
-            } else {
-                return baselineFrequency;
-            }
-        }
+    public double getFrequency(DetailRace race, String allele) {
+    	if (!raceAlleleFreqMap.containsKey(race)) {
+    		return baselineFrequency;
+    	}
+    	return Optional.ofNullable(raceAlleleFreqMap.get(race).get(allele)).orElse(0.0);
     }
 
 }

@@ -61,15 +61,10 @@ public class DbiManagerImpl implements DbiManager {
 	private final DBI dbi;
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	private Set<DetailRace> raceSet;
-	private Map<String, List<String>> familyAlleleMap;
-
 	@Inject
 	public DbiManagerImpl(DBI dbi) {
 		this.dbi = dbi;
 		dbi.setSQLLog(new SLF4JLog(logger, Level.TRACE));
-		initRacesWithFrequencies();
-		initFamilyAlleleMap();
 	}
 	
 	ResultSetMapper<String> LOCUS_ALLELE = new ResultSetMapper<String>() {
@@ -91,20 +86,6 @@ public class DbiManagerImpl implements DbiManager {
 			        m -> (Integer)m.get("immune_group")));
 		}
 	}		
-	
-//    /** 
-//     * {@inheritDoc} 
-//     */
-//	@Override
-//    public Integer getGroupForAllele(String allele) {
-//		try (Handle handle = dbi.open()) {
-//			return handle.createQuery(
-//					"select immune_group from allele_group where allele = :allele")
-//					.bind("allele", allele)
-//					.map(IntegerMapper.FIRST)
-//					.first();
-// 		}
-//	}
 	
     /** 
      * {@inheritDoc} 
@@ -136,41 +117,24 @@ public class DbiManagerImpl implements DbiManager {
 		}
 	}
 	
-    /** 
-     * {@inheritDoc} 
-     */
 	@Override
-    public String getBroadRaceForDetailRace(String detailRace) {
-		try (Handle handle = dbi.open()) {
-			return handle.createQuery(
-					"select broad_race from detail_race where detail_race = :detail_race")
-					.bind("detail_race", detailRace)
-					.map(StringMapper.FIRST)
-					.first();
- 		}
-	}
-	
-    /** 
-     * {@inheritDoc} 
-     */
-	@Override
-    public Map<String, Double> getAlleleFrequenciesForDetailRace(String detailRace) {
-		Map<String, Double> alleleFrequencies = getAlleleFrequenciesForRace(detailRace);
-		if (alleleFrequencies.isEmpty()) {
-			String broadRace = getBroadRaceForDetailRace(detailRace);
-			alleleFrequencies = getAlleleFrequenciesForRace(broadRace);
-		}
-		return alleleFrequencies;
-	}
-	
-	private Map<String, Double> getAlleleFrequenciesForRace(String race) {
+	public Map<DetailRace, Map<String, Double>> getRaceAlleleFrequencyMap() {
 		try (Handle handle = dbi.open()) {
 			Query<Map<String, Object>> query = handle.createQuery(
-					"select locus, allele, frequency from race_freq where detail_race = :detail_race");
-			return StreamSupport.stream(query.spliterator(), false)
-			        .collect(Collectors.toMap(
-			                m -> (String)m.get("locus") + "*" + (String)m.get("allele"), 
-			                m -> (Double)m.get("frequency")));
+					"select brf.locus, dr.detail_race, brf.allele, ifnull(drf.frequency, brf.frequency) freq"
+					//+ " ifnull(drf.detail_race, 'broad:' || brf.detail_race)"
+					+ " from detail_race dr"
+					+ " join race_freq brf on dr.broad_race = brf.detail_race"
+					+ " left join race_freq drf on dr.detail_race = drf.detail_race"
+					+ "     and brf.locus = drf.locus"
+					+ "     and brf.allele = drf.allele"
+					+ " where brf.locus = 'HLA-DPB1'");
+			return StreamSupport.stream(query.spliterator(), false).collect(
+					Collectors.groupingBy(
+							m -> DetailRace.valueOf((String)m.get("detail_race")), 
+			        		Collectors.toMap(
+			        				m -> (String)m.get("locus") + "*" + (String)m.get("allele"), 
+			        				m -> (Double)m.get("freq"))));
 		}
 	}
 	
@@ -214,9 +178,10 @@ public class DbiManagerImpl implements DbiManager {
 		}
 	}
 
-    private void initRacesWithFrequencies() {
+	@Override
+    public Set<DetailRace> getRacesWithFrequencies() {
         try (Handle handle = dbi.open()) {
-            this.raceSet = handle.createQuery("select distinct detail_race from race_freq")
+            return handle.createQuery("select distinct detail_race from race_freq")
                 .map(StringMapper.FIRST)
                 .list()
                 .stream()
@@ -224,26 +189,11 @@ public class DbiManagerImpl implements DbiManager {
                 .collect(Collectors.toSet());
         }
     }
-	
-    /** 
-     * {@inheritDoc} 
-     */
-    @Override
-    public Set<DetailRace> getRacesWithFrequencies() {
-        return this.raceSet;
-    }
 
-    /** 
-     * {@inheritDoc} 
-     */
     @Override
     public Map<String, List<String>> getFamilyAlleleMap() {
-        return this.familyAlleleMap;
-    }
-
-    private void initFamilyAlleleMap() {
         try (Handle handle = dbi.open()) {
-            this.familyAlleleMap = handle.createQuery("select distinct allele from ("
+            return handle.createQuery("select distinct allele from ("
             		+ " select allele from race_freq where locus='HLA-DPB1'"
             		+ " union select allele from allele_group where locus='HLA-DPB1'"
             		+ " union select allele from hla_g_group where locus='HLA-DPB1')")
@@ -251,9 +201,6 @@ public class DbiManagerImpl implements DbiManager {
                 .list()
                 .stream()
                 .collect(Collectors.groupingBy(a -> a.substring(0, a.indexOf(":"))));
-
-            //personStream.collect(groupingBy(person::getCity));
-            
         }
     }
     
@@ -333,12 +280,22 @@ public class DbiManagerImpl implements DbiManager {
         try (Handle handle = dbi.open()) {
         	List<String> alleleParts = Splitter.on('*').splitToList(allele);
             return handle.createQuery(
-            		"select a.allele from hla_g_group a"
+            		"select a.locus, a.allele from hla_g_group a"
             		+ " join hla_g_group g on a.g_group = g.g_group and a.locus = g.locus"
             		+ " where g.locus = :locus and g.allele = :allele")
                     .bind("locus", alleleParts.get(0))
                     .bind("allele", alleleParts.get(1))
 					.map(LOCUS_ALLELE)
+                    .list();
+        }
+	}
+
+	@Override
+	public List<String> getAllelesForLocus(String locus) {
+        try (Handle handle = dbi.open()) {
+            return handle.createQuery("select locus, allele from hla_allele where locus = :locus")
+                    .bind("locus", locus)
+                    .map(LOCUS_ALLELE)
                     .list();
         }
 	}

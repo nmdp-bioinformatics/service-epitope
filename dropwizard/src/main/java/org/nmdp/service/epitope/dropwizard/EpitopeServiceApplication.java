@@ -23,6 +23,9 @@
 
 package org.nmdp.service.epitope.dropwizard;
 
+import java.util.Arrays;
+
+import org.apache.log4j.Logger;
 import org.nmdp.service.common.domain.ConfigurationModule;
 import org.nmdp.service.common.dropwizard.CommonServiceApplication;
 import org.nmdp.service.epitope.guice.ConfigurationBindings;
@@ -31,6 +34,8 @@ import org.nmdp.service.epitope.resource.impl.AlleleResource;
 import org.nmdp.service.epitope.resource.impl.GroupResource;
 import org.nmdp.service.epitope.resource.impl.MatchResource;
 import org.nmdp.service.epitope.resource.impl.ResourceModule;
+import org.nmdp.service.epitope.service.EpitopeService;
+import org.nmdp.service.epitope.service.FrequencyService;
 import org.nmdp.service.epitope.task.AlleleInitializer;
 import org.nmdp.service.epitope.task.GGroupInitializer;
 import org.skife.jdbi.v2.DBI;
@@ -57,6 +62,8 @@ import io.dropwizard.setup.Environment;
  * Dropwizard main application wrapper
  */
 public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeServiceConfiguration> {
+	
+	Logger log = Logger.getLogger(getClass()); 
 	
 	/**
 	 * Application main method
@@ -116,10 +123,13 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
 	    environment.lifecycle().manage(
-	            getStartHook(() -> injector.getInstance(GGroupInitializer.class).loadGGroups()));
-	    
-	    environment.lifecycle().manage(
-	            getStartHook(() -> injector.getInstance(AlleleInitializer.class).loadAlleles()));
+	            getStartHooks(
+	            	runParallel(
+	            		() -> injector.getInstance(GGroupInitializer.class).loadGGroups(),
+	            		() -> injector.getInstance(AlleleInitializer.class).loadAlleles()),
+	            	runParallel(
+	            		() -> injector.getInstance(EpitopeService.class).buildMaps(),
+	            		() -> injector.getInstance(FrequencyService.class).buildFrequencyMap())));
 	    
     	final AlleleResource alleleResource = injector.getInstance(AlleleResource.class);
     	environment.jersey().register(alleleResource);
@@ -137,13 +147,22 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     	environment.healthChecks().register("glClient",  glClientHealthCheck);
     }
 
-	public Managed getStartHook(Runnable hook) {
+	public Managed getStartHooks(Runnable... hooks) {
         return new Managed() {
             @Override public void stop() throws Exception {}
             @Override public void start() throws Exception {
-                hook.run();
+            	Arrays.stream(hooks).forEachOrdered(hook -> {
+            		try { hook.run(); } catch (Exception e) { log.error("hook failed", e); }});
             }
         };
+	}
+	
+	public Runnable runParallel(Runnable... hooks) {
+		return new Runnable() {
+			@Override public void run() {
+            	Arrays.stream(hooks).parallel().forEach(hook -> {
+            		try { hook.run(); } catch (Exception e) { log.error("hook failed", e); }});
+			}};
 	}
 	
 	@Override

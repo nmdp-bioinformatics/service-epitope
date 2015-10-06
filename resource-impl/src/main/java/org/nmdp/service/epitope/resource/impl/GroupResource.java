@@ -23,6 +23,7 @@
 
 package org.nmdp.service.epitope.resource.impl;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
@@ -30,7 +31,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.Optional;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -46,7 +48,7 @@ import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.gl.filter.GlStringFilter;
+import org.nmdp.service.epitope.gl.filter.GlstringFilter;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.AlleleView;
 import org.nmdp.service.epitope.resource.GroupView;
@@ -55,9 +57,7 @@ import org.nmdp.service.epitope.service.FrequencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiImplicitParam;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -75,12 +75,11 @@ public class GroupResource {
     private FrequencyService freqService;
     
 	@Inject
-	public GroupResource(EpitopeService epitopeService, GlClient glClient, @GlStringFilter Function<String, String> glStringFilter, FrequencyService freqService) {
+	public GroupResource(EpitopeService epitopeService, GlClient glClient, @GlstringFilter Function<String, String> glStringFilter, FrequencyService freqService) {
 		this.epitopeService = epitopeService;
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
         this.freqService = freqService;
-        Callable r;
 	}
 	
 	private AlleleView getAlleleView(String glstring) {
@@ -91,11 +90,25 @@ public class GroupResource {
 		} catch (GlClientException e) {
 			throw new RuntimeException("failed to create allele: " + glstring, e);
 		}
-		return new AlleleView(glstring, epitopeService.getGroupForAllele(allele), null, null);
+        Integer group = null;
+        String error = null;
+		try {
+			group = epitopeService.getGroupForAllele(allele);
+		} catch (Exception e) {
+			error = e.getMessage();
+		}
+		return new AlleleView(glstring, group, null, null, error);
 	}
 	
 	private AlleleView getAlleleView(Allele allele) {
-		return new AlleleView(glStringFilter.apply(allele.getGlstring()), epitopeService.getGroupForAllele(allele), null, null);
+        Integer group = null;
+        String error = null;
+		try {
+			group = epitopeService.getGroupForAllele(allele);
+		} catch (Exception e) {
+			error = e.getMessage();
+		}
+		return new AlleleView(glStringFilter.apply(allele.getGlstring()), group, null, null, error);
 	}
 	
 	private List<String> convertAlleleListToStringList(List<Allele> alleleList) {
@@ -123,9 +136,9 @@ public class GroupResource {
 		    if (null != race) {
 		        throw new IllegalStateException("race argument requires alleles to be provided");
 		    }
-			return FluentIterable.from(epitopeService.getAllGroups().entrySet())
-					.transform(e -> new GroupView(e.getKey(), null, null, convertAlleleListToStringList(e.getValue())))
-					.toList();
+			return epitopeService.getAllGroups().entrySet().stream()
+					.map(e -> new GroupView(e.getKey(), null, null, convertAlleleListToStringList(e.getValue()), null))
+					.collect(toList());
 		}
 		List<String> alleleList = new ArrayList<>();
 		if (alleles != null) addToList(alleleList, parseAlleles(alleles));
@@ -213,21 +226,35 @@ public class GroupResource {
 	}
 
 	private List<GroupView> convertAlleleListToGroupList(List<AlleleView> alleleList, DetailRace race) {
-		Map<Integer, GroupView> groupMap = new HashMap<>();
-		for (AlleleView allele : alleleList) {
-			Integer id = allele.getGroup();
-			GroupView group = groupMap.get(id);
-			if (group == null) {
-				group = new GroupView(id, race, null, new ArrayList<String>());
-				groupMap.put(id, group);
-			}
-			if (!group.getAlleleList().contains(allele.getAllele())) group.getAlleleList().add(allele.getAllele());
-		}
+		List<GroupView> groupList = alleleList.stream()
+				.collect(groupingBy(av -> Optional.<Integer>ofNullable(av.getGroup()), toList()))
+				.entrySet().stream()
+						.map(e -> new GroupView(
+								e.getKey().orElse(null), race, null, 
+								e.getValue().stream().map(av -> av.getAllele()).collect(toList()),
+								e.getKey().isPresent() ? null : "unknown group or allele")).collect(toList());
         if (race != null) {
-            groupMap = calculateGroupProbabilities(groupMap);
+            groupList = calculateGroupProbabilities(groupList);
         }
-		return new ArrayList<>(groupMap.values());
+		return new ArrayList<>(groupList);
 	}
+	
+//	private List<GroupView> convertAlleleListToGroupList(List<AlleleView> alleleList, DetailRace race) {
+//		Map<Integer, GroupView> groupMap = new HashMap<>();
+//		for (AlleleView allele : alleleList) {
+//			Integer id = allele.getGroup();
+//			GroupView group = groupMap.get(id);
+//			if (group == null) {
+//				group = new GroupView(id, race, null, new ArrayList<String>());
+//				groupMap.put(id, group);
+//			}
+//			if (!group.getAlleleList().contains(allele.getAllele())) group.getAlleleList().add(allele.getAllele());
+//		}
+//        if (race != null) {
+//            groupMap = calculateGroupProbabilities(groupMap);
+//        }
+//		return new ArrayList<>(groupMap.values());
+//	}
 	
 	class DoubleContainer {
 	    double d;
@@ -237,30 +264,30 @@ public class GroupResource {
 	    public void subtract(double d) { this.d -= d; }
 	}
 	
-	private Map<Integer, GroupView> calculateGroupProbabilities(Map<Integer, GroupView> groupMap) {
+	private List<GroupView> calculateGroupProbabilities(List<GroupView> groupList) {
 	    Map<Integer, DoubleContainer> groupFreqMap = new HashMap<>();
-	    for (GroupView groupView : groupMap.values()) {
+	    for (GroupView groupView : groupList) {
 	        DoubleContainer dc = new DoubleContainer();
 	        groupFreqMap.put(groupView.getGroup(), dc);
 	        if (groupView.getRace() == null) {
 	            log.debug("race missing for group (skipping probabilities: " + groupView.getGroup());
-	            return groupMap;
+	            return groupList;
 	        }
 	        for (String a : groupView.getAlleleList()) {
-	            dc.add(freqService.getFrequency(a, groupView.getRace()));
+	            dc.add(freqService.getFrequency(groupView.getRace(), a));
 	        }
 	    }
 	    double total = 0; 
 	    for (DoubleContainer dc : groupFreqMap.values()) {
 	        total += dc.get();
 	    }
-        Map<Integer, GroupView> newMap = new HashMap<>();
-	    for (GroupView groupView : groupMap.values()) {
+        List<GroupView> newList = new ArrayList<>();
+	    for (GroupView groupView : groupList) {
 	        double probability = groupFreqMap.get(groupView.getGroup()).get() / total;
 	        probability = round(probability);
-	        newMap.put(groupView.getGroup(), new GroupView(groupView.getGroup(), groupView.getRace(), probability, groupView.getAlleleList()));
+	        newList.add(new GroupView(groupView.getGroup(), groupView.getRace(), probability, groupView.getAlleleList(), groupView.getError()));
 	    }
-        return newMap;
+        return newList;
     }
 
 	private double round(double d) {
@@ -273,7 +300,7 @@ public class GroupResource {
 	public GroupView getGroup(@PathParam("group") String group) {
 		Integer gid = new Integer(group);
 		List<String> alleleList = convertAlleleListToStringList(epitopeService.getAllelesForGroup(new Integer(group))); 
-		return new GroupView(gid, null, null, alleleList);
+		return new GroupView(gid, null, null, alleleList, null);
 	}
 
 }

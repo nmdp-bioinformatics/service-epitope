@@ -39,13 +39,21 @@ public class GroupView {
 	private DetailRace race;
 	private Double probability;
 	private List<String> alleleList;
+	private String error;
 
     @JsonCreator
-    public GroupView(final @JsonProperty("group") Integer group, final @JsonProperty("race") DetailRace race, final @JsonProperty("probability") Double probability, final @JsonProperty("alleleList") List<String> alleleList) {
+    public GroupView(
+    		final @JsonProperty("group") Integer group, 
+    		final @JsonProperty("race") DetailRace race, 
+    		final @JsonProperty("probability") Double probability, 
+    		final @JsonProperty("alleleList") List<String> alleleList,
+    		final @JsonProperty("error") String error) 
+    {
 		this.group = group; 
 		this.race = race;
 		this.probability = probability;
 		this.alleleList = alleleList;
+		this.error = error;
 	}
 
     @ApiModelProperty(value="Integer representation of an immunogenicity group", required=true)
@@ -67,4 +75,10 @@ public class GroupView {
 	public List<String> getAlleleList() {
 		return alleleList;
 	}
+
+	@ApiModelProperty(value="Error message associated with the group") 
+	public String getError() {
+		return error;
+	}
+
 }

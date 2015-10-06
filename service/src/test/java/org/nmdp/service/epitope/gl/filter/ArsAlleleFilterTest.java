@@ -31,7 +31,7 @@ import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
 
 public class ArsAlleleFilterTest {
 
-	ArsAlleleFilter filter = new ArsAlleleFilter();
+	ArsAlleleFilter filter = new ArsAlleleFilter(100, 100);
 	
 	@Test
 	public void testApply() throws Exception {

@@ -21,23 +21,23 @@
 
 */
 
-package org.nmdp.service.epitope.service;
+package org.nmdp.service.epitope.gl.filter;
 
-import org.nmdp.service.epitope.domain.DetailRace;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import com.google.inject.BindingAnnotation;
 
 /**
- * Operation that returns a frequency for the given allele and {@link DetailRace}. 
- * <p>
- * This is a {@link FunctionalInterface} whose functional method is {@link #getFrequency(String, DetailRace)}.
+ * Guice binding annotation to indicate GlStringFilter.  Attached to Function<String, String,
+ * which take a GL string, and return the GL string, modified in some way.
  */
-@FunctionalInterface
-public interface FrequencyResolver {
-
-    /**
-     * Returns a frequency for the given allele and {@link DetailRace}.
-     * @param allele the allele for which to return a frequency.
-     * @param race the population for which to return a frequency.
-     * @return a frequency for the given allele and {@link DetailRace} if known, or null otherwise.
-     */
-    public Double getFrequency(String allele, DetailRace race);    
-}
+@BindingAnnotation
+@Target({FIELD, PARAMETER, METHOD})
+@Retention(RUNTIME)
+public @interface GlstringFilter {}

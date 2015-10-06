@@ -26,9 +26,9 @@ package org.nmdp.service.epitope.gl;
 import org.nmdp.gl.GenotypeList;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
-import org.nmdp.service.epitope.gl.filter.GlStringFilter;
+import org.nmdp.service.epitope.gl.filter.GlstringFilter;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.inject.Inject;
 
 /**
@@ -40,7 +40,7 @@ public class GlStringResolver implements Function<String, GenotypeList> {
 	private Function<String, String> glStringFilter;
 
 	@Inject
-	public GlStringResolver(GlClient glClient, @GlStringFilter Function<String, String> glStringFilter) {
+	public GlStringResolver(GlClient glClient, @GlstringFilter Function<String, String> glStringFilter) {
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
 	}

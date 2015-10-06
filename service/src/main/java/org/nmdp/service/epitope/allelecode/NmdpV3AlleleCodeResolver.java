@@ -45,7 +45,7 @@ import org.nmdp.service.epitope.task.URLProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import com.google.common.base.Splitter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

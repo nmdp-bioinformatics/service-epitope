@@ -23,6 +23,7 @@
 
 package org.nmdp.service.epitope.resource.impl;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.emptyIterable;
@@ -38,6 +39,8 @@ import static org.nmdp.service.epitope.EpitopeServiceTestData.group2Alleles;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +54,6 @@ import org.nmdp.service.epitope.resource.AlleleView;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.FrequencyService;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
@@ -75,13 +77,11 @@ public class AlleleResourceTest {
 	}
 
 	public List<String> allelesToStrings(List<Allele> alleleList) {
-		return Lists.transform(alleleList, new Function<Allele, String>() {
-			@Override public String apply(Allele input) { return input.getGlstring(); }});
+		return alleleList.stream().map(a -> a.getGlstring()).collect(toList());
 	}
 
 	public List<String> alleleViewsToStrings(List<AlleleView> alleleViewList) {
-		return Lists.transform(alleleViewList, new Function<AlleleView, String>() {
-			@Override public String apply(AlleleView input) { return input.getAllele(); }});
+		return alleleViewList.stream().map(av -> av.getAllele()).collect(toList());
 	}
 	
 	@Test
@@ -93,6 +93,15 @@ public class AlleleResourceTest {
 
 	@Test
 	public void testGetAlleles_Alleles() throws Exception {
+		List<Allele> al = anAlleleList().getAlleles();
+		String gls = Joiner.on(",").join(al);
+		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null, null));
+		List<String> expect = allelesToStrings(al);
+		assertThat(test, contains(expect.toArray()));
+	}
+
+	@Test
+	public void testGetAlleles_UnknownGroup() throws Exception {
 		List<Allele> al = anAlleleList().getAlleles();
 		String gls = Joiner.on(",").join(al);
 		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null, null));
@@ -117,10 +126,7 @@ public class AlleleResourceTest {
 
 	@Test
 	public void testGetAlleles_AlleleListRequest_Alleles() throws Exception {
-		List<String> al = Lists.transform(anAlleleList().getAlleles(), new Function<Allele, String>() {
-			@Override public String apply(Allele input) {
-				return input.getGlstring();
-			}});
+		List<String> al = anAlleleList().getAlleles().stream().map(a -> a.getGlstring()).collect(Collectors.toList());
 		String gls = Joiner.on(",").join(al);
 		AlleleListRequest r = new AlleleListRequest(al, null, null);
 		List<String> test = alleleViewsToStrings(resource.getAlleles(gls, null, null));

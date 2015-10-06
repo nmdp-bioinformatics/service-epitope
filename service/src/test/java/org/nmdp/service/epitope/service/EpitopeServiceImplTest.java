@@ -30,8 +30,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.anAllele;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGroupResolver;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestDbiManager;
+import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGlClient;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group0Alleles;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group1Alleles;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.group2Alleles;
@@ -39,6 +39,7 @@ import static org.nmdp.service.epitope.EpitopeServiceTestData.group3Alleles;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,16 +50,12 @@ import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.db.DbiManager;
 
-import com.google.common.base.Function;
-
 @RunWith(MockitoJUnitRunner.class)
 public class EpitopeServiceImplTest {
 
 	@Mock
 	private GlClient glClient;
 
-	private Function<Integer, List<Allele>> groupResolver;
-	
 	@Mock
 	private Function<String, String> glStringFilter;
 
@@ -68,14 +65,14 @@ public class EpitopeServiceImplTest {
 
 	@Before
 	public void setUp() throws Exception {
-		groupResolver = getTestGroupResolver();
 		dbiManager = getTestDbiManager();
-		service = new EpitopeServiceImpl(groupResolver, glClient, glStringFilter, dbiManager);
+		glClient = getTestGlClient();
+		service = new EpitopeServiceImpl(glClient, glStringFilter, dbiManager);
+		service.buildMaps();
 	}
 
 	@Test
 	public void testGetGroupForAllele() throws Exception {
-		service = new EpitopeServiceImpl(groupResolver, glClient, glStringFilter, dbiManager);
 		assertThat(service.getGroupForAllele(group1Alleles().get(0)), equalTo(1));
 		assertThat(service.getGroupForAllele(group2Alleles().get(0)), equalTo(2));
 		assertThat(service.getGroupForAllele(group3Alleles().get(0)), equalTo(3));

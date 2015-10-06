@@ -29,10 +29,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Test;
-import org.nmdp.service.epitope.guice.CachingFunction;
+import java.util.function.Function;
 
-import com.google.common.base.Function;
+import org.junit.Test;
 
 public class CachingFunctionTest {
 	

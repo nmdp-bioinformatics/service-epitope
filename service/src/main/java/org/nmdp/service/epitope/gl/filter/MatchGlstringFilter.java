@@ -21,7 +21,7 @@
 
 */
 
-package org.nmdp.service.epitope.ggroup;
+package org.nmdp.service.epitope.gl.filter;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -30,18 +30,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.List;
 
-import org.nmdp.gl.Allele;
-
-import com.google.common.base.Function;
 import com.google.inject.BindingAnnotation;
 
 /**
- * Guice binding annotation to indicate GGroupResolver.  Attached to the type Function<Allele, List<Allele>>,
- * which takes an allele and returns the list of the alleles that share the same g group.
+ * Guice binding annotation to indicate GlStringFilter.  Attached to Function<String, String,
+ * which take a GL string, and return the GL string, modified in some way.
  */
 @BindingAnnotation
 @Target({FIELD, PARAMETER, METHOD})
 @Retention(RUNTIME)
-public @interface GGroupResolver {}
+public @interface MatchGlstringFilter {}

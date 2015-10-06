@@ -23,17 +23,12 @@
 
 package org.nmdp.service.epitope.service;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.aHeterozygousAllelePair;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.aHomozygousAllelePair;
 
-import org.junit.After;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,25 +39,42 @@ import org.nmdp.service.epitope.domain.DetailRace;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FrequencyServiceImplTest {
-
-	@Mock
-	private FrequencyResolver resolver;
 	
 	@Mock
 	private DbiManager dbiManager;
+
+	@Mock
+	private EpitopeService epitopeService;
 	
 	private FrequencyServiceImpl service;
-
+	
 	@Before
 	public void setUp() throws Exception {
-	    service = new FrequencyServiceImpl(resolver, dbiManager, 1.0E-5);
+	    service = new FrequencyServiceImpl(dbiManager, 1.0E-5);
+	    Map<DetailRace, Map<String, Double>> map = new HashMap<>();
+	    map.put(DetailRace.CAU, new HashMap<>());
+	    when(dbiManager.getRaceAlleleFrequencyMap()).thenReturn(map);
+	    service.buildFrequencyMap();
 	}
 
 	@Test
 	public void testGetFrequency() throws Exception {
-		when(resolver.getFrequency(anyString(), any(DetailRace.class))).thenReturn(.02);
-		Double test = service.getFrequency("HLA-DPB1*01:01", DetailRace.CAU);
+		dbiManager.getRaceAlleleFrequencyMap().get(DetailRace.CAU).put("HLA-DPB1*01:01", 0.02);
+		service.buildFrequencyMap();
+		Double test = service.getFrequency(DetailRace.CAU, "HLA-DPB1*01:01");
 		assertThat(test, org.hamcrest.Matchers.closeTo(0.02, 0.0000001));
+	}
+
+	@Test
+	public void testGetFrequency_UnknownFreqKnownRace() throws Exception {
+		Double test = service.getFrequency(DetailRace.CAU, "HLA-DPB1*01:01");
+		assertThat(test, org.hamcrest.Matchers.equalTo(0.0));
+	}
+
+	@Test
+	public void testGetFrequency_UnknownFreqUnknownRace() throws Exception {
+		Double test = service.getFrequency(DetailRace.API, "HLA-DPB1*01:01");
+		assertThat(test, org.hamcrest.Matchers.equalTo(1.0E-5));
 	}
 
 }

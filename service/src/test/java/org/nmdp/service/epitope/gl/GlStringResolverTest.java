@@ -28,28 +28,33 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.nmdp.gl.GenotypeList;
-import org.nmdp.gl.client.GlClient;
+import java.util.function.Function;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.nmdp.gl.GenotypeList;
+import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.EpitopeServiceTestData;
-
-import com.google.common.base.Function;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GlStringResolverTest {
+
 	@Mock
 	private GlClient glClient;
 
 	@Mock
 	private Function<String, String> filter;
 
-	@InjectMocks
 	private GlStringResolver resolver;
 
+	@Before
+	public void setup() {
+		resolver = new GlStringResolver(glClient, filter);
+	}
+	
 	@Test
 	public void testApply() throws Exception {
 		String gl = "test";

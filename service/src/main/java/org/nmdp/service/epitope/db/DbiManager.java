@@ -11,15 +11,9 @@ public interface DbiManager {
 
     Map<String, Integer> getAlleleGroupMap();
 
-//    Integer getGroupForAllele(String allele);
-
     List<String> getAllelesForGroup(Integer group);
 
     Map<Integer, List<String>> getGroupAlleleMap();
-
-    String getBroadRaceForDetailRace(String detailRace);
-
-    Map<String, Double> getAlleleFrequenciesForDetailRace(String detailRace);
 
     List<String> getAllelesForCode(String locus, String code);
 
@@ -40,5 +34,9 @@ public interface DbiManager {
     Map<String, List<String>> getFamilyAlleleMap();
 
 	void loadAlleles(Iterator<AlleleRow> rowIter, boolean reload);
+
+	List<String> getAllelesForLocus(String string);
+
+	Map<DetailRace, Map<String, Double>> getRaceAlleleFrequencyMap();
 
 }
