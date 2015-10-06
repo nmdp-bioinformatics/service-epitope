@@ -137,6 +137,8 @@ public class MatchServiceImpl implements MatchService {
 	public MatchResult getMatch(String recipientGl, DetailRace recipientRace,
 			String donorGl, DetailRace donorRace) 
 	{
+		// fixme g-group alleles are coalesced into a single allele name by the glstringfilter, 
+		// which means their frequencies aren't counted separately
 		GenotypeList rgl = glResolver.apply(glStringFilter.apply(recipientGl));
 		GenotypeList dgl = glResolver.apply(glStringFilter.apply(donorGl));
 		return getMatch(rgl, recipientRace, dgl, donorRace);

@@ -34,11 +34,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value="Result of match of recipient and donor.  The most likely match grade is returned.  If race"
-			+ " information is given, the probabilities of each match outcome are provided based on likelihood"
-			+ " of occurance of each allele for that race group, assuming that frequency of occurance is known"
-			+ " for each allele.  If frequencies can't be determined, the most pessimistic match grade is"
-			+ " returned.")
+@ApiModel(value="Result of match of recipient and donor.  If race information is given, the probabilities of"
+		+ " each match outcome are provided based on likelihood of occurance of each allele for that race group,"
+		+ " assuming that frequency of occurance is known for each allele.")
 public class MatchResponse {
 
 	private String recipient;
@@ -99,35 +97,35 @@ public class MatchResponse {
 	}
 
 	@ApiModelProperty(
-			value="Recipient genotype as provided in request, included if request token is null", 
+			value="Recipient genotype as provided in request, included if token is not provided in request", 
 			required=true)
 	public String getRecipient() {
 		return recipient;
 	}
 
 	@ApiModelProperty(
-			value="Recipient race as provided in request, included if request token is null", 
+			value="Recipient race as provided in request, included if token is not provided in request", 
 			required=false)
 	public DetailRace getRecipientRace() {
 		return recipientRace;
 	}
 
 	@ApiModelProperty(
-			value="Donor genotype as provided in request, included if request token is null", 
+			value="Donor genotype as provided in request, included if token is not provided in request", 
 			required=true)
 	public String getDonor() {
 		return donor;
 	}
 
 	@ApiModelProperty(
-			value="Donor race as provided in request, included if request token is null", 
+			value="Donor race as provided in request, included if token is not provided in request", 
 			required=false)
 	public DetailRace getDonorRace() {
 		return donorRace;
 	}
 
 	@ApiModelProperty(
-			value="Token as provided in request, if present", 
+			value="Token provided in request.  If present, other request parameters are omitted.", 
 			required=false)
 	public String getToken() {
 		return token;
@@ -169,8 +167,9 @@ public class MatchResponse {
 	}
 
 	@ApiModelProperty(
-			value="Most likely match grade if allele frequencies are known, or"
-					+ " most pessimistic match grade otherwise.", 
+			value="Match grade, including POTENTIAL (ambiguous outcome with the possibility of"
+					+ " MATCH or PERMISSIVE) and NONPERMISSIVE_UNDEFINED (ambiguous outcome"
+					+ " without possibility of MATCH or PERMISSIVE)",
 			required=false)
 	public MatchGrade getMatchGrade() {
 		return matchResult.getMatchGrade();

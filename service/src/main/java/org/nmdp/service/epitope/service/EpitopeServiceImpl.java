@@ -124,13 +124,8 @@ public class EpitopeServiceImpl implements EpitopeService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Allele getEffectiveAllele(Allele allele) {
-		String alleleStr = allele.getGlstring();
-		String filterAlleleStr = glStringFilter.apply(alleleStr);
-		if (!alleleStr.equals(filterAlleleStr)) {
-			allele = createAllele.apply(filterAlleleStr);
-		}
-		return allele;
+	public boolean isValidAllele(Allele allele) {
+		return alleleGroupMap.containsKey(allele);
 	}
 
 	/**

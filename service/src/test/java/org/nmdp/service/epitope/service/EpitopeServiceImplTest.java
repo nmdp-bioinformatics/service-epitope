@@ -116,13 +116,4 @@ public class EpitopeServiceImplTest {
 		assertThat(group1Alleles, containsInAnyOrder(group1Alleles().toArray()));
 	}
 
-	@Test
-	public void testGetEffectiveAllele() throws Exception {
-		when(glStringFilter.apply("foo")).thenReturn("bar");
-		Allele expect = anAllele("bar");
-		when(glClient.createAllele("bar")).thenReturn(expect);
-		Allele test = service.getEffectiveAllele(anAllele("foo"));
-		assertThat(test, equalTo(expect));
-	}
-
 }

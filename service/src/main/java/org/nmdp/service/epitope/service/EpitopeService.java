@@ -60,7 +60,7 @@ public interface EpitopeService {
 	 * @param allele an Allele object
 	 * @return the effective allele for the given allele, used to resolve the TCE group.
 	 */
-	public Allele getEffectiveAllele(Allele allele);
+	public boolean isValidAllele(Allele allele);
 
 	/**
 	 * @return list of all known alleles

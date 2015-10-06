@@ -51,6 +51,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.domain.DetailRace;
+import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.GroupView;
 import org.nmdp.service.epitope.service.EpitopeService;
@@ -79,9 +80,8 @@ public class GroupResourceTest {
 		epitopeService = getTestEpitopeService();
 		glClient = getTestGlClient();
 		glStringFilter = getTestGlStringFilter();
-		resource = new GroupResource(epitopeService, glClient, glStringFilter, freqService);
+		resource = new GroupResource(epitopeService, glClient, glStringFilter, new ArsAlleleFilter(100, 100), freqService, 10E-5);
 	}
-
 	
 	public List<String> allelesToStrings(List<Allele> alleleList) {
 		return alleleList.stream().map(a -> a.getGlstring()).collect(Collectors.toList());

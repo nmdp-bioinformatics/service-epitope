@@ -76,7 +76,7 @@ public class GroupView {
 		return alleleList;
 	}
 
-	@ApiModelProperty(value="Error message associated with the group") 
+	@ApiModelProperty(value="Error common to alleles within this group (unknown allele, unknown group, etc.)") 
 	public String getError() {
 		return error;
 	}
