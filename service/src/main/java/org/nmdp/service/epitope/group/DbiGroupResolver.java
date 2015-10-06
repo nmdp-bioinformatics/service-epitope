@@ -24,14 +24,14 @@
 package org.nmdp.service.epitope.group;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.db.DbiManager;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 /**
@@ -51,16 +51,13 @@ public class DbiGroupResolver implements Function<Integer, List<Allele>> {
 	@Override
 	public List<Allele> apply(final Integer group) {
 		List<String> alleleStringList = dbiManager.getAllelesForGroup(group);
-		List<Allele> alleleList = Lists.transform(alleleStringList, new Function<String, Allele>() {
-			@Override public Allele apply(String name) {
-				try {
-					return glClient.createAllele(name);
-				} catch (GlClientException e) {
-					throw new RuntimeException("failed to resolve allele: " + name, e);
-				}
+		return alleleStringList.stream().map(name -> {
+			try {
+				return (Allele)glClient.createAllele(name);
+			} catch (GlClientException e) {
+				throw new RuntimeException("failed to resolve allele: " + name, e);
 			}
-		});
-		return alleleList;
+		}).collect(Collectors.toList());
 	}
 
 }

@@ -25,11 +25,10 @@ package org.nmdp.service.epitope.gl.filter;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Function;
-import com.google.inject.Inject;
 
 /**
  * GlStringFilter that formalizes glstrings that aren't strictly formatted.  That is, HLA- prefix is added

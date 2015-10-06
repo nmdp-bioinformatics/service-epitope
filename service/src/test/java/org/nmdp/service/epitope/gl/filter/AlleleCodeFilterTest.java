@@ -28,14 +28,13 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.function.Function;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.nmdp.service.epitope.gl.filter.AlleleCodeFilter;
-
-import com.google.common.base.Function;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AlleleCodeFilterTest {

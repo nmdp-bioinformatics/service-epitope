@@ -54,6 +54,15 @@ public @interface ConfigurationBindings {
 	}
 
 	/**
+	 * number of milliseconds to cache immunogenity groups for
+	 */
+	@BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+	public @interface GGroupCacheSize {
+	}
+
+	/**
 	 * number of milliseconds to cache genotype lists for
 	 */
 	@BindingAnnotation
@@ -197,8 +206,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-    public @interface MatchGradeThreshold {}
-
+    public @interface MatchProbabilityPrecision {}
 
     /**
      * URLs for HLA Ambiguity file, published quarterly

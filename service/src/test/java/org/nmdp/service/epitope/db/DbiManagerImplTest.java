@@ -23,34 +23,31 @@
 
 package org.nmdp.service.epitope.db;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-
-import org.junit.Test;
-import org.nmdp.service.epitope.db.DbiManagerImpl;
+import org.junit.BeforeClass;
+import org.skife.jdbi.v2.DBI;
 
 
 public class DbiManagerImplTest {
-//
-//	DBI dbi = 
-//	
-//	DbiManager db = new DbiManager();
-//	
-////	@Test
-////	public void testGetAlleleFrequenciesForRace() throws Exception {
-////		throw new RuntimeException("not yet implemented");
-////	}
-////
-////	@Test
-////	public void testGetAlleleGroupMap() throws Exception {
-////		throw new RuntimeException("not yet implemented");
-////	}
-//
+
+	static DBI dbi;
+	static DbiManagerImpl dbiManager;
+
+	@BeforeClass
+	public static void setupClass() {
+		try {
+			Class.forName("org.sqlite.JDBC");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException("failed to load driver", e);
+		}
+		dbi = new DBI("jdbc:sqlite:../dropwizard/epitope-service.db");
+		dbiManager = new DbiManagerImpl(dbi); 
+	}
+
+//	@Test
+//	public void testGetGGroupAllelesForAllele() throws Exception {
+//		dbiManager.getGGroupAllelesForAllele("HLA-DPB1*01:01:01");
+//	}
+
 //	@Test
 //	public void testGetGroupForAllele() throws Exception {
 //		Integer group = db.getGroupForAllele("01:01");
@@ -63,21 +60,6 @@ public class DbiManagerImplTest {
 //		List<String> alleleList = db.getAllelesForGroup(3);
 //		assertThat(alleleList, notNullValue());
 //		assertThat(alleleList, not(empty()));
-//	}
-//
-//	@Test
-//	public void testGetGroupAlleleMap() throws Exception {
-//		throw new RuntimeException("not yet implemented");
-//	}
-//
-//	@Test
-//	public void testGetBroadRaceForDetailRace() throws Exception {
-//		throw new RuntimeException("not yet implemented");
-//	}
-//
-//	@Test
-//	public void testGetAlleleFrequenciesForDetailRace() throws Exception {
-//		throw new RuntimeException("not yet implemented");
 //	}
 
 }

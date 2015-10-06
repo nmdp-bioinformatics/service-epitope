@@ -37,18 +37,21 @@ public class AlleleView {
     private Integer group;
     private DetailRace race;
     private Double frequency;
+    private String error;
 
     @JsonCreator
     public AlleleView(
     		final @JsonProperty("allele") String allele, 
     		final @JsonProperty("group") Integer group,
     		final @JsonProperty("race") DetailRace race,
-    		final @JsonProperty("frequency") Double frequency)
+    		final @JsonProperty("frequency") Double frequency,
+    		final @JsonProperty("error") String error)
     {
 		this.allele = allele;
 		this.group = group;
         this.race = race;
         this.frequency = frequency;
+        this.error = error;
 	}
 
 	@ApiModelProperty(value="GL string for an allele", required=true)
@@ -61,14 +64,22 @@ public class AlleleView {
         return group;
     }
 
-    @ApiModelProperty(value="Race context of alleles for frequencies", required=true)
+    @ApiModelProperty(value="Race context of alleles for frequencies", required=false)
     public DetailRace getRace() {
         return race;
     }
 
-    @ApiModelProperty(value="Frequency of the allele within the given population", required=true)
+    @ApiModelProperty(value="Frequency of the allele within the given population", required=false)
     public Double getFrequency() {
         return frequency;
+    }
+
+    @ApiModelProperty(value="Error involving resolution of the allele", required=false)
+    public String getError() {
+    	if (null == error && null == group) {
+    		return "unknown group for allele: " + allele;
+    	}
+        return error;
     }
 
 	@Override

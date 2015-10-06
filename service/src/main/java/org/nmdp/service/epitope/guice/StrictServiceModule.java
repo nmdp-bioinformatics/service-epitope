@@ -24,16 +24,16 @@
 package org.nmdp.service.epitope.guice;
 
 import java.util.List;
+import java.util.function.Function;
 
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.GenotypeList;
 import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
 import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
-import org.nmdp.service.epitope.db.DbiManagerImpl;
 import org.nmdp.service.epitope.gl.GlResolver;
 import org.nmdp.service.epitope.gl.GlStringResolver;
 import org.nmdp.service.epitope.gl.JsonGlClientModule;
-import org.nmdp.service.epitope.gl.filter.GlStringFilter;
+import org.nmdp.service.epitope.gl.filter.GlstringFilter;
 import org.nmdp.service.epitope.group.DbiGroupResolver;
 import org.nmdp.service.epitope.group.GroupResolver;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheMillis;
@@ -43,14 +43,11 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
-import org.nmdp.service.epitope.service.FrequencyResolver;
 import org.nmdp.service.epitope.service.FrequencyService;
 import org.nmdp.service.epitope.service.FrequencyServiceImpl;
 import org.nmdp.service.epitope.service.MatchService;
 import org.nmdp.service.epitope.service.MatchServiceImpl;
 
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.Provides;
@@ -62,7 +59,7 @@ public class StrictServiceModule extends AbstractModule {
 	protected void configure() {
 
 		// no rewriting of incoming glstrings
-		bind(Key.get(new TypeLiteral<Function<String, String>>(){}, GlStringFilter.class)).toInstance(Functions.<String>identity());
+		bind(Key.get(new TypeLiteral<Function<String, String>>(){}, GlstringFilter.class)).toInstance(a -> a);
 
 		// strict gl client
 		install(new JsonGlClientModule());

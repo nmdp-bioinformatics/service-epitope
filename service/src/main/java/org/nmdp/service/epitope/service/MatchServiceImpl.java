@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,14 +53,13 @@ import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.domain.MatchResult;
 import org.nmdp.service.epitope.gl.GlResolver;
-import org.nmdp.service.epitope.gl.filter.GlStringFilter;
+import org.nmdp.service.epitope.gl.filter.MatchGlstringFilter;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFrequency;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGradeThreshold;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.trace.Trace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.inject.Inject;
 
 /**
@@ -72,25 +72,26 @@ public class MatchServiceImpl implements MatchService {
 	private Function<String, GenotypeList> glResolver;
     private FrequencyService freqService;
 	private Function<String, String> glStringFilter;
-	private double matchGradeThreshold;
 	Logger logger = LoggerFactory.getLogger(getClass());
+	private long matchPrecision;
 
 	@Inject
 	public MatchServiceImpl(
 			EpitopeService epitopeService, 
 			@GlResolver Function<String, GenotypeList> glResolver, 
 			GlClient glClient, 
-			@GlStringFilter Function<String, String> glStringFilter, 
+			@MatchGlstringFilter Function<String, String> glStringFilter, 
 			FrequencyService freqService,
-			@MatchGradeThreshold Double matchGradeThreshold,
-	        @BaselineAlleleFrequency Double baselineFreq) 
+	        @BaselineAlleleFrequency Double baselineFreq,
+	        @MatchProbabilityPrecision double matchPrecision) 
 	{
 		this.epitopeService = epitopeService;
 		this.glResolver = glResolver;
 		this.glClient = glClient;
+		// apply g groups and trim alleles to ars equivalents when matching 
 		this.glStringFilter = glStringFilter;
         this.freqService = freqService;
-		this.matchGradeThreshold = (null != matchGradeThreshold) ? matchGradeThreshold : 0.01;
+		this.matchPrecision = (long)Math.pow(10, 0 - Math.log10(matchPrecision));
 	}
 	
 	MatchGrade getMatchGrade(AllelePair recipAllelePair, AllelePair donorAllelePair) {
@@ -198,14 +199,14 @@ public class MatchServiceImpl implements MatchService {
 				double f = rp.getValue() * dp.getValue();
 				if (Trace.isEnabled()) Trace.add(getMatchTrace(rp.getKey(), rp.getValue(), dp.getKey(), dp.getValue(), grade, f));
 				pmap.get(grade).add(f);
-                //if (logger.isTraceEnabled()) {
+				//if (logger.isTraceEnabled()) {
                 //	logger.trace(grade + ":rp:" + rp + ",dp:" + dp + " -> " + rf + "*" + df + " -> " + (rf * df));
                 //}
 			}
 		}
-		// normalize/round probabilities (should i do this?)
+		// normalize/round probabilities
         Double total = pmap.values().stream().map(dc -> dc.get()).collect(Collectors.summingDouble(d -> d));
-        pmap.values().forEach(dc -> dc.set((double)Math.round(dc.get() / total * 1000) / 1000));
+        pmap.values().forEach(dc -> dc.set((double)Math.round(dc.get() / total * matchPrecision) / matchPrecision));
 
         logger.debug("finished with: " + pmap);
 
@@ -278,7 +279,7 @@ public class MatchServiceImpl implements MatchService {
             boolean a2hi = getLocusAlleles(dpb1, h2).count() == 1;
             Set<Allele> dropTraceSet = new HashSet<>();
             getLocusAlleles(dpb1, h1).forEach(a1 -> {
-                double a1f = a1hi ? 1.0 : freqService.getFrequency(a1.getGlstring(), race);
+                double a1f = a1hi ? 1.0 : freqService.getFrequency(race, a1.getGlstring());
                 if (0.0 == a1f) {
                     if (Trace.isEnabled() && !dropTraceSet.contains(a1)) {
                         Trace.add(a1.getGlstring() + "(p:0.0,dropped)");
@@ -287,7 +288,7 @@ public class MatchServiceImpl implements MatchService {
                     return;
                 }
                 getLocusAlleles(dpb1, h2).forEach(a2 -> {
-                    double a2f = a2hi ? 1.0 : freqService.getFrequency(a2.getGlstring(), race);
+                    double a2f = a2hi ? 1.0 : freqService.getFrequency(race, a2.getGlstring());
                     if (0.0 == a2f) {
                         if (Trace.isEnabled() && !dropTraceSet.contains(a2)) {
                             Trace.add(a2.getGlstring() + "(p:0.0,dropped)");

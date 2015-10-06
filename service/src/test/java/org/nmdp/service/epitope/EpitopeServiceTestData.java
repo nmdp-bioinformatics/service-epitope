@@ -24,6 +24,7 @@
 package org.nmdp.service.epitope;
 
 import static com.google.common.base.CharMatcher.anyOf;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -41,7 +42,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -60,9 +65,6 @@ import org.nmdp.service.epitope.service.AllelePair;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
@@ -232,15 +234,6 @@ public class EpitopeServiceTestData {
 		return re;
 	}
 	
-	public static Function<Integer, List<Allele>> getTestGroupResolver() {
-		Function<Integer, List<Allele>> groupResolver = mock(Function.class);
-        when(groupResolver.apply(0)).thenReturn(group0Alleles());
-        when(groupResolver.apply(1)).thenReturn(group1Alleles());
-		when(groupResolver.apply(2)).thenReturn(group2Alleles());
-		when(groupResolver.apply(3)).thenReturn(group3Alleles());
-		return groupResolver;
-	}
-	
 	public static GlClient getTestGlClient() {
 		GlClient glClient = mock(GlClient.class);
 		try {
@@ -266,20 +259,58 @@ public class EpitopeServiceTestData {
 	}
 	
 	public static Function<String, String> getTestGlStringFilter() {
-		return Functions.identity();
+		return a -> a;
 	}
 
 	public static DbiManager getTestDbiManager() {
 		DbiManager mock = mock(DbiManager.class);
+		List<List<Allele>> alleleLists = Arrays.asList(
+				group0Alleles(), group1Alleles(), group2Alleles(), group3Alleles());
+
 		doAnswer(new Answer<List<String>>() {
 			@Override public List<String> answer(InvocationOnMock invocation) throws Throwable {
 				return Arrays.asList(invocation.getArgumentAt(0, String.class));
 			}
 		}).when(mock).getGGroupAllelesForAllele(anyString());
+		
+		doAnswer(new Answer<List<String>>() {
+			@Override public List<String> answer(InvocationOnMock invocation) throws Throwable {
+				return alleleLists.get(invocation.getArgumentAt(0, Integer.class))
+						.stream()
+						.map(a -> a.getGlstring())
+						.collect(Collectors.toList());
+			}
+		}).when(mock).getAllelesForGroup(any(Integer.class));
+
+		doAnswer(new Answer<List<String>>() {
+			@Override public List<String> answer(InvocationOnMock invocation) throws Throwable {
+				return alleleLists
+						.stream()
+						.flatMap(al -> al.stream())
+						.map(a -> a.getGlstring())
+						.collect(Collectors.toList());
+			}
+		}).when(mock).getAllelesForLocus(any(String.class));
+
+		doAnswer(new Answer<Map<String, Integer>>() {
+			@Override public Map<String, Integer> answer(InvocationOnMock invocation) throws Throwable {
+				Map<String, Integer> map = new HashMap<>();
+				for (int i = 0; i < alleleLists.size(); i++) {
+					int group = i;
+					alleleLists.get(i).forEach(a -> map.put(a.getGlstring(), group));
+				}
+				return map;
+			}
+		}).when(mock).getAlleleGroupMap();
+		
+		
+		
 		return mock;
 	}
 	
 	public static EpitopeService getTestEpitopeService() {
-		return new EpitopeServiceImpl(getTestGroupResolver(), getTestGlClient(), getTestGlStringFilter(), getTestDbiManager()); 
+		EpitopeServiceImpl service = new EpitopeServiceImpl(getTestGlClient(), getTestGlStringFilter(), getTestDbiManager());
+		service.buildMaps();
+		return service;
 	}
 }

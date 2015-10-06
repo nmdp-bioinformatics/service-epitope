@@ -32,6 +32,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFreque
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheMillis;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.Group1Suffix;
@@ -41,7 +42,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGradeThreshold;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeRefreshMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
@@ -119,7 +120,12 @@ public class EpitopeServiceConfiguration extends Configuration {
      * number of milliseconds the g group cache should be kept before refreshing it from the underlying resolver
      */
 	private long gGroupCacheMillis = 60 * 60 * 1000L; 
-    
+
+    /**
+     * size of the allele -> g group cache
+     */
+	private long gGroupCacheSize = 5000;
+
     /**
      * number of milliseconds the gl cache should be kept before refreshing it from the  underlying resolver
      */
@@ -161,10 +167,10 @@ public class EpitopeServiceConfiguration extends Configuration {
     private double baselineAlleleFrequency = 1.0E-5; // from loren
     
     /**
-     * threshold above which to consider possible outcomes as reported match grade
+     * precision of match grade probabilities
      */
-    private double matchGradeThreshold = 0.01;
-    
+	private double matchProbabilityPrecision = 1.0E-5;
+
     /**
 	 * jdbi data source factory, set by dropwizard
 	 */
@@ -265,6 +271,17 @@ public class EpitopeServiceConfiguration extends Configuration {
     @JsonProperty
     public void setGGroupCacheMillis(long gGroupCacheMillis) {
     	this.gGroupCacheMillis = gGroupCacheMillis;
+    }
+
+    @JsonProperty
+	@GGroupCacheSize
+	public long getGGroupCacheSize() { 
+		return gGroupCacheSize;
+	} 
+    
+    @JsonProperty
+    public void setGGroupCacheSize(long gGroupCacheSize) {
+    	this.gGroupCacheSize = gGroupCacheSize;
     }
 
     @JsonProperty
@@ -399,17 +416,15 @@ public class EpitopeServiceConfiguration extends Configuration {
 		this.nmdpV3AlleleCodeRefreshMillis = nmdpV3AlleleCodeRefreshMillis;
 	}
 
-    @MatchGradeThreshold
+    @MatchProbabilityPrecision
     @JsonProperty
-    public double getMatchGradeThreshold() {
-        return matchGradeThreshold;
+    public double getMatchProbabilityPrecision() {
+        return matchProbabilityPrecision;
     }
-
+    
     @JsonProperty
-    public void setMatchGradeThreshold(double matchGradeThreshold) {
-        this.matchGradeThreshold = matchGradeThreshold;
+    public void setMatchProbabilityPrecision(double matchProbabilityPrecision) {
+        this.matchProbabilityPrecision= matchProbabilityPrecision;
     }
-
-
 
 }

@@ -60,7 +60,7 @@ public class AllelePair {
 
     @Override
 	public String toString() {
-		return "AllelePair [a1=" + a1 + ", a2=" + a2 + ", race=" + race + "]";
+		return "AllelePair [a1=" + a1 + "(g:" + g1 + "), a2=" + a2 + "(g:" + g2 + "), race=" + race + "]";
 	}
 
 	public Allele getA1() {

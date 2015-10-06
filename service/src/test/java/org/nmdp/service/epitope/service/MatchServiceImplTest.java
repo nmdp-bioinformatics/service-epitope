@@ -41,6 +41,7 @@ import static org.nmdp.service.epitope.EpitopeServiceTestData.group3Alleles;
 import static org.nmdp.service.epitope.domain.DetailRace.CAU;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,8 +54,6 @@ import org.nmdp.service.epitope.EpitopeServiceTestData;
 import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.domain.MatchResult;
-
-import com.google.common.base.Function;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MatchServiceImplTest {
@@ -77,9 +76,9 @@ public class MatchServiceImplTest {
 		glStringFilter = getTestGlStringFilter();
 		service = new MatchServiceImpl(getTestEpitopeService(), glResolver, glClient, glStringFilter, freqService, 0.01, 1.0E-5);
 		when(glClient.createLocus("HLA-DPB1")).thenReturn(aLocus());
-		when(freqService.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1E-5);
+		when(freqService.getFrequency(any(DetailRace.class), anyString())).thenReturn(1E-5);
 	}
-		
+
 	@Test
 	public void testGetLowGroup() throws Exception {
 		AllelePair pair = EpitopeServiceTestData.aHeterozygousAllelePair();
@@ -123,7 +122,6 @@ public class MatchServiceImplTest {
 				anAlleleList(
 						group2Alleles().get(1), 
 						group3Alleles().get(1))));
-		when(freqService.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1.0E-5);
 		MatchResult test = service.getMatch(rgl, null, dgl, null);
 		assertThat(test.getMatchGrade(), equalTo(MatchGrade.POTENTIAL));
 	}
@@ -143,7 +141,6 @@ public class MatchServiceImplTest {
 				anAlleleList(
 						group1Alleles().get(0), 
 						group2Alleles().get(0))));
-		when(freqService.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1.0E-5);
 		MatchResult test = service.getMatch(rgl, null, dgl, null);
 		assertThat(test.getMatchGrade(), equalTo(MatchGrade.POTENTIAL));
 	}
@@ -161,7 +158,6 @@ public class MatchServiceImplTest {
 						group2Alleles().get(0)), 
 				anAlleleList(
 						group2Alleles().get(0))));
-		when(freqService.getFrequency(anyString(), any(DetailRace.class))).thenReturn(1.0E-5);
 		MatchResult test = service.getMatch(rgl, null, dgl, null);
 		assertThat(test.getMatchGrade(), equalTo(MatchGrade.NONPERMISSIVE_UNDEFINED));
 	}
