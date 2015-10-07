@@ -69,7 +69,7 @@ public class AlleleView {
         return race;
     }
 
-    @ApiModelProperty(value="Frequency of the allele within the given population", required=false)
+    @ApiModelProperty(value="Frequency of the allele within the given population (ARS resolution)", required=false)
     public Double getFrequency() {
         return frequency;
     }

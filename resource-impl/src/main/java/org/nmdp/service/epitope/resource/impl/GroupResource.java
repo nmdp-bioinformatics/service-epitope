@@ -24,15 +24,18 @@
 package org.nmdp.service.epitope.resource.impl;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -48,7 +51,9 @@ import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.domain.DetailRace;
+import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
 import org.nmdp.service.epitope.gl.filter.GlstringFilter;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.AlleleView;
 import org.nmdp.service.epitope.resource.GroupView;
@@ -73,13 +78,24 @@ public class GroupResource {
 	private GlClient glClient;
 	private Function<String, String> glStringFilter;
     private FrequencyService freqService;
+	private long precision;
+	private ArsAlleleFilter arsAlleleFilter;
     
 	@Inject
-	public GroupResource(EpitopeService epitopeService, GlClient glClient, @GlstringFilter Function<String, String> glStringFilter, FrequencyService freqService) {
+	public GroupResource(
+			EpitopeService epitopeService, 
+			GlClient glClient, 
+			@GlstringFilter Function<String, String> glStringFilter, 
+			ArsAlleleFilter arsAlleleFilter,
+			FrequencyService freqService, 
+			@MatchProbabilityPrecision double precision) 
+	{
 		this.epitopeService = epitopeService;
 		this.glClient = glClient;
 		this.glStringFilter = glStringFilter;
+		this.arsAlleleFilter = arsAlleleFilter;
         this.freqService = freqService;
+		this.precision = (long)Math.pow(10, 0 - Math.log10(precision));
 	}
 	
 	private AlleleView getAlleleView(String glstring) {
@@ -226,14 +242,36 @@ public class GroupResource {
 	}
 
 	private List<GroupView> convertAlleleListToGroupList(List<AlleleView> alleleList, DetailRace race) {
-		List<GroupView> groupList = alleleList.stream()
-				.collect(groupingBy(av -> Optional.<Integer>ofNullable(av.getGroup()), toList()))
-				.entrySet().stream()
+		Map<Optional<Integer>, List<AlleleView>> groupMap = alleleList.stream()
+				.collect(groupingBy(av -> Optional.<Integer>ofNullable(av.getGroup()), toList()));
+		List<GroupView> groupList = groupMap.entrySet().stream()
+						.filter(e -> e.getKey().isPresent())
 						.map(e -> new GroupView(
 								e.getKey().orElse(null), race, null, 
 								e.getValue().stream().map(av -> av.getAllele()).collect(toList()),
-								e.getKey().isPresent() ? null : "unknown group or allele")).collect(toList());
-        if (race != null) {
+								null)).collect(toList());
+		GroupView unknownGroupView = new GroupView(null, race, null, new ArrayList<>(), "unknown group for allele");
+		groupList.add(unknownGroupView);
+		GroupView unknownAlleleView = new GroupView(null, race, null, new ArrayList<>(), "unknown allele");
+		groupList.add(unknownAlleleView);
+		if (groupMap.get(Optional.empty()) != null) groupMap.get(Optional.empty()).forEach(av -> {
+			try {
+				Allele allele = glClient.createAllele(av.getAllele());
+				boolean unknownGroup = epitopeService.isValidAllele(allele);
+				if (unknownGroup) {
+					unknownGroupView.getAlleleList().add(av.getAllele());
+				} else { // unknown allele
+					unknownAlleleView.getAlleleList().add(av.getAllele());
+				}
+			} catch (Exception e) { throw new RuntimeException("failed to create allele: " + av.getAllele(), e); }
+		});
+		if (unknownGroupView.getAlleleList().isEmpty()) {
+			groupList.remove(unknownGroupView);
+		}
+		if (unknownAlleleView.getAlleleList().isEmpty()) {
+			groupList.remove(unknownAlleleView);
+		}
+		if (race != null) {
             groupList = calculateGroupProbabilities(groupList);
         }
 		return new ArrayList<>(groupList);
@@ -265,33 +303,48 @@ public class GroupResource {
 	}
 	
 	private List<GroupView> calculateGroupProbabilities(List<GroupView> groupList) {
-	    Map<Integer, DoubleContainer> groupFreqMap = new HashMap<>();
+	    Map<Object, Map<String, Double>> groupFreqMap = new HashMap<>();
 	    for (GroupView groupView : groupList) {
-	        DoubleContainer dc = new DoubleContainer();
-	        groupFreqMap.put(groupView.getGroup(), dc);
-	        if (groupView.getRace() == null) {
-	            log.debug("race missing for group (skipping probabilities: " + groupView.getGroup());
-	            return groupList;
-	        }
+	    	if (groupView.getRace() == null) {
+	    		log.debug("race missing for group (skipping probabilities: " + groupView.getGroup());
+	    		return groupList;
+	    	}
+	    	//if (null == groupView.getGroup()) continue;
+	    	HashMap<String, Double> map = new HashMap<>();
+	        groupFreqMap.put(groupView.getGroup() == null ? groupView.getError() : groupView.getGroup(), map);
 	        for (String a : groupView.getAlleleList()) {
-	            dc.add(freqService.getFrequency(groupView.getRace(), a));
+	        	// todo fix forcing ars for frequencies if/when moving to genomic freqs
+	        	String ars = arsAlleleFilter.apply(a); 
+	        	double f = freqService.getFrequency(groupView.getRace(), ars);
+	        	map.put(ars, f);
 	        }
 	    }
-	    double total = 0; 
-	    for (DoubleContainer dc : groupFreqMap.values()) {
-	        total += dc.get();
-	    }
+	    // normalize results
+	    double total = groupFreqMap.values().stream()
+	    		.map(m -> m.values().stream()
+	    				.collect(summingDouble(d -> d)))
+	    		.collect(summingDouble(d -> d));
+
         List<GroupView> newList = new ArrayList<>();
-	    for (GroupView groupView : groupList) {
-	        double probability = groupFreqMap.get(groupView.getGroup()).get() / total;
+        for (GroupView groupView : groupList) {
+        	Map<String, Double> map = groupView.getGroup() == null 
+        			? groupFreqMap.get(groupView.getError())
+        					: groupFreqMap.get(groupView.getGroup());
+	        double probability = map.values().stream()
+	        		.collect(summingDouble(d -> d)) / total;
 	        probability = round(probability);
-	        newList.add(new GroupView(groupView.getGroup(), groupView.getRace(), probability, groupView.getAlleleList(), groupView.getError()));
+	        newList.add(new GroupView(
+	        		groupView.getGroup(), 
+	        		groupView.getRace(), 
+	        		probability, 
+	        		groupView.getAlleleList(), 
+	        		groupView.getError()));
 	    }
         return newList;
     }
 
 	private double round(double d) {
-	    return (double)Math.round(d * 1000) / 1000;
+	    return (double)Math.round(d * precision) / precision;
 	}
 	
     @GET

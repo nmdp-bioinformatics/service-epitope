@@ -40,7 +40,7 @@ public class FrequencyServiceImpl implements FrequencyService {
 		if (map.containsKey(allele)) return;
 		int to = 0;
 		for (int i = 0; i < 2; i++) {
-			to = allele.indexOf(":", to);
+			to = allele.indexOf(":", to+1);
 		}
 		if (to == -1) return;
 		Double arsFreq = map.get(allele.substring(0, to));
