@@ -39,6 +39,9 @@ dataSourceFactory:
   # the SQL query to run when validating a connection's liveness
   validationQuery: "/* MyService Health Check */ SELECT 1"
 
+  # the initial number of connections to keep open
+  initialSize: 1
+
   # the minimum number of connections to keep open
   minSize: 1
 
