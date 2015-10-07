@@ -34,16 +34,16 @@ dataSourceFactory:
   url: jdbc:sqlite:epitope-service.db
 
   # the maximum amount of time to wait on an empty pool before throwing an exception
-  maxWaitForConnection: 1s
+  maxWaitForConnection: 10s
 
   # the SQL query to run when validating a connection's liveness
   validationQuery: "/* MyService Health Check */ SELECT 1"
 
   # the minimum number of connections to keep open
-  minSize: 5
+  minSize: 1
 
   # the maximum number of connections to keep open
-  maxSize: 10
+  maxSize: 1
 
   # whether or not idle connections should be validated
   checkConnectionWhileIdle: false
@@ -52,7 +52,7 @@ dataSourceFactory:
   evictionInterval: 10s
 
   # the minimum amount of time an connection must sit idle in the pool before it is eligible for eviction
-  minIdleTime: 1 minute
+  minIdleTime: 1m
 
 server:
 
