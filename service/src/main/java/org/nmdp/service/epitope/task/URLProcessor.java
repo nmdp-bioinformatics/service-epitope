@@ -64,7 +64,7 @@ public class URLProcessor {
         urlConnection.connect();
         long sourceLastModified = urlConnection.getLastModified();
         if (sourceLastModified == 0) {
-            logger.warn("resource has no modification date, ignoring...");
+            logger.warn("resource has no modification date, forcing refresh...");
         } else if (sourceLastModified < lastModified) {
             logger.warn("resource is older than last modification date (source: " + sourceLastModified + ", last: " + lastModified + "), leaving it");
             return lastModified;
