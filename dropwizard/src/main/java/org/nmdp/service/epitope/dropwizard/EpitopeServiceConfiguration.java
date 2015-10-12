@@ -41,6 +41,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.Group3Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtFastaUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
@@ -110,6 +111,11 @@ public class EpitopeServiceConfiguration extends Configuration {
      * IMGT allele name file locations
      */
     private String[] hlaAlleleUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/Allelelist.txt" };
+    
+    /**
+     * File containing protein descriptions for HLA alleles
+     */
+	private String[] hlaProtFastaUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta" };
     
 	/**
      * number of milliseconds the group cache should be kept before refreshing it from the underlying resolver
@@ -398,10 +404,21 @@ public class EpitopeServiceConfiguration extends Configuration {
     public String[] getHlaAlleleUrls() {
         return hlaAlleleUrls;
     }
-
+    
     @JsonProperty
     public void setHlaAlleleUrls(String[] hlaAlleleUrls) {
         this.hlaAlleleUrls = hlaAlleleUrls;
+    }
+
+    @JsonProperty
+    @HlaProtFastaUrls
+    public String[] getHlaProtFastaUrls() {
+        return hlaProtFastaUrls;
+    }
+    
+    @JsonProperty
+    public void setHlaProtFastaUrls(String[] hlaProtFastaUrls) {
+        this.hlaProtFastaUrls  = hlaProtFastaUrls;
     }
 
     @JsonProperty
