@@ -227,5 +227,15 @@ public @interface ConfigurationBindings {
     @Retention(RUNTIME)
     public @interface HlaAlleleUrls {
     }
-    
+
+    /**
+     * URLs for HLA allele protein fasta file, published quarterly
+     * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
+     */
+    @BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+    public @interface HlaProtFastaUrls {
+    }
+
 }
