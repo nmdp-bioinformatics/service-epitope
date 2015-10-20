@@ -23,21 +23,21 @@
 
 package org.nmdp.service.epitope.db;
 
-public class GGroupRow extends AlleleRow {
-    String gGroup;
-    public GGroupRow(String gGroup, String allele) {
+public class ImmuneGroupRow extends AlleleRow {
+    Integer immuneGroup;
+    public ImmuneGroupRow(String allele, Integer immuneGroup) {
     	super(allele);
-        int i = gGroup.indexOf('*');
-        if (i < 0) throw new IllegalArgumentException("malformed g-group: " + gGroup);
-        this.gGroup = gGroup.substring(i+1);
+        this.immuneGroup = immuneGroup;
     }
-    public GGroupRow(String gGroup, String locus, String allele) {
+    public ImmuneGroupRow(String locus, String allele, Integer immuneGroup) {
         super(locus, allele);
-        int i = gGroup.indexOf('*');
-        if (i < 0) throw new IllegalArgumentException("malformed g-group: " + gGroup);
-        this.gGroup = gGroup.substring(i+1);
+        this.immuneGroup = immuneGroup;
     }
-    public String getGGroup() {
-        return gGroup;
+    public Integer getImmuneGroup() {
+        return immuneGroup;
     }
+	@Override
+	public String toString() {
+		return "ImmuneGroupRow [locus=" + locus + ", allele=" + allele + ", immuneGroup=" + immuneGroup + "]";
+	}
 }

@@ -29,8 +29,8 @@ import org.skife.jdbi.v2.DBI;
 
 public class DbiManagerImplTest {
 
-	static DBI dbi;
-	static DbiManagerImpl dbiManager;
+	protected static DBI dbi;
+	protected static DbiManagerImpl dbiManager;
 
 	@BeforeClass
 	public static void setupClass() {

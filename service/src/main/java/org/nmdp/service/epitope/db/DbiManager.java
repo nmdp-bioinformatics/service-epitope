@@ -39,4 +39,6 @@ public interface DbiManager {
 
 	Map<DetailRace, Map<String, Double>> getRaceAlleleFrequencyMap();
 
+	void loadImmuneGroups(Iterator<ImmuneGroupRow> rowIter, boolean reload);
+
 }

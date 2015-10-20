@@ -264,6 +264,21 @@ public class DbiManagerImpl implements DbiManager {
      * {@inheritDoc} 
      */
     @Override
+    public void loadImmuneGroups(Iterator<ImmuneGroupRow> rowIter, boolean reload) {
+        try (Handle handle = dbi.open()) {
+            if (reload) {
+                handle.createStatement("delete from allele_group").execute();
+            }
+            PreparedBatch batch = handle.prepareBatch("insert into allele_group(locus, allele, immune_group) values (?, ?)");
+            rowIter.forEachRemaining(g -> batch.add(g.getLocus(), g.getAllele(), g.getImmuneGroup()));
+            batch.execute();
+        }
+    }
+    
+    /** 
+     * {@inheritDoc} 
+     */
+    @Override
     public String getGGroupForAllele(String allele) {
         try (Handle handle = dbi.open()) {
         	List<String> alleleParts = Splitter.on('*').splitToList(allele);
@@ -299,5 +314,5 @@ public class DbiManagerImpl implements DbiManager {
                     .list();
         }
 	}
-            		
+  		
 }
