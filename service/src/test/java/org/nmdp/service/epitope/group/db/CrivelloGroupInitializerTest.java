@@ -61,7 +61,7 @@ public class CrivelloGroupInitializerTest {
 
 	@Before
 	public void setup() throws Exception {
-		URL[] urls = { new File("/Users/epearson/Downloads/prot_fasta_dpb1.txt").toURI().toURL() };
+		URL[] urls = { getClass().getResource("/org/nmdp/service/epitope/group/db/prot_fasta_dpb1.txt").toURI().toURL() };
 		init = new CrivelloGroupInitializer(urls, dbi);
 	}
     
