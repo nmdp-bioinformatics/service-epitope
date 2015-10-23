@@ -76,6 +76,6 @@ public interface EpitopeService {
 	/**
 	 * build TCE group/allele maps
 	 */
-	void buildMaps();
+	void buildAlleleGroupMaps();
 
 }

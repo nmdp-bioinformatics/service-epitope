@@ -21,7 +21,7 @@
 
 */
 
-package org.nmdp.service.epitope.group.db;
+package org.nmdp.service.epitope.task;
 
 import static db.migration.util.DbUtil.readCsv;
 import static java.util.Spliterator.ORDERED;
@@ -46,10 +46,14 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.service.epitope.db.DbiManager;
+import org.nmdp.service.epitope.db.DbiManagerImpl;
+import org.nmdp.service.epitope.db.DbiManagerImplTest;
 import org.nmdp.service.epitope.db.ImmuneGroupRow;
+import org.nmdp.service.epitope.task.ImmuneGroupInitializer;
+import org.skife.jdbi.v2.DBI;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CrivelloGroupInitializerTest {
+public class ImmuneGroupInitializerTest {
 
 	@Mock 
 	DbiManager dbi;
@@ -57,14 +61,22 @@ public class CrivelloGroupInitializerTest {
 	@Captor
     ArgumentCaptor<Iterator<ImmuneGroupRow>> iterCaptor;
 
-	private CrivelloGroupInitializer init;
+	private ImmuneGroupInitializer init;
 
 	@Before
 	public void setup() throws Exception {
 		URL[] urls = { getClass().getResource("/org/nmdp/service/epitope/group/db/prot_fasta_dpb1.txt").toURI().toURL() };
-		init = new CrivelloGroupInitializer(urls, dbi);
+		init = new ImmuneGroupInitializer(urls, dbi);
 	}
     
+	public static void main(String[] args) throws Exception {
+		URL[] urls = { ImmuneGroupInitializerTest.class.getResource("/org/nmdp/service/epitope/group/db/prot_fasta_dpb1.txt").toURI().toURL() };
+		DBI dbi = new DBI("jdbc:sqlite:../dropwizard/epitope-service.db");
+		DbiManager dbim = new DbiManagerImpl(dbi); 
+		ImmuneGroupInitializer init = new ImmuneGroupInitializer(urls, dbim);
+		init.loadAlleleScores();
+	}
+	
 	@Test
 	public void testLoadAlleleScores() throws Exception {
 
@@ -76,7 +88,7 @@ public class CrivelloGroupInitializerTest {
 	    
 		// build a map of expected values from crivello paper
 		Map<String, Integer> expectedMap = stream(
-	    		spliteratorUnknownSize(readCsv(new File("../db/src/main/resources/db/v2/allele_group.csv").toURI().toURL()), ORDERED), false)
+	    		spliteratorUnknownSize(readCsv(getClass().getResource("/org/nmdp/service/epitope/group/db/allele_group.csv").toURI().toURL()), ORDERED), false)
 	    	.collect(toMap(
     				a -> (String)a[1], 
     				a -> Integer.valueOf(a[2].toString())));

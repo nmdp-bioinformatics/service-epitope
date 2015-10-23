@@ -310,7 +310,7 @@ public class EpitopeServiceTestData {
 	
 	public static EpitopeService getTestEpitopeService() {
 		EpitopeServiceImpl service = new EpitopeServiceImpl(getTestGlClient(), getTestGlStringFilter(), getTestDbiManager());
-		service.buildMaps();
+		service.buildAlleleGroupMaps();
 		return service;
 	}
 }

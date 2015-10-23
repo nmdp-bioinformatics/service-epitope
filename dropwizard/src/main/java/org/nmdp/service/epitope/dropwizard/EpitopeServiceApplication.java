@@ -23,12 +23,19 @@
 
 package org.nmdp.service.epitope.dropwizard;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 import org.apache.log4j.Logger;
 import org.nmdp.service.common.domain.ConfigurationModule;
 import org.nmdp.service.common.dropwizard.CommonServiceApplication;
 import org.nmdp.service.epitope.guice.ConfigurationBindings;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.RefreshMillis;
 import org.nmdp.service.epitope.guice.LocalServiceModule;
 import org.nmdp.service.epitope.resource.impl.AlleleResource;
 import org.nmdp.service.epitope.resource.impl.GroupResource;
@@ -36,8 +43,10 @@ import org.nmdp.service.epitope.resource.impl.MatchResource;
 import org.nmdp.service.epitope.resource.impl.ResourceModule;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.FrequencyService;
+import org.nmdp.service.epitope.task.AlleleCodeInitializer;
 import org.nmdp.service.epitope.task.AlleleInitializer;
 import org.nmdp.service.epitope.task.GGroupInitializer;
+import org.nmdp.service.epitope.task.ImmuneGroupInitializer;
 import org.skife.jdbi.v2.DBI;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -46,6 +55,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.model.ApiInfo;
 
@@ -106,7 +116,7 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
      */
 	@Override
 	public void runService(final EpitopeServiceConfiguration configuration, final Environment environment) throws Exception {
-
+		
 	    Injector injector = Guice.createInjector(
     			new ConfigurationModule(ConfigurationBindings.class, configuration), 
     			new LocalServiceModule(), 
@@ -122,15 +132,46 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
                 .setSerializationInclusion(Include.NON_NULL)
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
-	    environment.lifecycle().manage(
-	            getStartHooks(
-	            	runParallel(
-	            		() -> injector.getInstance(GGroupInitializer.class).loadGGroups(),
-	            		() -> injector.getInstance(AlleleInitializer.class).loadAlleles()),
-	            	runParallel(
-	            		() -> injector.getInstance(EpitopeService.class).buildMaps(),
-	            		() -> injector.getInstance(FrequencyService.class).buildFrequencyMap())));
+	    // todo: generalize dependency graph (latches?)
+		//Runnable initializers = serial(
+		//    	parallel(
+		//    		() -> injector.getInstance(GGroupInitializer.class).loadGGroups(),
+		//    		() -> injector.getInstance(AlleleCodeInitializer.class).loadAlleleCodes(),
+		//    		serial(
+		//    			() -> injector.getInstance(AlleleInitializer.class).loadAlleles()),
+		//    			() -> injector.getInstance(ImmuneGroupInitializer.class).loadAlleleScores()),
+		//    	parallel(
+		//    		() -> injector.getInstance(EpitopeService.class).buildMaps(),
+		//    		() -> injector.getInstance(FrequencyService.class).buildFrequencyMap(),
+		//    		() -> injector.getInstance(DbiAlleleCodeResolver.class).buildAlleleCodeMap()));
+
+	    Runnable initializers = serial(
+	        		() -> injector.getInstance(GGroupInitializer.class).loadGGroups(),
+	        		() -> injector.getInstance(AlleleCodeInitializer.class).loadAlleleCodes(),
+        			() -> injector.getInstance(AlleleInitializer.class).loadAlleles(),
+        			() -> injector.getInstance(ImmuneGroupInitializer.class).loadAlleleScores(),
+	        		() -> injector.getInstance(EpitopeService.class).buildAlleleGroupMaps(),
+	        		() -> injector.getInstance(FrequencyService.class).buildFrequencyMap());
+//	        		() -> injector.getInstance(DbiAlleleCodeResolver.class).buildAlleleCodeMap());
+
+	    long refreshMillis = injector.getInstance(Key.get(Long.class, RefreshMillis.class));
 	    
+	    environment.lifecycle().manage(new Managed() {
+	    	ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, r -> {
+	    		Thread t = new Thread(r, "InitializerThread");
+	    		t.setDaemon(true);
+	    		return t;
+	    	});
+	    	@Override public void stop() throws Exception {
+	    		scheduler.shutdownNow();
+	    	}
+	    	@Override public void start() throws Exception {
+	    		Future<?> init = scheduler.submit(initializers);
+	    		init.get();
+	    		scheduler.scheduleAtFixedRate(initializers, refreshMillis, refreshMillis, MILLISECONDS);
+	    	}
+	    });
+
     	final AlleleResource alleleResource = injector.getInstance(AlleleResource.class);
     	environment.jersey().register(alleleResource);
     	
@@ -146,23 +187,31 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     	final GlClientHealthCheck glClientHealthCheck = injector.getInstance(GlClientHealthCheck.class);
     	environment.healthChecks().register("glClient",  glClientHealthCheck);
     }
-
-	public Managed getStartHooks(Runnable... hooks) {
-        return new Managed() {
-            @Override public void stop() throws Exception {}
-            @Override public void start() throws Exception {
-            	Arrays.stream(hooks).forEachOrdered(hook -> {
-            		try { hook.run(); } catch (Exception e) { log.error("hook failed", e); }});
-            }
-        };
+//	Managed() {
+//    @Override public void stop() throws Exception {}
+//    @Override public void start() throws Exception {
+//    }
+	
+	public Runnable serial(Runnable... hooks) {
+        return () -> { Arrays.stream(hooks).forEachOrdered(hook -> {
+        	try { 
+        		log.debug("running hook (in serial): " + hook.getClass().getSimpleName());
+        		hook.run(); 
+        	} catch (Exception e) { 
+        		log.error("hook failed", e); 
+        	}
+        }); };
 	}
 	
-	public Runnable runParallel(Runnable... hooks) {
-		return new Runnable() {
-			@Override public void run() {
-            	Arrays.stream(hooks).parallel().forEach(hook -> {
-            		try { hook.run(); } catch (Exception e) { log.error("hook failed", e); }});
-			}};
+	public Runnable parallel(Runnable... hooks) {
+		return () -> { Arrays.stream(hooks).parallel().forEach(hook -> {
+        	try { 
+        		log.debug("running hook (in parallel): " + hook.getClass().getSimpleName());
+        		hook.run(); 
+        	} catch (Exception e) { 
+        		log.error("hook failed", e); 
+        	}
+		}); };
 	}
 	
 	@Override

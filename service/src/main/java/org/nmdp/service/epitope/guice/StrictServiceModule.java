@@ -29,7 +29,7 @@ import java.util.function.Function;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.GenotypeList;
 import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
-import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
+import org.nmdp.service.epitope.allelecode.DbiAlleleCodeResolver;
 import org.nmdp.service.epitope.gl.GlResolver;
 import org.nmdp.service.epitope.gl.GlStringResolver;
 import org.nmdp.service.epitope.gl.JsonGlClientModule;
@@ -75,7 +75,7 @@ public class StrictServiceModule extends AbstractModule {
 	 */
 	@Provides
 	@AlleleCodeResolver
-	public Function<String, String> getAlleleCodeResolver(NmdpV3AlleleCodeResolver resolver, @AlleleCodeCacheMillis long duration, @AlleleCodeCacheSize long size) {
+	public Function<String, String> getAlleleCodeResolver(DbiAlleleCodeResolver resolver, @AlleleCodeCacheMillis long duration, @AlleleCodeCacheSize long size) {
 		return new CachingFunction<String, String>(resolver, duration, duration, size);
 	}
 

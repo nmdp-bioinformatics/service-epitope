@@ -23,44 +23,59 @@
 
 package org.nmdp.service.epitope.allelecode;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.List;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.nmdp.service.epitope.allelecode.DbiAlleleCodeResolver;
+import org.nmdp.service.epitope.db.AlleleCodeRow;
 import org.nmdp.service.epitope.db.DbiManager;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DbiAlleleCodeResolverTest {
 
-	@Mock
-	private DbiManager dbi;
-	
-	@InjectMocks
 	private DbiAlleleCodeResolver resolver;
 
+	@Mock
+	DbiManager dbi = null;
+	
 	@Before
 	public void setUp() throws Exception {
-	}
-
-	@After
-	public void tearDown() throws Exception {
+		when(dbi.getAlleleCodes()).thenReturn(Arrays.asList(
+				new AlleleCodeRow("AFC", "01:01", true),
+				new AlleleCodeRow("AFC", "02:01", true),
+				new AlleleCodeRow("AFC", "02:02", true),
+				new AlleleCodeRow("AFC", "03:01", true)
+		).iterator());
+		resolver = new DbiAlleleCodeResolver(dbi);
+		resolver.buildAlleleCodeMap(dbi.getAlleleCodes());
 	}
 
 	@Test
-	public void testApply_InvalidCode_ReturnsError() throws Exception {
-		when(dbi.getAllelesForCode("HLA-DPB1", "01:ABCD")).thenReturn(Arrays.asList("HLA-DPB1*01:01", "HLA-DPB1*02:01", "HLA-DPB1*03:01"));
-		String test = resolver.apply("HLA-DPB1*01:ABCD");
-		assertThat(test, equalTo("HLA-DPB1*01:01/HLA-DPB1*02:01/HLA-DPB1*03:01"));
+	public void testApply() throws Exception {
+		String resolved = resolver.apply("HLA-DPB1*01:AFC");
+		List<String> test = Splitter.on("/").splitToList(resolved);
+		assertThat(test, containsInAnyOrder("HLA-DPB1*01:01", "HLA-DPB1*02:01", "HLA-DPB1*02:02", "HLA-DPB1*03:01"));
 	}
 
+	@Test
+	public void testApply_XXCode() throws Exception {
+		when(dbi.getFamilyAlleleMap()).thenReturn(ImmutableMap.of("04", ImmutableSet.of("04:01", "04:02", "04:03")));
+		String resolved = resolver.apply("HLA-DPB1*04:XX");
+		List<String> test = Splitter.on("/").splitToList(resolved);
+		assertThat(test, containsInAnyOrder("HLA-DPB1*04:01", "HLA-DPB1*04:02", "HLA-DPB1*04:03"));
+	}
+	
 }

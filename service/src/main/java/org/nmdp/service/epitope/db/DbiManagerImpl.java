@@ -25,9 +25,8 @@ package org.nmdp.service.epitope.db;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toSet;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,6 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.PreparedBatch;
 import org.skife.jdbi.v2.Query;
-import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.logging.SLF4JLog;
 import org.skife.jdbi.v2.logging.SLF4JLog.Level;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
@@ -67,10 +65,7 @@ public class DbiManagerImpl implements DbiManager {
 		dbi.setSQLLog(new SLF4JLog(logger, Level.TRACE));
 	}
 	
-	ResultSetMapper<String> LOCUS_ALLELE = new ResultSetMapper<String>() {
-		@Override public String map(int index, ResultSet r, StatementContext ctx) throws SQLException {
-			return r.getString("locus") + "*" + r.getString("allele");
-		}};
+	ResultSetMapper<String> LOCUS_ALLELE = (i, r, c) -> r.getString("locus") + "*" + r.getString("allele");
 		
     /** 
      * {@inheritDoc} 
@@ -191,16 +186,15 @@ public class DbiManagerImpl implements DbiManager {
     }
 
     @Override
-    public Map<String, List<String>> getFamilyAlleleMap() {
+    public Map<String, Set<String>> getFamilyAlleleMap() {
         try (Handle handle = dbi.open()) {
-            return handle.createQuery("select distinct allele from ("
+            return StreamSupport.stream(handle.createQuery("select distinct allele from ("
             		+ " select allele from race_freq where locus='HLA-DPB1'"
             		+ " union select allele from allele_group where locus='HLA-DPB1'"
             		+ " union select allele from hla_g_group where locus='HLA-DPB1')")
                 .map(StringMapper.FIRST)
-                .list()
-                .stream()
-                .collect(Collectors.groupingBy(a -> a.substring(0, a.indexOf(":"))));
+                .spliterator(), false)
+                .collect(Collectors.groupingBy(a -> a.substring(0, a.indexOf(":")), Collectors.toSet()));
         }
     }
     
@@ -269,7 +263,7 @@ public class DbiManagerImpl implements DbiManager {
             if (reload) {
                 handle.createStatement("delete from allele_group").execute();
             }
-            PreparedBatch batch = handle.prepareBatch("insert into allele_group(locus, allele, immune_group) values (?, ?)");
+            PreparedBatch batch = handle.prepareBatch("insert into allele_group(locus, allele, immune_group) values (?, ?, ?)");
             rowIter.forEachRemaining(g -> batch.add(g.getLocus(), g.getAllele(), g.getImmuneGroup()));
             batch.execute();
         }
@@ -312,6 +306,38 @@ public class DbiManagerImpl implements DbiManager {
                     .bind("locus", locus)
                     .map(LOCUS_ALLELE)
                     .list();
+        }
+	}
+
+	@Override
+	public void loadAlleleCodes(Iterator<AlleleCodeRow> rowIter, boolean reload) {
+        try (Handle handle = dbi.open()) {
+            if (reload) {
+                handle.createStatement("delete from allele_code").execute();
+            }
+            PreparedBatch batch = handle.prepareBatch("insert into allele_code(allele_code, allele, family_included) values (?, ?, ?)");
+            long i = 0;
+            while (rowIter.hasNext()) {
+            	AlleleCodeRow g = rowIter.next();
+            	batch.add(g.getCode(), g.getAllele(), g.isFamilyIncluded());
+            	if (0 == ++i % 10000L) {
+            		logger.debug("committing " + i + " rows...");
+            		batch.execute();
+            	}
+            }
+            if (0 != i % 1000L) batch.execute();
+        }
+	}
+
+	@Override
+	public Iterator<AlleleCodeRow> getAlleleCodes() {
+        try (Handle handle = dbi.open()) {
+            return handle.createQuery("select allele_code, allele, family_included from allele_code")
+                    .map((i, r, c) -> new AlleleCodeRow(
+                    		r.getString("allele_code"), 
+                    		r.getString("allele"), 
+                    		r.getBoolean("family_included")))
+                    .iterator();
         }
 	}
   		

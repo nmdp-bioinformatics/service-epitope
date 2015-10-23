@@ -21,24 +21,24 @@
 
 */
 
-package db.migration;
+package org.nmdp.service.epitope.db;
 
-import static db.migration.util.DbUtil.loadCsv;
-
-import java.sql.Connection;
-
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
-
-public class V2__load_initial_data implements JdbcMigration {
-
-	@Override
-	public void migrate(Connection conn) throws Exception {
-		loadCsv(conn, 
-		        "insert into detail_race (detail_race, broad_race, description) values (?, ?, ?);", 
-		        "db/v2/detail_race.csv");
-		loadCsv(conn, 
-		        "insert into race_freq (locus, detail_race, allele, frequency) values (?, ?, ?, ?);", 
-		        "db/v2/race_freq.csv");
+public class AlleleCodeRow {
+    String code;
+    String allele;
+    boolean familyIncluded;
+	public AlleleCodeRow(String code, String allele, boolean familyIncluded) {
+		this.code = code;
+		this.allele = allele;
+		this.familyIncluded = familyIncluded;
+    }
+	public String getCode() {
+		return code;
 	}
-
+    public String getAllele() {
+		return allele;
+	}
+	public boolean isFamilyIncluded() {
+		return familyIncluded;
+	}
 }

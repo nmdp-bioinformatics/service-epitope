@@ -68,7 +68,7 @@ public class EpitopeServiceImplTest {
 		dbiManager = getTestDbiManager();
 		glClient = getTestGlClient();
 		service = new EpitopeServiceImpl(glClient, glStringFilter, dbiManager);
-		service.buildMaps();
+		service.buildAlleleGroupMaps();
 	}
 
 	@Test

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.GenotypeList;
 import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
-import org.nmdp.service.epitope.allelecode.NmdpV3AlleleCodeResolver;
+import org.nmdp.service.epitope.allelecode.DbiAlleleCodeResolver;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.db.DbiManagerImpl;
 import org.nmdp.service.epitope.gl.GlResolver;
@@ -54,6 +54,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtFastaUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
@@ -102,6 +103,12 @@ public class LocalServiceModule extends AbstractModule {
     public URL[] getHlaAlleleUrls(@HlaAlleleUrls String[] urls) {
         return getUrls(urls);
     }
+    
+    @Provides
+    @HlaProtFastaUrls 
+    public URL[] getHlaProtFastaUrls(@HlaProtFastaUrls String[] urls) {
+        return getUrls(urls);
+    }
 
     private URL[] getUrls(String[] urls) {
         return Arrays.stream(urls).map(url -> { 
@@ -110,7 +117,7 @@ public class LocalServiceModule extends AbstractModule {
                 if (f.isFile()) return f.toURI().toURL();
                 else return new URL(url);
             } catch (Exception e) {
-                log.error("failed to handle url: " + url, e);
+                log.error("failed to handle url: " + url + " (" + e.getMessage() + ")");
                 return null; 
             }
         }).filter(u -> u != null).collect(Collectors.toList()).toArray(new URL[0]);
@@ -122,7 +129,7 @@ public class LocalServiceModule extends AbstractModule {
 	@Provides
 	@Singleton
 	@AlleleCodeResolver
-	public Function<String, String> getAlleleCodeResolver(NmdpV3AlleleCodeResolver resolver, @AlleleCodeCacheMillis long duration, @AlleleCodeCacheSize long size) {
+	public Function<String, String> getAlleleCodeResolver(DbiAlleleCodeResolver resolver, @AlleleCodeCacheMillis long duration, @AlleleCodeCacheSize long size) {
 		return new CachingFunction<String, String>(resolver, duration, duration, size);
 	}
 	

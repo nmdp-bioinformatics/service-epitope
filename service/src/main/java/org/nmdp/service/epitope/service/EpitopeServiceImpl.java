@@ -39,11 +39,14 @@ import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.gl.filter.GlstringFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+
 
 /**
  * implementation of EpitopeService, 
@@ -55,7 +58,7 @@ public class EpitopeServiceImpl implements EpitopeService {
 	private GlClient glClient;
 	private Function<String, String> glStringFilter;
 	private DbiManager dbi;
-	private Map<String, List<String>> familyAlleleMap;
+	Logger logger = LoggerFactory.getLogger(getClass());
 
 	private java.util.function.Function<String, Allele> createAllele = allele -> {
 		try { 
@@ -79,7 +82,8 @@ public class EpitopeServiceImpl implements EpitopeService {
 	}
 	
 	@Override
-	public void buildMaps() {
+	public void buildAlleleGroupMaps() {
+		logger.info("building allele <-> immune group maps");
 		ImmutableListMultimap.Builder<Allele, Optional<Integer>> builder = ImmutableListMultimap.builder();
 		builder.orderKeysBy(new Comparator<Allele>() {
 			@Override public int compare(Allele o1, Allele o2) {
@@ -101,6 +105,7 @@ public class EpitopeServiceImpl implements EpitopeService {
 				.forEach(e -> builder.put(createAllele.apply(e.getKey()), Optional.of(e.getValue())));
 		alleleGroupMap = builder.build();
 		groupAlleleMap = alleleGroupMap.inverse();
+		logger.debug("done building allele <-> immune group maps");
 	}
 	
     /**
