@@ -34,9 +34,6 @@ public class V2__load_initial_data implements JdbcMigration {
 	@Override
 	public void migrate(Connection conn) throws Exception {
 		loadCsv(conn, 
-		        "insert into allele_group (locus, allele, immune_group) values (?, ?, ?);", 
-		        "db/v2/allele_group.csv");
-		loadCsv(conn, 
 		        "insert into detail_race (detail_race, broad_race, description) values (?, ?, ?);", 
 		        "db/v2/detail_race.csv");
 		loadCsv(conn, 

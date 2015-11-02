@@ -23,21 +23,22 @@
 
 package org.nmdp.service.epitope.db;
 
-public class GGroupRow extends AlleleRow {
-    String gGroup;
-    public GGroupRow(String gGroup, String allele) {
-    	super(allele);
-        int i = gGroup.indexOf('*');
-        if (i < 0) throw new IllegalArgumentException("malformed g-group: " + gGroup);
-        this.gGroup = gGroup.substring(i+1);
+public class AlleleCodeRow {
+    String code;
+    String allele;
+    boolean familyIncluded;
+	public AlleleCodeRow(String code, String allele, boolean familyIncluded) {
+		this.code = code;
+		this.allele = allele;
+		this.familyIncluded = familyIncluded;
     }
-    public GGroupRow(String gGroup, String locus, String allele) {
-        super(locus, allele);
-        int i = gGroup.indexOf('*');
-        if (i < 0) throw new IllegalArgumentException("malformed g-group: " + gGroup);
-        this.gGroup = gGroup.substring(i+1);
-    }
-    public String getGGroup() {
-        return gGroup;
-    }
+	public String getCode() {
+		return code;
+	}
+    public String getAllele() {
+		return allele;
+	}
+	public boolean isFamilyIncluded() {
+		return familyIncluded;
+	}
 }

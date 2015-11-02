@@ -36,6 +36,15 @@ import com.google.inject.BindingAnnotation;
 public @interface ConfigurationBindings {
     
 	/**
+	 * number of milliseconds between refreshes of upstream data sources (alleles, g groups, immune groups, etc)
+	 */
+	@BindingAnnotation
+    @Target({FIELD, PARAMETER, METHOD})
+    @Retention(RUNTIME)
+	public @interface RefreshMillis {
+	}
+	
+	/**
 	 * number of milliseconds to cache immunogenity groups for
 	 */
 	@BindingAnnotation
@@ -235,7 +244,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-    public @interface HlaProtFastaUrls {
+    public @interface HlaProtUrls {
     }
 
 }

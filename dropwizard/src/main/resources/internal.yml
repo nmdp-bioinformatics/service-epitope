@@ -1,7 +1,5 @@
 ---
-#application properties
 
-resolveCodes: true
 nmdpV3AlleleCodeUrls:
   - https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
   - /var/lib/epitope-service/alpha.v3.zip
@@ -66,4 +64,4 @@ server:
   adminConnectors:
   - type: http
     port: 48081
-  
+

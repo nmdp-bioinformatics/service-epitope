@@ -23,49 +23,136 @@
 
 package org.nmdp.service.epitope.allelecode;
 
-import java.util.List;
+import static java.util.Spliterator.ORDERED;
+import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.StreamSupport.stream;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
+import org.nmdp.service.epitope.db.AlleleCodeRow;
 import org.nmdp.service.epitope.db.DbiManager;
-import org.nmdp.service.epitope.domain.DetailRace;
+import org.nmdp.service.epitope.task.URLProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
-/**
- * AlleleCodeResolver that resolves based
- */
+@Singleton
 public class DbiAlleleCodeResolver implements Function<String, String> {
 
-	private DbiManager dbi;
+	private static class AlleleCodeExpansion {
+		private Set<String> alleleSet;
+		private boolean familyIncluded;
+		public AlleleCodeExpansion() {
+			this.familyIncluded = false;
+			this.alleleSet = new HashSet<>();
+		}
+		public AlleleCodeExpansion(Set<String> alleleSet) {
+			this.alleleSet = alleleSet;
+			this.familyIncluded = alleleSet.iterator().next().contains(":");
+		}
+		public AlleleCodeExpansion(Set<String> alleleSet, boolean familyIncluded) {
+			this.familyIncluded = familyIncluded;
+			this.alleleSet = alleleSet;
+		}
+		public Set<String> getAlleleSet() {
+			return alleleSet;
+		}
+		public boolean isFamilyIncluded() {
+			return familyIncluded;
+		}
+//		public AlleleCodeExpansion include(AlleleCodeExpansion other) {
+//			this.alleleSet.addAll(other.alleleSet);
+//			this.familyIncluded = this.familyIncluded || other.familyIncluded;
+//			return this;
+//		}
+	}
 	
+	private static final Pattern ALLELE_CODE_PAT = Pattern.compile("((?:HLA-)?[A-Z0-9]+\\*)?(\\d+):([A-Z]+)", CASE_INSENSITIVE);
+	Map<String, AlleleCodeExpansion> alleleCodeMap = new HashMap<>();
+	URLProcessor urlProcessor;
+	long lastModified = 0;
+	static Logger logger = LoggerFactory.getLogger(DbiAlleleCodeResolver.class);
+
+	private DbiManager dbi;
+
 	@Inject
 	public DbiAlleleCodeResolver(DbiManager dbi) {
 		this.dbi = dbi;
 	}
+
+	public void buildAlleleCodeMap(Iterator<AlleleCodeRow> alleleCodeIter) {
+        try {
+//        	List<AlleleCodeRow> alleleCodeIter = dbi.getAllelesCodes();
+
+//        	Map<String, AlleleCodeExpansion> newMap = stream(spliteratorUnknownSize(alleleCodeIter, ORDERED), false)
+//        			.collect(groupingBy(r -> r.getCode(), Collectors.reducing(
+//							new AlleleCodeExpansion(), 
+//							r -> new AlleleCodeExpansion(newHashSet(r.getAllele()), r.isFamilyIncluded()),
+//							(e1, e2) -> e1.include(e2))));
+
+        	Map<String, AlleleCodeExpansion> newMap = 
+        			stream(spliteratorUnknownSize(alleleCodeIter, ORDERED), false)
+		        			.collect(groupingBy(r -> r.getCode(), mapping(r -> r.getAllele(),
+		        					collectingAndThen(toSet(), s -> new AlleleCodeExpansion(s)))));
+        					
+        					
+//							new AlleleCodeExpansion(), 
+//							r -> new AlleleCodeExpansion(newHashSet(r.getAllele()), r.isFamilyIncluded()),
+//							(e1, e2) -> e1.include(e2))));
+
+        	alleleCodeMap = newMap;
+		} catch (RuntimeException e) {
+			throw (RuntimeException)e;
+		} catch (Exception e) {
+			throw new RuntimeException("exception while refreshing allele codes", e);
+		}
+	}
 	
-	/**
-	 * requires allele codes in the form <locus>*<allele code>, where <locus> is a complete and valid locus
-	 */
 	@Override
 	public String apply(String alleleCode) {
-		int sep = alleleCode.indexOf("*");
-		if (sep == -1) {
-			throw new RuntimeException("invalid allele code, can't determine locus: " + alleleCode);
+		Matcher matcher = ALLELE_CODE_PAT.matcher(alleleCode);
+		if (!matcher.matches()) {
+			throw new RuntimeException("unrecognized allele code format: " + alleleCode);
 		}
-		String locus = alleleCode.substring(0, sep);
-		String code = alleleCode.substring(sep+1, alleleCode.length());
-		List<String> al = dbi.getAllelesForCode(locus, code);
-		if (al == null || al.isEmpty()) {
-			throw new RuntimeException("unrecognized allele code: " + locus + "*" + code);
+		String prefix = matcher.group(1) == null ? "" : matcher.group(1);
+		String family = matcher.group(2);
+		String code = matcher.group(3);
+		AlleleCodeExpansion expansion = null;
+		if (code.equals("XX")) {
+			Set<String> alleles = dbi.getFamilyAlleleMap().get(family);
+			expansion = new AlleleCodeExpansion(alleles, true);
+		} else {
+			expansion = alleleCodeMap.get(code);
 		}
-		StringBuilder sb = null;
-		if (al.size() == 1) { return al.get(0); }
-		else { sb = new StringBuilder(al.get(0)); }
-		for (String a : al.subList(1, al.size())) {
-			sb.append("/").append(a);
+		if (null == expansion) {
+			throw new RuntimeException("unrecognized allele code: " + alleleCode);
 		}
-		return sb.toString();
+		Set<String> alleleSet = expansion.getAlleleSet();
+		boolean familyIncluded = expansion.isFamilyIncluded();
+		StringBuilder sb = new StringBuilder();
+		if (null != prefix) sb.append(prefix);
+		if (!familyIncluded) sb.append(family).append(":");
+		Stream<String> alleleStream = alleleSet.stream();
+		if (null != prefix) alleleStream = alleleStream.map(a -> prefix + a);
+		if (!familyIncluded) alleleStream = alleleStream.map(a -> family + ":" + a);
+		return alleleStream.collect(Collectors.joining("/"));
 	}
 
 }

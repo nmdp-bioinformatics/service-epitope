@@ -31,12 +31,18 @@ public interface DbiManager {
 
     List<String> getGGroupAllelesForAllele(String allele);
 
-    Map<String, List<String>> getFamilyAlleleMap();
+    Map<String, Set<String>> getFamilyAlleleMap();
 
 	void loadAlleles(Iterator<AlleleRow> rowIter, boolean reload);
+
+	void loadAlleleCodes(Iterator<AlleleCodeRow> rowIter, boolean reload);
 
 	List<String> getAllelesForLocus(String string);
 
 	Map<DetailRace, Map<String, Double>> getRaceAlleleFrequencyMap();
+
+	void loadImmuneGroups(Iterator<ImmuneGroupRow> rowIter, boolean reload);
+
+	Iterator<AlleleCodeRow> getAlleleCodes();
 
 }

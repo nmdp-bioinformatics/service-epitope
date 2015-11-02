@@ -31,23 +31,28 @@ import java.util.Iterator;
 import org.nmdp.service.epitope.db.AlleleRow;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 public class AlleleInitializer {
 
     DbiManager dbiManager;
-    URLProcessor urlProcessor;
+	private URL[] urls;
+	Logger logger = LoggerFactory.getLogger(getClass());
 
     @Inject
     public AlleleInitializer(@HlaAlleleUrls URL[] urls, DbiManager dbiManager) {
         this.dbiManager = dbiManager;
-        urlProcessor = new URLProcessor(urls, false);
+        this.urls = urls;
     }
 
     public void loadAlleles() {
+    	logger.info("loading alleles");
         Long datasetDate = dbiManager.getDatasetDate("hla_allele");
         if (null == datasetDate) datasetDate = 0L;
+        URLProcessor urlProcessor = new URLProcessor(urls, false);
         datasetDate = urlProcessor.process(is -> {
         	try (InputStreamReader isr = new InputStreamReader(is);
         			BufferedReader br = new BufferedReader(isr)) 
@@ -58,11 +63,15 @@ public class AlleleInitializer {
 	        		.map(s -> new AlleleRow(s.substring(0, s.indexOf("*")), s.substring(s.indexOf("*") + 1)))
 	        		.iterator();
 	        	dbiManager.loadAlleles(alleleIter, true);
-        	} catch (Exception e) {
-        		throw new RuntimeException("failed to load allele file", e);
+    		} catch (RuntimeException e) {
+    			throw (RuntimeException)e;
+    		} catch (Exception e) {
+    			throw new RuntimeException("failed to load allele file", e);
         	}
         }, datasetDate);
         dbiManager.updateDatasetDate("hla_allele", datasetDate);
+    	logger.debug("done loading alleles");
+
     }
             
 }

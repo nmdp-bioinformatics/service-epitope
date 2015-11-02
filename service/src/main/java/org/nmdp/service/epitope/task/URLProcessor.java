@@ -23,15 +23,22 @@
 
 package org.nmdp.service.epitope.task;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +53,24 @@ public class URLProcessor {
         this.urls = urls;
         this.unzip = unzip;
     }
+
+    public static URL[] getUrls(String... urls) {
+        return Arrays.stream(urls).map(url -> { 
+            try {
+                File f = new File(url);
+                if (f.isFile()) return f.toURI().toURL();
+                try {
+                	f = new File(URLProcessor.class.getResource(url).getFile());
+                	if (f.isFile()) return f.toURI().toURL();
+                } catch (Exception e) { /* ignore */ }
+                return new URL(url);
+            } catch (Exception e) {
+                logger.error("failed to handle url: " + url + " (" + e.getMessage() + ")", e);
+                return null; 
+            }
+        }).filter(u -> u != null).collect(Collectors.toList()).toArray(new URL[0]);
+    }
+    
     
     public long process(Consumer<InputStream> consumer, long lastModified) {
         for (URL url : urls) {
@@ -58,22 +83,31 @@ public class URLProcessor {
         throw new RuntimeException("failed to process urls (see log for further exceptions)");
     }
     
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+    
     private long refreshFromUrl(URL url, Consumer<InputStream> consumer, long lastModified) throws MalformedURLException, IOException {
         logger.debug("trying url: " + url);
+        long sourceLastModified = 0;
         final URLConnection urlConnection = url.openConnection();
-        urlConnection.connect();
-        long sourceLastModified = urlConnection.getLastModified();
+        if (url.getProtocol().equalsIgnoreCase("ftp")) {
+        	sourceLastModified = getFtpLastModifiedTime(url);
+        } else {
+        	sourceLastModified = urlConnection.getLastModified();
+        }
+        String sourceLastModifiedStr = dateFormat.format(sourceLastModified);
+        String lastModifiedStr = dateFormat.format(lastModified);
         if (sourceLastModified == 0) {
             logger.warn("resource has no modification date, forcing refresh...");
         } else if (sourceLastModified < lastModified) {
-            logger.warn("resource is older than last modification date (source: " + sourceLastModified + ", last: " + lastModified + "), leaving it");
+            logger.warn("resource is older than last modification date (source: " + sourceLastModifiedStr + ", last: " + lastModifiedStr + "), leaving it");
             return lastModified;
         } else if (sourceLastModified == lastModified) {
-            logger.debug("resource is current");
+            logger.debug("resource is current (modified: " + lastModifiedStr + ")");
             return lastModified;
         } else {
-            logger.info("resource is newer than last modification date, refreshing (source: " + sourceLastModified + ", cache: " + lastModified + ")");
+            logger.info("resource is newer than last modification date, refreshing (source: " + sourceLastModifiedStr + ", cache: " + lastModifiedStr + ")");
         }
+        urlConnection.connect();
         InputStream is = urlConnection.getInputStream();
         if (unzip) {
             ZipInputStream zis = new ZipInputStream(is);
@@ -86,4 +120,32 @@ public class URLProcessor {
         return sourceLastModified;
     }
 
+    public long getFtpLastModifiedTime(URL url) {
+    	FTPClient ftpClient = new FTPClient();
+        try {
+            ftpClient.connect(url.getHost(), url.getPort() == -1 ? url.getDefaultPort() : url.getPort());
+            ftpClient.login("anonymous", "anonymous");
+            ftpClient.enterLocalPassiveMode();
+            String filePath = url.getPath();
+            String time = ftpClient.getModificationTime(filePath);
+            //logger.debug("server replied: " + time);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+            String timePart = time.split(" ")[1];
+            Date modificationTime = dateFormat.parse(timePart);
+            //logger.debug("parsed time: " + modificationTime);
+            return modificationTime.getTime();
+        } catch (Exception e) {
+        	logger.error("failed to parse time for url: " + url, e);
+        	return 0;
+        } finally {
+        	if (ftpClient.isConnected()) {
+                try {
+                    ftpClient.disconnect();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }    	
+    }
+    
 }

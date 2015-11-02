@@ -23,6 +23,7 @@
 
 package org.nmdp.service.epitope.task;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -36,6 +37,8 @@ import javax.xml.stream.events.StartElement;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.db.GGroupRow;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -48,21 +51,24 @@ public class GGroupInitializer {
     static final QName gGroupsListQn = new QName(ns, "gGroupsList");
     static final QName gGroupQn = new QName(ns, "gGroup");
     static final QName gGroupAlleleQn = new QName(ns, "gGroupAllele");
+    Logger logger = LoggerFactory.getLogger(getClass());
     
     DbiManager dbiManager;
-    URLProcessor urlProcessor;
+	private URL[] urls;
 
     @Inject
     public GGroupInitializer(@HlaAmbigUrls URL[] urls, DbiManager dbiManager) {
-        this.dbiManager = dbiManager;
-        urlProcessor = new URLProcessor(urls, true);
+		this.dbiManager = dbiManager;
+		this.urls = urls;
     }
 
     public void loadGGroups() {
+    	logger.info("loading G-groups");
         Long datasetDate = dbiManager.getDatasetDate("hla_g_group");
         if (null == datasetDate) datasetDate = 0L;
+        URLProcessor urlProcessor = new URLProcessor(urls, true);
         datasetDate = urlProcessor.process(is -> {
-            XMLInputFactory xmlif = XMLInputFactory.newInstance();
+        	XMLInputFactory xmlif = XMLInputFactory.newInstance();
             try {
                 XMLEventReader xmler = xmlif.createXMLEventReader(is);
                 ElementReader er = new ElementReader(xmler);
@@ -81,11 +87,20 @@ public class GGroupInitializer {
                         }
                     }
                 }
+            } catch (RuntimeException e) {
+            	throw e;
             } catch (Exception e) {
                 throw new RuntimeException("failed to load G-groups", e);
+            } finally {
+            	try { 
+            		is.close(); 
+            	} catch (IOException e) { 
+            		throw new RuntimeException("failed to close stream", e); 
+            	} 
             }
         }, datasetDate);
         dbiManager.updateDatasetDate("hla_g_group", datasetDate);
+        logger.debug("done loading G-groups");
     }
 
     // xmlns:tns="http://www.example.org/ambig-aw"

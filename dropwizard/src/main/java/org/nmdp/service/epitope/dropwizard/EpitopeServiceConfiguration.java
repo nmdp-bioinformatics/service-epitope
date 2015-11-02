@@ -41,12 +41,13 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.Group3Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtFastaUrls;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeRefreshMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.RefreshMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.ResolveCodes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -57,135 +58,97 @@ import io.dropwizard.flyway.FlywayFactory;
 
 public class EpitopeServiceConfiguration extends Configuration {
 	
-    /**
-     * If null, use LocalGlClient.  If not null, use JsonGlClientModule and enable the following: 
-     * <ul>
-     * <li>GL Strings are created using the provided namespace URL, 
-     * <li>GL Service IDs are accepted as input,
-     * <li>Immunogenicity groups are retrieved from the provided namespace URL given suffixes ({@link #group1Suffix}, {@link #group2Suffix}, {@link #group3Suffix})
-     * <li>GL Service IDs are optionally lifted over to internal namespace (if {@link #liftoverServiceUrl} is provided).
-     * </ul>
+    /** If null, use LocalGlClient.  If not null, use JsonGlClientModule and enable the following: 
+     *  <ul>
+     *  <li>GL Strings are created using the provided namespace URL, 
+     *  <li>GL Service IDs are accepted as input,
+     *  <li>Immunogenicity groups are retrieved from the provided namespace URL given suffixes ({@link #group1Suffix}, {@link #group2Suffix}, {@link #group3Suffix})
+     *  <li>GL Service IDs are optionally lifted over to internal namespace (if {@link #liftoverServiceUrl} is provided).
+     *  </ul>
      */
     private String namespaceUrl;
 
-	/**
-     * if namespace is not null, use this url to retrieve group 1 allele list, 
-     * otherwise retrieve from internal sqlite db.
+    /** if true, accept allele codes in GL string input (e.g. DPB1*ABCD+DPB1*EFGH) and resolve 
      */
-    private String group1Suffix; 
-    
-    /** 
-     * if namespace is not null, use this url to retrieve group 2 allele list, 
-     *  otherwise retrieve from internal sqlite db
-     */
-    private String group2Suffix;
-    
-    /**
-     * if namespace is not null, use this url to retrieve group 3 allele list, 
-     * otherwise retrieve from internal sqlite db
-     */
-    private String group3Suffix;
+    private boolean resolveCodes = false;
 
-    /**
-     * if true, accept allele codes in GL string input (e.g. DPB1*ABCD+DPB1*EFGH) and resolve 
-     */
-    private boolean resolveCodes;
-
-    /**
-     * if not null (and if namespace not null, enabling , lift over input GL service IDs to specified namespace, otherwise error 
-     * if provided namespace doesn't match internal
+    /** if not null (and if namespace not null, enabling , lift over input GL service IDs to specified namespace, otherwise error 
+     *  if provided namespace doesn't match internal
      */
     private String liftoverServiceUrl;
 
-    /**
-     * https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
+    /** https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
      */
     private String[] nmdpV3AlleleCodeUrls = { "https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip" };
     
-    /**
-     * IMGT ambiguous allele file locations 
+    /** IMGT ambiguous allele file locations 
      */
     private String[] hlaAmbigUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/xml/hla_ambigs.xml.zip" };
     
-    /**
-     * IMGT allele name file locations
+    /** IMGT allele name file locations
      */
     private String[] hlaAlleleUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/Allelelist.txt" };
     
-    /**
-     * File containing protein descriptions for HLA alleles
+    /** File containing protein descriptions for HLA alleles
      */
-	private String[] hlaProtFastaUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta" };
-    
-	/**
-     * number of milliseconds the group cache should be kept before refreshing it from the underlying resolver
+	// { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta" };
+	private String[] hlaProtUrls = { "/DPB1.db.3.22.0" };
+
+	/** number of milliseconds between refreshes of the upstream data sources (alleles, g-groups, immune groups)
+     */
+	private long refreshMillis = 60 * 60 * 1000L;
+	
+	/** number of milliseconds the group cache should be kept before refreshing it from the underlying resolver
      */
 	private long groupCacheMillis = 60 * 60 * 1000L; 
     
-	/**
-     * number of milliseconds the g group cache should be kept before refreshing it from the underlying resolver
+	/** number of milliseconds the g group cache should be kept before refreshing it from the underlying resolver
      */
 	private long gGroupCacheMillis = 60 * 60 * 1000L; 
 
-    /**
-     * size of the allele -> g group cache
+    /** size of the allele -> g group cache
      */
 	private long gGroupCacheSize = 5000;
 
-    /**
-     * number of milliseconds the gl cache should be kept before refreshing it from the  underlying resolver
+    /** number of milliseconds the gl cache should be kept before refreshing it from the  underlying resolver
      */
 	private long glCacheMillis = 60 * 60 * 1000L;
     
-    /**
-     * size of the gl cache
+    /** size of the gl cache
      */
 	private long glCacheSize = 100000L;
     
-    /**
-     * number of milliseconds the allele code cache should be kept before refreshing it from the  underlying resolver
+    /** number of milliseconds the allele code cache should be kept before refreshing it from the  underlying resolver
      */
 	private long alleleCodeCacheMillis = 60 * 60 * 1000L; 
     
-    /**
-     * size of the allele code cache
+    /** size of the allele code cache
      */
 	private long alleleCodeCacheSize = 5000;
     
-    /**
-     * number of milliseconds the frequency cache should be kept before refreshing it from the  underlying resolver
+    /** number of milliseconds the frequency cache should be kept before refreshing it from the  underlying resolver
      */
 	private long frequencyCacheMillis = 60 * 60 * 1000L; 
     
-    /**
-     * size of the frequency cache
+    /** size of the frequency cache
      */
 	private long frequencyCacheSize = 1000000L;
     
-    /**
-     * number of seconds the nmdp v3 allele code file should be kept for before refreshing
-     */
-    private long nmdpV3AlleleCodeRefreshMillis = 60 * 60 * 1000L;
-    
-    /**
-     * number of seconds the nmdp v3 allele code file should be kept for before refreshing
+    /** frequency to assume if no data is present
      */
     private double baselineAlleleFrequency = 1.0E-5; // from loren
     
-    /**
-     * precision of match grade probabilities
+    /** precision of match grade probabilities
      */
 	private double matchProbabilityPrecision = 1.0E-5;
 
-    /**
-	 * jdbi data source factory, set by dropwizard
+    /** jdbi data source factory, set by dropwizard
 	 */
 	@Valid
     @NotNull
     private DataSourceFactory dataSourceFactory = new DataSourceFactory();
     
-	/**
-	 * flyway factory, set by dropwizard
+	/** flyway factory, set by dropwizard
 	 */
 	@Valid
 	@NotNull
@@ -200,45 +163,6 @@ public class EpitopeServiceConfiguration extends Configuration {
     @JsonProperty
 	public void setNamespaceUrl(String namespaceUrl) {
 		this.namespaceUrl = namespaceUrl;
-	}
-
-    @JsonProperty
-    @Group1Suffix
-	public String getGroup1Suffix() {
-		return group1Suffix;
-	}
-
-    @JsonProperty
-	public void setGroup1Suffix(String group1Suffix) {
-		this.group1Suffix = group1Suffix;
-	}
-
-    @JsonProperty
-    @Group2Suffix
-	public String getGroup2Suffix() {
-		return group2Suffix;
-	}
-
-    @JsonProperty
-	public void setGroup2Suffix(String group2Suffix) {
-		this.group2Suffix = group2Suffix;
-	}
-
-    @JsonProperty
-    @Group3Suffix
-	public String getGroup3Suffix() {
-		return group3Suffix;
-	}
-
-    @JsonProperty
-	public void setGroup3Suffix(String group3Suffix) {
-		this.group3Suffix = group3Suffix;
-	}
-
-    @JsonProperty
-    @ResolveCodes
-	public boolean isResolveCodes() {
-		return resolveCodes;
 	}
 
     @JsonProperty
@@ -411,27 +335,15 @@ public class EpitopeServiceConfiguration extends Configuration {
     }
 
     @JsonProperty
-    @HlaProtFastaUrls
-    public String[] getHlaProtFastaUrls() {
-        return hlaProtFastaUrls;
+    @HlaProtUrls
+    public String[] getHlaProtUrls() {
+        return hlaProtUrls;
     }
     
     @JsonProperty
-    public void setHlaProtFastaUrls(String[] hlaProtFastaUrls) {
-        this.hlaProtFastaUrls  = hlaProtFastaUrls;
+    public void setHlaProtUrls(String[] hlaProtUrls) {
+        this.hlaProtUrls  = hlaProtUrls;
     }
-
-    @JsonProperty
-    @NmdpV3AlleleCodeRefreshMillis
-	public long getNmdpV3AlleleCodeRefreshMillis() {
-		return nmdpV3AlleleCodeRefreshMillis;
-	}
-
-    @JsonProperty
-	public void setNmdpV3AlleleCodeRefreshMillis(
-			long nmdpV3AlleleCodeRefreshMillis) {
-		this.nmdpV3AlleleCodeRefreshMillis = nmdpV3AlleleCodeRefreshMillis;
-	}
 
     @MatchProbabilityPrecision
     @JsonProperty
@@ -443,5 +355,44 @@ public class EpitopeServiceConfiguration extends Configuration {
     public void setMatchProbabilityPrecision(double matchProbabilityPrecision) {
         this.matchProbabilityPrecision= matchProbabilityPrecision;
     }
+    
+    @RefreshMillis
+    @JsonProperty
+	public long getRefreshMillis() {
+		return refreshMillis;
+	}
 
+    @JsonProperty
+	public void setRefreshMillis(long refreshMillis) {
+		this.refreshMillis = refreshMillis;
+	}
+
+	@GGroupCacheMillis
+    @JsonProperty
+	public long getgGroupCacheMillis() {
+		return gGroupCacheMillis;
+	}
+
+    @JsonProperty
+	public void setgGroupCacheMillis(long gGroupCacheMillis) {
+		this.gGroupCacheMillis = gGroupCacheMillis;
+	}
+
+	@GGroupCacheSize
+    @JsonProperty
+	public long getgGroupCacheSize() {
+		return gGroupCacheSize;
+	}
+
+    @JsonProperty
+	public void setgGroupCacheSize(long gGroupCacheSize) {
+		this.gGroupCacheSize = gGroupCacheSize;
+	}
+
+	@ResolveCodes
+    @JsonProperty
+	public boolean isResolveCodes() {
+		return resolveCodes;
+	}
+    
 }

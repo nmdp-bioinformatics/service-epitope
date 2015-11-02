@@ -18,10 +18,10 @@ CREATE TABLE detail_race (
     description text not null
 );
 CREATE TABLE allele_code (
-    allele_code_map_id integer primary key,
-    locus text not null,
+    allele_code_id integer primary key,
     allele_code text not null,
-    allele text not null
+    allele text not null,
+    family_included boolean not null
 );
 CREATE TABLE hla_g_group (
     hla_ambig_id integer primary key,
