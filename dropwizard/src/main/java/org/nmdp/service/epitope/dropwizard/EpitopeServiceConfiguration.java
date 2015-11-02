@@ -41,7 +41,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.Group3Suffix;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtFastaUrls;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
@@ -91,7 +91,8 @@ public class EpitopeServiceConfiguration extends Configuration {
     
     /** File containing protein descriptions for HLA alleles
      */
-	private String[] hlaProtFastaUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta" };
+	// { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta" };
+	private String[] hlaProtUrls = { "/DPB1.db.3.22.0" };
 
 	/** number of milliseconds between refreshes of the upstream data sources (alleles, g-groups, immune groups)
      */
@@ -334,14 +335,14 @@ public class EpitopeServiceConfiguration extends Configuration {
     }
 
     @JsonProperty
-    @HlaProtFastaUrls
-    public String[] getHlaProtFastaUrls() {
-        return hlaProtFastaUrls;
+    @HlaProtUrls
+    public String[] getHlaProtUrls() {
+        return hlaProtUrls;
     }
     
     @JsonProperty
-    public void setHlaProtFastaUrls(String[] hlaProtFastaUrls) {
-        this.hlaProtFastaUrls  = hlaProtFastaUrls;
+    public void setHlaProtUrls(String[] hlaProtUrls) {
+        this.hlaProtUrls  = hlaProtUrls;
     }
 
     @MatchProbabilityPrecision

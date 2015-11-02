@@ -244,7 +244,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-    public @interface HlaProtFastaUrls {
+    public @interface HlaProtUrls {
     }
 
 }

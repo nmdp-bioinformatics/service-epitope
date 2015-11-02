@@ -23,12 +23,11 @@
 
 package org.nmdp.service.epitope.guice;
 
-import java.io.File;
+import static org.nmdp.service.epitope.task.URLProcessor.getUrls;
+
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.GenotypeList;
@@ -54,7 +53,7 @@ import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtFastaUrls;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtUrls;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
 import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.EpitopeServiceImpl;
@@ -62,6 +61,8 @@ import org.nmdp.service.epitope.service.FrequencyService;
 import org.nmdp.service.epitope.service.FrequencyServiceImpl;
 import org.nmdp.service.epitope.service.MatchService;
 import org.nmdp.service.epitope.service.MatchServiceImpl;
+import org.nmdp.service.epitope.task.AlignedImmuneGroupInitializer;
+import org.nmdp.service.epitope.task.ImmuneGroupInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +85,7 @@ public class LocalServiceModule extends AbstractModule {
 		bind(EpitopeService.class).to(EpitopeServiceImpl.class).in(Singleton.class);
 		bind(MatchService.class).to(MatchServiceImpl.class);
 		bind(FrequencyService.class).to(FrequencyServiceImpl.class).in(Singleton.class);
+		bind(ImmuneGroupInitializer.class).to(AlignedImmuneGroupInitializer.class);
 	}
 	
     @Provides
@@ -105,24 +107,11 @@ public class LocalServiceModule extends AbstractModule {
     }
     
     @Provides
-    @HlaProtFastaUrls 
-    public URL[] getHlaProtFastaUrls(@HlaProtFastaUrls String[] urls) {
+    @HlaProtUrls 
+    public URL[] getHlaProtUrls(@HlaProtUrls String[] urls) {
         return getUrls(urls);
     }
 
-    private URL[] getUrls(String[] urls) {
-        return Arrays.stream(urls).map(url -> { 
-            try {
-                File f = new File(url);
-                if (f.isFile()) return f.toURI().toURL();
-                else return new URL(url);
-            } catch (Exception e) {
-                log.error("failed to handle url: " + url + " (" + e.getMessage() + ")");
-                return null; 
-            }
-        }).filter(u -> u != null).collect(Collectors.toList()).toArray(new URL[0]);
-    }
-    
 	/**
 	 * resolve allele codes from alpha.v3.zip file
 	 */

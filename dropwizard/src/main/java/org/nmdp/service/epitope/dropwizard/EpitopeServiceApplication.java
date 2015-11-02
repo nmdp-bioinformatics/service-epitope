@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import org.apache.log4j.Logger;
 import org.nmdp.service.common.domain.ConfigurationModule;
@@ -139,7 +138,7 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 		//    		() -> injector.getInstance(AlleleCodeInitializer.class).loadAlleleCodes(),
 		//    		serial(
 		//    			() -> injector.getInstance(AlleleInitializer.class).loadAlleles()),
-		//    			() -> injector.getInstance(ImmuneGroupInitializer.class).loadAlleleScores()),
+		//    			() -> injector.getInstance(ImgtImmuneGroupInitializer.class).loadAlleleScores()),
 		//    	parallel(
 		//    		() -> injector.getInstance(EpitopeService.class).buildMaps(),
 		//    		() -> injector.getInstance(FrequencyService.class).buildFrequencyMap(),
@@ -149,7 +148,7 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 	        		() -> injector.getInstance(GGroupInitializer.class).loadGGroups(),
 	        		() -> injector.getInstance(AlleleCodeInitializer.class).loadAlleleCodes(),
         			() -> injector.getInstance(AlleleInitializer.class).loadAlleles(),
-        			() -> injector.getInstance(ImmuneGroupInitializer.class).loadAlleleScores(),
+        			() -> injector.getInstance(ImmuneGroupInitializer.class).loadImmuneGroups(),
 	        		() -> injector.getInstance(EpitopeService.class).buildAlleleGroupMaps(),
 	        		() -> injector.getInstance(FrequencyService.class).buildFrequencyMap());
 //	        		() -> injector.getInstance(DbiAlleleCodeResolver.class).buildAlleleCodeMap());

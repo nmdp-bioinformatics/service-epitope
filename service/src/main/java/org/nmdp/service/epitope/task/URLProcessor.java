@@ -23,6 +23,7 @@
 
 package org.nmdp.service.epitope.task;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -30,8 +31,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -50,6 +53,24 @@ public class URLProcessor {
         this.urls = urls;
         this.unzip = unzip;
     }
+
+    public static URL[] getUrls(String... urls) {
+        return Arrays.stream(urls).map(url -> { 
+            try {
+                File f = new File(url);
+                if (f.isFile()) return f.toURI().toURL();
+                try {
+                	f = new File(URLProcessor.class.getResource(url).getFile());
+                	if (f.isFile()) return f.toURI().toURL();
+                } catch (Exception e) { /* ignore */ }
+                return new URL(url);
+            } catch (Exception e) {
+                logger.error("failed to handle url: " + url + " (" + e.getMessage() + ")", e);
+                return null; 
+            }
+        }).filter(u -> u != null).collect(Collectors.toList()).toArray(new URL[0]);
+    }
+    
     
     public long process(Consumer<InputStream> consumer, long lastModified) {
         for (URL url : urls) {
