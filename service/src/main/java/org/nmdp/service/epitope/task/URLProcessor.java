@@ -60,12 +60,11 @@ public class URLProcessor {
                 File f = new File(url);
                 if (f.isFile()) return f.toURI().toURL();
                 try {
-                	f = new File(URLProcessor.class.getResource(url).getFile());
-                	if (f.isFile()) return f.toURI().toURL();
+                	return URLProcessor.class.getResource(url);
                 } catch (Exception e) { /* ignore */ }
                 return new URL(url);
             } catch (Exception e) {
-                logger.error("failed to handle url: " + url + " (" + e.getMessage() + ")", e);
+                logger.error("failed to handle url: " + url + " (" + e.getMessage() + ")");
                 return null; 
             }
         }).filter(u -> u != null).collect(Collectors.toList()).toArray(new URL[0]);
