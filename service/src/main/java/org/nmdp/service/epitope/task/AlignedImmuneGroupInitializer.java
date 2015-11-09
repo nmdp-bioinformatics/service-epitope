@@ -142,14 +142,14 @@ public class AlignedImmuneGroupInitializer implements ImmuneGroupInitializer {
 			try {
 				Double score = scoreMap.get(protOffset).get(e.getValue().charAt(offset + protOffset));
 				if (null == score) {
-					logger.error("missing protein on allele: " + e.getKey() + " (size: " + e.getValue().length() 
-							+ ", protein: " + e.getValue().charAt(offset + protOffset) 
-							+ " at offset: " + (offset == 0 ? "" : + offset + " + ") + protOffset + ")");
+					//logger.error("missing protein on allele: " + e.getKey() + " (size: " + e.getValue().length() 
+					//		+ ", protein: " + e.getValue().charAt(offset + protOffset) 
+					//		+ " at offset: " + (offset == 0 ? "" : + offset + " + ") + protOffset + ")");
 					score = 0.0; // unknown variants don't influence score
 				}
 				total += score;
 			} catch (Exception ex) {
-				logger.error("missing protein on allele: " + e.getKey() + " (size: " + e.getValue().length() 
+				logger.error("error on allele: " + e.getKey() + " (size: " + e.getValue().length() 
 						+ ", protein: " + e.getValue().charAt(offset + protOffset) 
 						+ " at offset: " + (offset == 0 ? "" : + offset + " + ") + protOffset + ")", ex);
 			}
