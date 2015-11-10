@@ -60,7 +60,10 @@ public class URLProcessor {
                 File f = new File(url);
                 if (f.isFile()) return f.toURI().toURL();
                 try {
-                	return URLProcessor.class.getResource(url);
+                	URL tryurl = URLProcessor.class.getResource(url);
+                	try (InputStream is = tryurl.openStream()) { 
+                		return tryurl;
+                	}
                 } catch (Exception e) { /* ignore */ }
                 return new URL(url);
             } catch (Exception e) {
