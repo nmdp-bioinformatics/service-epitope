@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.nmdp.service</groupId>
         <artifactId>epitope-multimodule</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2-SNAPSHOT</version>
     </parent>
     <artifactId>epitope-fitnesse</artifactId>
     <name>epitope-fitnesse</name>
