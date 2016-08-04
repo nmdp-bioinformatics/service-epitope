@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.nmdp.service</groupId>
         <artifactId>service-parent</artifactId>
-        <version>2</version>
+        <version>3</version>
     </parent>
     <artifactId>epitope-multimodule</artifactId>
     <name>epitope-multimodule</name>
@@ -68,7 +68,7 @@
             <dependency>
                 <groupId>org.nmdp.service</groupId>
                 <artifactId>common-dropwizard</artifactId>
-                <version>3-SNAPSHOT</version>
+                <version>3</version>
             </dependency>
             <dependency>
                 <groupId>org.xerial</groupId>

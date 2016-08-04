@@ -11,7 +11,7 @@ public class URLProcessorTest {
 
 	@Test
 	public void testGetUrls() throws Exception {
-		URL[] urls = URLProcessor.getUrls(new String[]{ "/DPB1.db.3.22.0" });
+		URL[] urls = URLProcessor.getUrls(new String[]{ "/org/nmdp/service/epitope/task/hla-ambig.xml" });
 		assertThat(urls[0], notNullValue());
 	}
 

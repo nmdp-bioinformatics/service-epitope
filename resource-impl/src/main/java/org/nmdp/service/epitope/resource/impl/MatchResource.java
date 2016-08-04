@@ -39,11 +39,11 @@ import org.nmdp.service.epitope.resource.MatchResponse;
 import org.nmdp.service.epitope.service.MatchService;
 import org.nmdp.service.epitope.trace.Trace;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiImplicitParam;
-import com.wordnik.swagger.annotations.ApiImplicitParams;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 
 @Path("matches/")
 @Produces(MediaType.APPLICATION_JSON)

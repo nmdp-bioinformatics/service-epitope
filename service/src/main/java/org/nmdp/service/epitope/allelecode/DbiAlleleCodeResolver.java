@@ -58,24 +58,20 @@ public class DbiAlleleCodeResolver implements Function<String, String> {
 
 	private static class AlleleCodeExpansion {
 		private Set<String> alleleSet;
-		private boolean familyIncluded;
-		public AlleleCodeExpansion() {
-			this.familyIncluded = false;
-			this.alleleSet = new HashSet<>();
-		}
+		private boolean generic;
 		public AlleleCodeExpansion(Set<String> alleleSet) {
 			this.alleleSet = alleleSet;
-			this.familyIncluded = alleleSet.iterator().next().contains(":");
+			this.generic = !alleleSet.iterator().next().contains(":");
 		}
-		public AlleleCodeExpansion(Set<String> alleleSet, boolean familyIncluded) {
-			this.familyIncluded = familyIncluded;
+		public AlleleCodeExpansion(Set<String> alleleSet, boolean generic) {
+			this.generic = generic;
 			this.alleleSet = alleleSet;
 		}
 		public Set<String> getAlleleSet() {
 			return alleleSet;
 		}
-		public boolean isFamilyIncluded() {
-			return familyIncluded;
+		public boolean isGeneric() {
+			return generic;
 		}
 //		public AlleleCodeExpansion include(AlleleCodeExpansion other) {
 //			this.alleleSet.addAll(other.alleleSet);
@@ -137,7 +133,7 @@ public class DbiAlleleCodeResolver implements Function<String, String> {
 		AlleleCodeExpansion expansion = null;
 		if (code.equals("XX")) {
 			Set<String> alleles = dbi.getFamilyAlleleMap().get(family);
-			expansion = new AlleleCodeExpansion(alleles, true);
+			expansion = new AlleleCodeExpansion(alleles, false);
 		} else {
 			expansion = alleleCodeMap.get(code);
 		}
@@ -145,13 +141,9 @@ public class DbiAlleleCodeResolver implements Function<String, String> {
 			throw new RuntimeException("unrecognized allele code: " + alleleCode);
 		}
 		Set<String> alleleSet = expansion.getAlleleSet();
-		boolean familyIncluded = expansion.isFamilyIncluded();
-		StringBuilder sb = new StringBuilder();
-		if (null != prefix) sb.append(prefix);
-		if (!familyIncluded) sb.append(family).append(":");
 		Stream<String> alleleStream = alleleSet.stream();
+		if (expansion.isGeneric()) alleleStream = alleleStream.map(a -> family + ":" + a);
 		if (null != prefix) alleleStream = alleleStream.map(a -> prefix + a);
-		if (!familyIncluded) alleleStream = alleleStream.map(a -> family + ":" + a);
 		return alleleStream.collect(Collectors.joining("/"));
 	}
 

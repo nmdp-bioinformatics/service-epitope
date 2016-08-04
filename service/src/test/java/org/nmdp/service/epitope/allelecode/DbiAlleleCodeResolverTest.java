@@ -54,10 +54,12 @@ public class DbiAlleleCodeResolverTest {
 	@Before
 	public void setUp() throws Exception {
 		when(dbi.getAlleleCodes()).thenReturn(Arrays.asList(
-				new AlleleCodeRow("AFC", "01:01", true),
-				new AlleleCodeRow("AFC", "02:01", true),
-				new AlleleCodeRow("AFC", "02:02", true),
-				new AlleleCodeRow("AFC", "03:01", true)
+				new AlleleCodeRow("AB", "01", true),
+				new AlleleCodeRow("AB", "02", true),
+				new AlleleCodeRow("AFC", "01:01", false),
+				new AlleleCodeRow("AFC", "02:01", false),
+				new AlleleCodeRow("AFC", "02:02", false),
+				new AlleleCodeRow("AFC", "03:01", false)
 		).iterator());
 		resolver = new DbiAlleleCodeResolver(dbi);
 		resolver.buildAlleleCodeMap(dbi.getAlleleCodes());
@@ -78,4 +80,10 @@ public class DbiAlleleCodeResolverTest {
 		assertThat(test, containsInAnyOrder("HLA-DPB1*04:01", "HLA-DPB1*04:02", "HLA-DPB1*04:03"));
 	}
 	
+	@Test
+	public void testApply_Generic() throws Exception {
+		String resolved = resolver.apply("HLA-DPB1*04:AB");
+		List<String> test = Splitter.on("/").splitToList(resolved);
+		assertThat(test, containsInAnyOrder("HLA-DPB1*04:01", "HLA-DPB1*04:02"));
+	}
 }

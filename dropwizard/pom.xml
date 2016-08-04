@@ -104,10 +104,10 @@
             <groupId>io.dropwizard.modules</groupId>
             <artifactId>dropwizard-flyway</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.wordnik</groupId>
-            <artifactId>swagger-jaxrs_2.10</artifactId>
-        </dependency>
+	    <dependency>
+	      <groupId>io.swagger</groupId>
+	      <artifactId>swagger-jersey2-jaxrs</artifactId>
+	    </dependency>
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>

@@ -26,11 +26,11 @@ package org.nmdp.service.epitope.db;
 public class AlleleCodeRow {
     String code;
     String allele;
-    boolean familyIncluded;
-	public AlleleCodeRow(String code, String allele, boolean familyIncluded) {
+    boolean generic;
+	public AlleleCodeRow(String code, String allele, boolean generic) {
 		this.code = code;
 		this.allele = allele;
-		this.familyIncluded = familyIncluded;
+		this.generic = generic;
     }
 	public String getCode() {
 		return code;
@@ -38,7 +38,7 @@ public class AlleleCodeRow {
     public String getAllele() {
 		return allele;
 	}
-	public boolean isFamilyIncluded() {
-		return familyIncluded;
+	public boolean isGeneric() {
+		return generic;
 	}
 }

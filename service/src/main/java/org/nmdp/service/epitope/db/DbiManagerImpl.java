@@ -319,7 +319,7 @@ public class DbiManagerImpl implements DbiManager {
             long i = 0;
             while (rowIter.hasNext()) {
             	AlleleCodeRow g = rowIter.next();
-            	batch.add(g.getCode(), g.getAllele(), g.isFamilyIncluded());
+            	batch.add(g.getCode(), g.getAllele(), g.isGeneric());
             	if (0 == ++i % 10000L) {
             		logger.debug("committing " + i + " rows...");
             		batch.execute();

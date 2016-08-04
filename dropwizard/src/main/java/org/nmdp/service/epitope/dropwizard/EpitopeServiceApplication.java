@@ -55,8 +55,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.wordnik.swagger.config.SwaggerConfig;
-import com.wordnik.swagger.model.ApiInfo;
 
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.flyway.FlywayBundle;
@@ -68,9 +66,6 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.models.Info;
-//import io.swagger.jaxrs.config.BeanConfig;
-//import io.swagger.models.Contact;
-//import io.swagger.models.Info;
 
 /**
  * Dropwizard main application wrapper
@@ -219,6 +214,8 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 		Info info = new Info();
 		info.setTitle("DPB1 Epitope Service");
 		info.setDescription("This service reports on alleles and their associated immunogenicity groups and provides matching functions.");
+	    beanConfig.setResourcePackage("org.nmdp.service.epitope.resource");
+	    beanConfig.setPrettyPrint(true);
 		beanConfig.setInfo(info);
 	}
 

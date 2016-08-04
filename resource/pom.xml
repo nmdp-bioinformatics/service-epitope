@@ -11,10 +11,10 @@
     <description>JAX-RS resource interface classes, independent of server implementation, to be used by clients for marshalling.</description>
 	<packaging>jar</packaging>
 	<dependencies>
-        <dependency>
-            <groupId>com.wordnik</groupId>
-            <artifactId>swagger-jaxrs_2.10</artifactId>
-        </dependency>
+	    <dependency>
+	      <groupId>io.swagger</groupId>
+	      <artifactId>swagger-jersey2-jaxrs</artifactId>
+	    </dependency>
 		<dependency>
 			<groupId>org.nmdp.service</groupId>
 			<artifactId>epitope-domain</artifactId>
