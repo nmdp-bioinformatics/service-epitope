@@ -66,11 +66,11 @@ public class AlleleCodeInitializer {
 						if (parsed.size() != 3) {
 							throw new RuntimeException("failed to parse file on line " + i + ", expected 3 fields: " + s);
 						}
-						boolean familyIncluded = !("*".equals(parsed.get(0)));
+						boolean generic = !("*".equals(parsed.get(0)));
 						String code = parsed.get(1);
 						String alleles = parsed.get(2);
 						return StreamSupport.stream(Splitter.on("/").split(alleles).spliterator(), false)
-								.map(allele -> new AlleleCodeRow(code, allele, familyIncluded));
+								.map(allele -> new AlleleCodeRow(code, allele, generic));
 	        		})
 	        		.flatMap(r -> r)
 	        		.iterator();

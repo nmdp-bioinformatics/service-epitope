@@ -1,5 +1,8 @@
 ---
 
+hlaProtUrls:
+  - /DPB1.db.3.24.0
+  
 nmdpV3AlleleCodeUrls:
   - https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
   - /var/lib/epitope-service/alpha.v3.zip

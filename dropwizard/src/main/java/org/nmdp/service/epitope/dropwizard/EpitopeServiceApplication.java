@@ -55,8 +55,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.wordnik.swagger.config.SwaggerConfig;
-import com.wordnik.swagger.model.ApiInfo;
 
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.flyway.FlywayBundle;
@@ -66,6 +64,8 @@ import io.dropwizard.jdbi.bundles.DBIExceptionsBundle;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.models.Info;
 
 /**
  * Dropwizard main application wrapper
@@ -186,11 +186,7 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     	final GlClientHealthCheck glClientHealthCheck = injector.getInstance(GlClientHealthCheck.class);
     	environment.healthChecks().register("glClient",  glClientHealthCheck);
     }
-//	Managed() {
-//    @Override public void stop() throws Exception {}
-//    @Override public void start() throws Exception {
-//    }
-	
+
 	public Runnable serial(Runnable... hooks) {
         return () -> { Arrays.stream(hooks).forEachOrdered(hook -> {
         	try { 
@@ -214,13 +210,14 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 	}
 	
 	@Override
-	public void configureSwagger(SwaggerConfig config) {
-	    config.setApiVersion("1.0");
-	  	config.setApiInfo(new ApiInfo("Epitope Service", 
-	  			"This service reports on alleles and their associated immunogenicity groups and provides matching functions.",
-	  			null, // terms of service url 
-	  			"epearson@nmdp.org", // contact
-	  			null, // license
-	  			null)); // license url
+	public void setupSwagger(BeanConfig beanConfig) {
+		Info info = new Info();
+		info.setTitle("DPB1 Epitope Service");
+		info.setDescription("This service reports on alleles and their associated immunogenicity groups and provides matching functions.");
+	    beanConfig.setResourcePackage("org.nmdp.service.epitope.resource");
+	    beanConfig.setPrettyPrint(true);
+		beanConfig.setInfo(info);
 	}
+
+
 }

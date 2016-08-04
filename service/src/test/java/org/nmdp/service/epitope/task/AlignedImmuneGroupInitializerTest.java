@@ -72,12 +72,12 @@ public class AlignedImmuneGroupInitializerTest {
 
 	@Before
 	public void setup() throws Exception {
-		URL[] urls = URLProcessor.getUrls("/DPB1.db.3.22.0");
+		URL[] urls = URLProcessor.getUrls("/DPB1.db.3.24.0");
 		init = new AlignedImmuneGroupInitializer(urls, dbi);
 	}
 
 	public static void main(String[] args) throws Exception {
-		URL[] urls = URLProcessor.getUrls("/DPB1.db.3.22.0");
+		URL[] urls = URLProcessor.getUrls("/DPB1.db.3.24.0");
 		DBI dbi = new DBI("jdbc:sqlite:../dropwizard/epitope-service.db");
 		DbiManager dbim = new DbiManagerImpl(dbi); 
 		AlignedImmuneGroupInitializer init = new AlignedImmuneGroupInitializer(urls, dbim);
