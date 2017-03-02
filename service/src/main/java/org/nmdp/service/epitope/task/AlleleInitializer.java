@@ -48,6 +48,15 @@ public class AlleleInitializer {
         this.urls = urls;
     }
 
+    public static String getAllele(String s) {
+    	int split = s.indexOf(" ");
+    	if (split < 0) { split = s.indexOf(","); }
+		if (split < 0) {
+    		throw new RuntimeException("unrecognized format of allele list file");
+		}
+		return s.substring(split + 1);
+	}
+
     public void loadAlleles() {
     	logger.info("loading alleles");
         Long datasetDate = dbiManager.getDatasetDate("hla_allele");
@@ -58,20 +67,19 @@ public class AlleleInitializer {
         			BufferedReader br = new BufferedReader(isr)) 
         	{
 	        	Iterator<AlleleRow> alleleIter = br.lines()
-	        		.map(s -> s.substring(s.indexOf(" ") + 1))
+	        		.map(s -> getAllele(s))
 	        		.filter(s -> s.startsWith("DPB1*"))
 	        		.map(s -> new AlleleRow(s.substring(0, s.indexOf("*")), s.substring(s.indexOf("*") + 1)))
 	        		.iterator();
 	        	dbiManager.loadAlleles(alleleIter, true);
     		} catch (RuntimeException e) {
-    			throw (RuntimeException)e;
+    			throw e;
     		} catch (Exception e) {
     			throw new RuntimeException("failed to load allele file", e);
-        	}
+			}
         }, datasetDate);
-        dbiManager.updateDatasetDate("hla_allele", datasetDate);
+		dbiManager.updateDatasetDate("hla_allele", datasetDate);
     	logger.debug("done loading alleles");
-
     }
             
 }

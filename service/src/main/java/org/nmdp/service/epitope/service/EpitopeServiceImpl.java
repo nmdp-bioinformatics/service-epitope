@@ -97,8 +97,10 @@ public class EpitopeServiceImpl implements EpitopeService {
 			return (lhs.get().compareTo(rhs.get()));
 		});
 		Map<String, Integer> groupLookup = dbi.getAlleleGroupMap();
+		// add all known imgt alleles
 		dbi.getAllelesForLocus("HLA-DPB1").stream()
 				.forEach(allele -> builder.put(createAllele.apply(allele), findGroup(groupLookup, allele)));
+		// add all alleles missing from imgt that we have group definitions for
 		Set<String> keySet = builder.build().keySet().stream().map(a -> a.getGlstring()).collect(toSet());
 		groupLookup.entrySet().stream()
 				.filter(e -> !keySet.contains(e.getKey()))
