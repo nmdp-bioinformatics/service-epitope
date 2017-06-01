@@ -1,4 +1,10 @@
-Fitnesse setup:
+Running Fitnesse Server
+=======================
+
+* To run, simply run the maven task `mvn exec:java`.
+
+Setup Instructions
+------------------
 
 - Download fitnesse-standalone: 
     - http://www.fitnesse.org/FitNesseDownload
@@ -9,6 +15,8 @@ Fitnesse setup:
 - Add fitnesse-maven-classpath to fitnesse as directed
 
 - Add the following to /root:
-
+    
+    ```
     !define TEST_SYSTEM {slim} 
     !pomFile (fitnesse module pom location)
+    ```
