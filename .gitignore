@@ -20,5 +20,6 @@ release.properties
 */.classpath
 */.settings/
 */.idea
+**/*.iml
 **/.DS_Store
 /.DS_Store
