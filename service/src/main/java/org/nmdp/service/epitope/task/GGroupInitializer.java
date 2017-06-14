@@ -76,7 +76,7 @@ public class GGroupInitializer {
                     StartElement se = er.nextStartElement();
                     if (se.getName().equals(geneQn)
                             && se.getAttributeByName(geneSystemAttrQn).getValue().equals("HLA")
-                            && se.getAttributeByName(nameAttrQn).getValue().equals("DPB1")) 
+                            && se.getAttributeByName(nameAttrQn).getValue().matches("(HLA-)?DPB1"))
                     {
                         while (er.hasNextStartElement()) {
                             se = er.nextStartElement();
@@ -87,6 +87,7 @@ public class GGroupInitializer {
                         }
                     }
                 }
+                throw new RuntimeException("failed to parse G groups file (hla-ambigs)");
             } catch (RuntimeException e) {
             	throw e;
             } catch (Exception e) {
