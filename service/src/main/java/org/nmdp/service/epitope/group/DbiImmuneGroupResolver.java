@@ -23,25 +23,41 @@
 
 package org.nmdp.service.epitope.group;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.nmdp.gl.Allele;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.gl.client.GlClientException;
+import org.nmdp.service.epitope.db.DbiManager;
 
-import com.google.common.base.Function;
-import com.google.inject.BindingAnnotation;
+import com.google.inject.Inject;
 
 /**
- * Guice binding annotation to indicate GroupResolver.  Attached to the type Function<Integer, List<Allele>>,
- * which takes an integer representation of a TCE group and returns the list of the alleles in the group.
+ * GroupResolver implementation that resolves alleles that belong to a group based the supplied DB manager.
  */
-@BindingAnnotation
-@Target({FIELD, PARAMETER, METHOD})
-@Retention(RUNTIME)
-public @interface GroupResolver {}
+public class DbiImmuneGroupResolver implements Function<Integer, List<Allele>> {
+    
+	DbiManager dbiManager;
+	GlClient glClient;
+
+	@Inject
+	public DbiImmuneGroupResolver(DbiManager dbiManager, GlClient glClient) {
+		this.dbiManager = dbiManager;
+		this.glClient = glClient;
+	}
+
+	@Override
+	public List<Allele> apply(final Integer group) {
+		List<String> alleleStringList = dbiManager.getAllelesForImmuneGroup(group);
+		return alleleStringList.stream().map(name -> {
+			try {
+				return glClient.createAllele(name);
+			} catch (GlClientException e) {
+				throw new RuntimeException("failed to resolve allele: " + name, e);
+			}
+		}).collect(Collectors.toList());
+	}
+
+}

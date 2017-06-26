@@ -28,6 +28,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Before;
@@ -53,16 +54,17 @@ public class DbiAlleleCodeResolverTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		when(dbi.getAlleleCodes()).thenReturn(Arrays.asList(
+		Iterator<AlleleCodeRow> alleleCodeIter = Arrays.asList(
 				new AlleleCodeRow("AB", "01", true),
 				new AlleleCodeRow("AB", "02", true),
 				new AlleleCodeRow("AFC", "01:01", false),
 				new AlleleCodeRow("AFC", "02:01", false),
 				new AlleleCodeRow("AFC", "02:02", false),
 				new AlleleCodeRow("AFC", "03:01", false)
-		).iterator());
+		).iterator();
+		//when(dbi.getAlleleCodes()).thenReturn(alleleCodeIter);
 		resolver = new DbiAlleleCodeResolver(dbi);
-		resolver.buildAlleleCodeMap(dbi.getAlleleCodes());
+		resolver.buildAlleleCodeMap(alleleCodeIter);
 	}
 
 	@Test

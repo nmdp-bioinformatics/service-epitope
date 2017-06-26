@@ -28,7 +28,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.anAllele;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestDbiManager;
 import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGlClient;
@@ -68,19 +67,19 @@ public class EpitopeServiceImplTest {
 		dbiManager = getTestDbiManager();
 		glClient = getTestGlClient();
 		service = new EpitopeServiceImpl(glClient, glStringFilter, dbiManager);
-		service.buildAlleleGroupMaps();
+		service.buildImmuneGroupMaps();
 	}
 
 	@Test
 	public void testGetGroupForAllele() throws Exception {
-		assertThat(service.getGroupForAllele(group1Alleles().get(0)), equalTo(1));
-		assertThat(service.getGroupForAllele(group2Alleles().get(0)), equalTo(2));
-		assertThat(service.getGroupForAllele(group3Alleles().get(0)), equalTo(3));
+		assertThat(service.getImmuneGroupForAllele(group1Alleles().get(0)), equalTo(1));
+		assertThat(service.getImmuneGroupForAllele(group2Alleles().get(0)), equalTo(2));
+		assertThat(service.getImmuneGroupForAllele(group3Alleles().get(0)), equalTo(3));
 	}
 
 	@Test
 	public void testGetAllGroups() throws Exception {
-		Map<Integer, List<Allele>> allGroups = service.getAllGroups();
+		Map<Integer, List<Allele>> allGroups = service.getAllImmuneGroups();
 		assertThat(allGroups.size(), equalTo(4));
 		assertThat(allGroups.keySet(), contains(0, 1, 2, 3));
         assertThat(allGroups.get(0), containsInAnyOrder(group0Alleles().toArray()));
@@ -91,7 +90,7 @@ public class EpitopeServiceImplTest {
 
 	@Test
 	public void testGetGroupsForAllAlleles() throws Exception {
-		Map<Allele, Integer> map = service.getGroupsForAllAlleles();
+		Map<Allele, Integer> map = service.getImmuneGroupsForAllAlleles();
         assertThat(map.get(group0Alleles().get(0)), equalTo(0));
         assertThat(map.get(group1Alleles().get(0)), equalTo(1));
 		assertThat(map.get(group2Alleles().get(0)), equalTo(2));
@@ -112,7 +111,7 @@ public class EpitopeServiceImplTest {
 
 	@Test
 	public void testGetAllelesForGroup() throws Exception {
-		List<Allele> group1Alleles = service.getAllelesForGroup(1);
+		List<Allele> group1Alleles = service.getAllelesForImmuneGroup(1);
 		assertThat(group1Alleles, containsInAnyOrder(group1Alleles().toArray()));
 	}
 

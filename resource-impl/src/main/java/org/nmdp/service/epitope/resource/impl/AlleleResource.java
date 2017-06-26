@@ -43,7 +43,7 @@ import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.gl.filter.GlstringFilter;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GlstringTransformer;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.AlleleView;
 import org.nmdp.service.epitope.service.EpitopeService;
@@ -66,14 +66,14 @@ public class AlleleResource {
 	Logger log = LoggerFactory.getLogger(getClass());
 	private EpitopeService epitopeService;
 	private GlClient glClient;
-	private Function<String, String> glStringFilter;
+	private Function<String, String> glStringTransformer;
 	private FrequencyService freqService;
 
 	@Inject
-	public AlleleResource(EpitopeService epitopeService, GlClient glClient, @GlstringFilter Function<String, String> glStringFilter, FrequencyService freqService) {
+	public AlleleResource(EpitopeService epitopeService, GlClient glClient, @GlstringTransformer Function<String, String> glStringTransformer, FrequencyService freqService) {
 		this.epitopeService = epitopeService;
 		this.glClient = glClient;
-		this.glStringFilter = glStringFilter;
+		this.glStringTransformer = glStringTransformer;
 		this.freqService = freqService;
     }
 	
@@ -151,7 +151,7 @@ public class AlleleResource {
 	private AlleleView getAlleleView(String glstring, DetailRace race) {
 		Allele allele = null;
 		try {
-			allele = glClient.createAllele(glStringFilter.apply(glstring));
+			allele = glClient.createAllele(glStringTransformer.apply(glstring));
 		} catch (GlClientException e) {
 			throw new RuntimeException("failed to create allele: " + glstring, e);
 		}
@@ -162,7 +162,7 @@ public class AlleleResource {
         Integer group = null;
         String error = null;
 		try {
-			group = epitopeService.getGroupForAllele(allele);
+			group = epitopeService.getImmuneGroupForAllele(allele);
 		} catch (Exception e) {
 			error = e.getMessage();
 		}
@@ -179,9 +179,9 @@ public class AlleleResource {
 	    alleles = alleles.replace(',', '/');
 	    List<Allele> al;
 	    try {
-	        al = glClient.createAlleleList(glStringFilter.apply(alleles)).getAlleles();
+	        al = glClient.createAlleleList(glStringTransformer.apply(alleles)).getAlleles();
 	    } catch (GlClientException e) {
-	        throw new RuntimeException("failed to create allele list: " + glStringFilter.apply(alleles), e);
+	        throw new RuntimeException("failed to create allele list: " + glStringTransformer.apply(alleles), e);
 	    }
 	    return Iterables.transform(al, a -> getAlleleView(a.getGlstring(), race));
 	}
@@ -202,7 +202,7 @@ public class AlleleResource {
 	private List<AlleleView> getAllelesForGroups(Iterable<Integer> groups, DetailRace race) {
 		return StreamSupport.stream(groups.spliterator(), false)
 		        .map(group -> 
-		        	epitopeService.getAllelesForGroup(group).stream()
+		        	epitopeService.getAllelesForImmuneGroup(group).stream()
 		        		.map(a -> getAlleleView(a.getGlstring(), group, race, null)))
 		        .flatMap(s -> s)
 		        .collect(Collectors.toList());

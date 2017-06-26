@@ -40,14 +40,14 @@ public class AlleleCodeInitializer {
 
 	public void loadAlleleCodes() {
 		logger.info("loading allele codes");
-		// always reload on startup, thereafter load when data changes
-		//Long datasetDate = dbi.getDatasetDate("immune_group");
+		Long datasetDate = dbi.getDatasetDate("allele_code");
 		if (null == datasetDate) datasetDate = 0L;
 		URLProcessor urlProcessor = new URLProcessor(urls, true);
 		datasetDate = urlProcessor.process(is -> {
 			loadFromStream(is);
 		}, datasetDate);
-		//dbi.updateDatasetDate("immune_group", datasetDate);
+		// reload every time
+		// dbi.updateDatasetDate("allele_code", datasetDate);
 		logger.debug("done loading allele codes");
 	}
 	
@@ -74,10 +74,10 @@ public class AlleleCodeInitializer {
 	        		})
 	        		.flatMap(r -> r)
 	        		.iterator();
-//        	dbi.loadAlleleCodes(alleleCodeIter, true);
+        	// dbi.loadAlleleCodes(alleleCodeIter, true);
         	resolver.buildAlleleCodeMap(alleleCodeIter);
 		} catch (RuntimeException e) {
-			throw (RuntimeException)e;
+			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException("exception while refreshing allele codes", e);
 		}

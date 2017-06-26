@@ -21,23 +21,36 @@
 
 */
 
-package org.nmdp.service.epitope.db;
+package org.nmdp.service.epitope.gl;
 
-public class ImmuneGroupRow extends AlleleRow {
-    Integer immuneGroup;
-    public ImmuneGroupRow(String allele, Integer immuneGroup) {
-    	super(allele);
-        this.immuneGroup = immuneGroup;
-    }
-    public ImmuneGroupRow(String locus, String allele, Integer immuneGroup) {
-        super(locus, allele);
-        this.immuneGroup = immuneGroup;
-    }
-    public Integer getImmuneGroup() {
-        return immuneGroup;
-    }
+import com.google.inject.Inject;
+import org.nmdp.gl.GenotypeList;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.gl.client.GlClientException;
+
+import java.util.function.Function;
+
+/**
+ * Implementation of GlResolver that resolves GenotypeLists from a GlClient.
+ */
+public class GenotypeListResolver implements Function<String, GenotypeList> {
+
+	final private GlClient glClient;
+
+	@Inject
+	public GenotypeListResolver(GlClient glClient) {
+		this.glClient = glClient;
+	}
+
+	/**
+	 * Parse the glstring and resolve to a GenotypeList.
+	 */
 	@Override
-	public String toString() {
-		return "ImmuneGroupRow [locus=" + locus + ", allele=" + allele + ", immuneGroup=" + immuneGroup + "]";
+	public GenotypeList apply(String glstring) {
+		try {
+			return glClient.createGenotypeList(glstring);
+		} catch (GlClientException e) {
+			throw new RuntimeException("failed to parse glstring: " + glstring, e);
+		}
 	}
 }

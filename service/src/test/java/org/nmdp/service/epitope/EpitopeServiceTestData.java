@@ -280,7 +280,7 @@ public class EpitopeServiceTestData {
 						.map(a -> a.getGlstring())
 						.collect(Collectors.toList());
 			}
-		}).when(mock).getAllelesForGroup(any(Integer.class));
+		}).when(mock).getAllelesForImmuneGroup(any(Integer.class));
 
 		doAnswer(new Answer<List<String>>() {
 			@Override public List<String> answer(InvocationOnMock invocation) throws Throwable {
@@ -310,7 +310,7 @@ public class EpitopeServiceTestData {
 	
 	public static EpitopeService getTestEpitopeService() {
 		EpitopeServiceImpl service = new EpitopeServiceImpl(getTestGlClient(), getTestGlStringFilter(), getTestDbiManager());
-		service.buildAlleleGroupMaps();
+		service.buildImmuneGroupMaps();
 		return service;
 	}
 }

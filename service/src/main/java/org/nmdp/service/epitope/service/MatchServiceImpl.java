@@ -23,44 +23,28 @@
 
 package org.nmdp.service.epitope.service;
 
-import static org.nmdp.service.epitope.domain.DetailRace.UNK;
-import static org.nmdp.service.epitope.domain.MatchGrade.GVH_NONPERMISSIVE;
-import static org.nmdp.service.epitope.domain.MatchGrade.HVG_NONPERMISSIVE;
-import static org.nmdp.service.epitope.domain.MatchGrade.MATCH;
-import static org.nmdp.service.epitope.domain.MatchGrade.NONPERMISSIVE_UNDEFINED;
-import static org.nmdp.service.epitope.domain.MatchGrade.PERMISSIVE;
-import static org.nmdp.service.epitope.domain.MatchGrade.POTENTIAL;
-import static org.nmdp.service.epitope.domain.MatchGrade.UNKNOWN;
-
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.nmdp.gl.Allele;
-import org.nmdp.gl.Genotype;
-import org.nmdp.gl.GenotypeList;
-import org.nmdp.gl.Haplotype;
-import org.nmdp.gl.Locus;
+import com.google.inject.Inject;
+import org.nmdp.gl.*;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.domain.MatchResult;
-import org.nmdp.service.epitope.gl.GlResolver;
-import org.nmdp.service.epitope.gl.filter.MatchGlstringFilter;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFrequency;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GenotypeListResolver;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchGlstringTransformer;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.trace.Trace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.nmdp.service.epitope.domain.DetailRace.UNK;
+import static org.nmdp.service.epitope.domain.MatchGrade.*;
 
 /**
  * Primary implementation of MatchService interface
@@ -69,27 +53,27 @@ public class MatchServiceImpl implements MatchService {
 
 	private EpitopeService epitopeService;
 	private GlClient glClient;
-	private Function<String, GenotypeList> glResolver;
+	private Function<String, GenotypeList> genotypeListResolver;
     private FrequencyService freqService;
-	private Function<String, String> glStringFilter;
+	private Function<String, String> glStringTransformer;
 	Logger logger = LoggerFactory.getLogger(getClass());
 	private long matchPrecision;
 
 	@Inject
 	public MatchServiceImpl(
-			EpitopeService epitopeService, 
-			@GlResolver Function<String, GenotypeList> glResolver, 
-			GlClient glClient, 
-			@MatchGlstringFilter Function<String, String> glStringFilter, 
+			EpitopeService epitopeService,
+			@GenotypeListResolver Function<String, GenotypeList> genotypeListResolver,
+			GlClient glClient,
+			@MatchGlstringTransformer Function<String, String> glStringTransformer,
 			FrequencyService freqService,
-	        @BaselineAlleleFrequency Double baselineFreq,
-	        @MatchProbabilityPrecision double matchPrecision) 
+			@BaselineAlleleFrequency Double baselineFreq,
+			@MatchProbabilityPrecision double matchPrecision)
 	{
 		this.epitopeService = epitopeService;
-		this.glResolver = glResolver;
+		this.genotypeListResolver = genotypeListResolver;
 		this.glClient = glClient;
 		// apply g groups and trim alleles to ars equivalents when matching 
-		this.glStringFilter = glStringFilter;
+		this.glStringTransformer = glStringTransformer;
         this.freqService = freqService;
 		this.matchPrecision = (long)Math.pow(10, 0 - Math.log10(matchPrecision));
 	}
@@ -139,8 +123,8 @@ public class MatchServiceImpl implements MatchService {
 	{
 		// fixme g-group alleles are coalesced into a single allele name by the glstringfilter, 
 		// which means their frequencies aren't counted separately
-		GenotypeList rgl = glResolver.apply(glStringFilter.apply(recipientGl));
-		GenotypeList dgl = glResolver.apply(glStringFilter.apply(donorGl));
+		GenotypeList rgl = genotypeListResolver.apply(glStringTransformer.apply(recipientGl));
+		GenotypeList dgl = genotypeListResolver.apply(glStringTransformer.apply(donorGl));
 		return getMatch(rgl, recipientRace, dgl, donorRace);
 	}
 
@@ -300,8 +284,8 @@ public class MatchServiceImpl implements MatchService {
                     }
                     double f = a1f * a2f;
                     if (h1 != h2) f *= 2;
-                    Integer g1 = epitopeService.getGroupForAllele(a1);
-                    Integer g2 = epitopeService.getGroupForAllele(a2); 
+                    Integer g1 = epitopeService.getImmuneGroupForAllele(a1);
+                    Integer g2 = epitopeService.getImmuneGroupForAllele(a2);
                     if (Trace.isEnabled()) {
                         Trace.add(a1.getGlstring() + "(g:" + g1 + ",p:" + a1f + ")+"
                                 + a2.getGlstring() + "(g:" + g2 + ",p:" + a2f + ")");

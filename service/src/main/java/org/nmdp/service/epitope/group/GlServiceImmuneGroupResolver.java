@@ -24,19 +24,19 @@
 package org.nmdp.service.epitope.group;
 
 import java.util.List;
+import java.util.function.Function;
 
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.AlleleList;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.guice.ConfigurationBindings;
 
-import com.google.common.base.Function;
 import com.google.inject.Inject;
 
 /**
  * Implementation of GroupResolver that resolves TCE group membership based on allele lists retrieved from a GlClient. 
  */
-public class GlServiceGroupResolver implements Function<Integer, List<Allele>> {
+public class GlServiceImmuneGroupResolver implements Function<Integer, List<Allele>> {
 
 	private GlClient glClient;
 	private String namespace;
@@ -45,11 +45,11 @@ public class GlServiceGroupResolver implements Function<Integer, List<Allele>> {
 	private String group3Suffix;
 
 	@Inject
-	public GlServiceGroupResolver(GlClient glClient, 
-			@ConfigurationBindings.NamespaceUrl String namespace,
-			@ConfigurationBindings.Group1Suffix String group1Suffix,
-			@ConfigurationBindings.Group2Suffix String group2Suffix,
-			@ConfigurationBindings.Group3Suffix String group3Suffix) 
+	public GlServiceImmuneGroupResolver(GlClient glClient,
+										@ConfigurationBindings.NamespaceUrl String namespace,
+										@ConfigurationBindings.Group1Suffix String group1Suffix,
+										@ConfigurationBindings.Group2Suffix String group2Suffix,
+										@ConfigurationBindings.Group3Suffix String group3Suffix)
 	{
 		this.glClient = glClient;
 		this.namespace = namespace;

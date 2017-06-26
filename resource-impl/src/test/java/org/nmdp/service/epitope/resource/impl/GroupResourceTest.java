@@ -51,7 +51,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.GroupView;
 import org.nmdp.service.epitope.service.EpitopeService;
@@ -68,7 +67,7 @@ public class GroupResourceTest {
 
 	private GlClient glClient;
 
-	private Function<String, String> glStringFilter;
+	private Function<String, String> glStringTransformer;
 
 	@Mock
 	private FrequencyService freqService;	
@@ -79,16 +78,16 @@ public class GroupResourceTest {
 	public void setUp() throws Exception {
 		epitopeService = getTestEpitopeService();
 		glClient = getTestGlClient();
-		glStringFilter = getTestGlStringFilter();
-		resource = new GroupResource(epitopeService, glClient, glStringFilter, new ArsAlleleFilter(100, 100), freqService, 10E-5);
+		glStringTransformer = getTestGlStringFilter();
+		resource = new GroupResource(epitopeService, glClient, glStringTransformer, freqService, 10E-5);
 	}
 	
 	public List<String> allelesToStrings(List<Allele> alleleList) {
-		return alleleList.stream().map(a -> a.getGlstring()).collect(Collectors.toList());
+		return alleleList.stream().map(Allele::getGlstring).collect(Collectors.toList());
 	}
 
 	public ImmutableListMultimap<Integer, GroupView> getGroupMap(List<GroupView> groups) {
-		return FluentIterable.from(groups).index(g -> g.getGroup());
+		return FluentIterable.from(groups).index(GroupView::getGroup);
 	}
 
 	@Test

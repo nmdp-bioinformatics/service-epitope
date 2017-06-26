@@ -53,7 +53,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.db.DbiManagerImpl;
-import org.nmdp.service.epitope.db.ImmuneGroupRow;
+import org.nmdp.service.epitope.db.GroupRow;
 import org.skife.jdbi.v2.DBI;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -63,7 +63,7 @@ public class ImgtImmuneGroupInitializerTest {
 	DbiManager dbi;
 
 	@Captor
-	ArgumentCaptor<Iterator<ImmuneGroupRow>> iterCaptor;
+	ArgumentCaptor<Iterator<GroupRow<Integer>>> iterCaptor;
 
 	private ImgtImmuneGroupInitializer init;
 
@@ -93,7 +93,7 @@ public class ImgtImmuneGroupInitializerTest {
 
 		// test map
 		Map<String, Integer> map = stream(spliteratorUnknownSize(iterCaptor.getValue(), ORDERED), false)
-				.collect(Collectors.toMap(r -> r.getAllele(), r -> r.getImmuneGroup()));
+				.collect(Collectors.toMap(r -> r.getAllele(), r -> r.getGroup()));
 		
 		// build a map of expected values from crivello paper
 		Map<String, Integer> expectedMap = stream(

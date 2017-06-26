@@ -56,7 +56,6 @@ import org.nmdp.service.epitope.service.FrequencyService;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AlleleResourceTest {
@@ -146,7 +145,7 @@ public class AlleleResourceTest {
 	public void testGetAllele() throws Exception {
 		Allele a = anAllele();
 		AlleleView test = resource.getAllele(a.getGlstring(), null);
-		assertThat(test.getGroup(), equalTo(epitopeService.getGroupForAllele(a)));
+		assertThat(test.getGroup(), equalTo(epitopeService.getImmuneGroupForAllele(a)));
 	}
 
 }

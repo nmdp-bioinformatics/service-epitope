@@ -50,14 +50,14 @@ public class DbiManagerImplTest {
 
 //	@Test
 //	public void testGetGroupForAllele() throws Exception {
-//		Integer group = db.getGroupForAllele("01:01");
+//		Integer group = db.getImmuneGroupForAllele("01:01");
 //		assertThat(group, notNullValue());
 //		assertThat(group, equalTo(3));
 //	}
 //
 //	@Test
 //	public void testGetAllelesForGroup() throws Exception {
-//		List<String> alleleList = db.getAllelesForGroup(3);
+//		List<String> alleleList = db.getAllelesForImmuneGroup(3);
 //		assertThat(alleleList, notNullValue());
 //		assertThat(alleleList, not(empty()));
 //	}

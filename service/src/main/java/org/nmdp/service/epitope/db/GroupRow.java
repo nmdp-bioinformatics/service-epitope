@@ -21,23 +21,19 @@
 
 */
 
-package org.nmdp.service.epitope.gl.filter;
+package org.nmdp.service.epitope.db;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import com.google.inject.BindingAnnotation;
-
-/**
- * Guice binding annotation to indicate GlStringFilter.  Attached to Function<String, String,
- * which take a GL string, and return the GL string, modified in some way.
- */
-@BindingAnnotation
-@Target({FIELD, PARAMETER, METHOD})
-@Retention(RUNTIME)
-public @interface GlstringFilter {}
+public class GroupRow<T> extends AlleleRow {
+    T group;
+    public GroupRow(String allele, T group) {
+    	super(allele);
+    	this.group = group;
+    }
+    public GroupRow(String locus, String allele, T group) {
+        super(locus, allele);
+        this.group = group;
+    }
+    public T getGroup() {
+        return group;
+    }
+}
