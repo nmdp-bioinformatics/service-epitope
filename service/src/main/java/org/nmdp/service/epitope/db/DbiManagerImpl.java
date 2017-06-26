@@ -25,12 +25,13 @@ package org.nmdp.service.epitope.db;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -66,7 +67,9 @@ public class DbiManagerImpl implements DbiManager {
 	}
 	
 	ResultSetMapper<String> LOCUS_ALLELE = (i, r, c) -> r.getString("locus") + "*" + r.getString("allele");
-		
+
+	Pattern ALLELE_PATTERN = Pattern.compile("(?<locus>[^*]+)\\*(?<allele>.*)");
+
     /** 
      * {@inheritDoc} 
      */
@@ -86,7 +89,7 @@ public class DbiManagerImpl implements DbiManager {
      * {@inheritDoc} 
      */
 	@Override
-    public List<String> getAllelesForGroup(Integer group) {
+    public List<String> getAllelesForImmuneGroup(Integer group) {
 		try (Handle handle = dbi.open()) {
 			return handle.createQuery(
 					"select locus, allele from allele_group where immune_group = :group")
@@ -223,23 +226,38 @@ public class DbiManagerImpl implements DbiManager {
                 .execute();
         }
     }
-    
-    /** 
-     * {@inheritDoc} 
-     */
-    @Override
-    public void loadGGroups(Iterator<GGroupRow> rowIter, boolean reload) {
-        try (Handle handle = dbi.open()) {
-            if (reload) {
-                handle.createStatement("delete from hla_g_group").execute();
-            }
-            PreparedBatch batch = handle.prepareBatch("insert into hla_g_group(g_group, locus, allele) values (?, ?, ?)");
-            rowIter.forEachRemaining(g -> batch.add(g.getGGroup(), g.getLocus(), g.getAllele()));
-            batch.execute();
-        }
-    }
-    
-    /** 
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void loadPGroups(Iterator<GroupRow<String>> rowIter, boolean reload) {
+		try (Handle handle = dbi.open()) {
+			if (reload) {
+				handle.createStatement("delete from hla_p_group").execute();
+			}
+			PreparedBatch batch = handle.prepareBatch("insert or ignore into hla_p_group(p_group, locus, allele) values (?, ?, ?)");
+			rowIter.forEachRemaining(g -> batch.add(g.getGroup(), g.getLocus(), g.getAllele()));
+			batch.execute();
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void loadGGroups(Iterator<GroupRow<String>> rowIter, boolean reload) {
+		try (Handle handle = dbi.open()) {
+			if (reload) {
+				handle.createStatement("delete from hla_g_group").execute();
+			}
+			PreparedBatch batch = handle.prepareBatch("insert or ignore into hla_g_group(g_group, locus, allele) values (?, ?, ?)");
+			rowIter.forEachRemaining(g -> batch.add(g.getGroup(), g.getLocus(), g.getAllele()));
+			batch.execute();
+		}
+	}
+
+	/**
      * {@inheritDoc} 
      */
     @Override
@@ -248,7 +266,7 @@ public class DbiManagerImpl implements DbiManager {
             if (reload) {
                 handle.createStatement("delete from hla_allele").execute();
             }
-            PreparedBatch batch = handle.prepareBatch("insert into hla_allele(locus, allele) values (?, ?)");
+            PreparedBatch batch = handle.prepareBatch("insert or ignore into hla_allele(locus, allele) values (?, ?)");
             rowIter.forEachRemaining(g -> batch.add(g.getLocus(), g.getAllele()));
             batch.execute();
         }
@@ -258,13 +276,13 @@ public class DbiManagerImpl implements DbiManager {
      * {@inheritDoc} 
      */
     @Override
-    public void loadImmuneGroups(Iterator<ImmuneGroupRow> rowIter, boolean reload) {
+    public void loadImmuneGroups(Iterator<GroupRow<Integer>> rowIter, boolean reload) {
         try (Handle handle = dbi.open()) {
             if (reload) {
                 handle.createStatement("delete from allele_group").execute();
             }
-            PreparedBatch batch = handle.prepareBatch("insert into allele_group(locus, allele, immune_group) values (?, ?, ?)");
-            rowIter.forEachRemaining(g -> batch.add(g.getLocus(), g.getAllele(), g.getImmuneGroup()));
+            PreparedBatch batch = handle.prepareBatch("insert or ignore into allele_group(locus, allele, immune_group) values (?, ?, ?)");
+            rowIter.forEachRemaining(g -> batch.add(g.getLocus(), g.getAllele(), g.getGroup()));
             batch.execute();
         }
     }
@@ -275,14 +293,30 @@ public class DbiManagerImpl implements DbiManager {
     @Override
     public String getGGroupForAllele(String allele) {
         try (Handle handle = dbi.open()) {
-        	List<String> alleleParts = Splitter.on('*').splitToList(allele);
-            return handle.createQuery("select g_group from hla_g_group where locus = :locus and allele = :allele")
-                    .bind("locus", alleleParts.get(0))
-                    .bind("allele", alleleParts.get(1))
+			Matcher m = ALLELE_PATTERN.matcher(allele);
+			if (!m.matches()) return null;
+			String group = handle.createQuery("select g_group from hla_g_group where locus = :locus and allele = :allele")
+                    .bind("locus", m.group("locus"))
+                    .bind("allele", m.group("allele"))
                     .map(StringMapper.FIRST)
                     .first();
+			return (group == null) ? null : m.group("locus") + "*" + group;
         }
     }
+
+	@Override
+	public String getPGroupForAllele(String allele) {
+		try (Handle handle = dbi.open()) {
+			Matcher m = ALLELE_PATTERN.matcher(allele);
+			if (!m.matches()) return null;
+			String group = handle.createQuery("select p_group from hla_p_group where locus = :locus and allele = :allele")
+					.bind("locus", m.group("locus"))
+					.bind("allele", m.group("allele"))
+					.map(StringMapper.FIRST)
+					.first();
+			return (group == null) ? null : m.group("locus") + "*" + group;
+		}
+	}
 
 	@Override
 	public List<String> getGGroupAllelesForAllele(String allele) {
@@ -297,6 +331,21 @@ public class DbiManagerImpl implements DbiManager {
 					.map(LOCUS_ALLELE)
                     .list();
         }
+	}
+
+	@Override
+	public List<String> getPGroupAllelesForAllele(String allele) {
+		try (Handle handle = dbi.open()) {
+			List<String> alleleParts = Splitter.on('*').splitToList(allele);
+			return handle.createQuery(
+					"select a.locus, a.allele from hla_p_group a"
+							+ " join hla_p_group p on a.p_group = p.p_group and a.locus = p.locus"
+							+ " where p.locus = :locus and p.allele = :allele")
+					.bind("locus", alleleParts.get(0))
+					.bind("allele", alleleParts.get(1))
+					.map(LOCUS_ALLELE)
+					.list();
+		}
 	}
 
 	@Override
@@ -315,7 +364,7 @@ public class DbiManagerImpl implements DbiManager {
             if (reload) {
                 handle.createStatement("delete from allele_code").execute();
             }
-            PreparedBatch batch = handle.prepareBatch("insert into allele_code(allele_code, allele, family_included) values (?, ?, ?)");
+            PreparedBatch batch = handle.prepareBatch("insert or ignore into allele_code(allele_code, allele, family_included) values (?, ?, ?)");
             long i = 0;
             while (rowIter.hasNext()) {
             	AlleleCodeRow g = rowIter.next();

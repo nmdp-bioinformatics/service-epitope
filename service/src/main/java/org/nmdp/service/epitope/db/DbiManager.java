@@ -11,7 +11,7 @@ public interface DbiManager {
 
     Map<String, Integer> getAlleleGroupMap();
 
-    List<String> getAllelesForGroup(Integer group);
+    List<String> getAllelesForImmuneGroup(Integer group);
 
     Map<Integer, List<String>> getGroupAlleleMap();
 
@@ -21,7 +21,9 @@ public interface DbiManager {
 
     Set<DetailRace> getRacesWithFrequencies();
 
-    void loadGGroups(Iterator<GGroupRow> rowIter, boolean reload);
+    void loadPGroups(Iterator<GroupRow<String>> rowIter, boolean reload);
+
+    void loadGGroups(Iterator<GroupRow<String>> rowIter, boolean reload);
 
     Long getDatasetDate(String dataset);
 
@@ -29,7 +31,11 @@ public interface DbiManager {
 
     String getGGroupForAllele(String allele);
 
+    String getPGroupForAllele(String allele);
+
     List<String> getGGroupAllelesForAllele(String allele);
+
+    List<String> getPGroupAllelesForAllele(String allele);
 
     Map<String, Set<String>> getFamilyAlleleMap();
 
@@ -41,7 +47,7 @@ public interface DbiManager {
 
 	Map<DetailRace, Map<String, Double>> getRaceAlleleFrequencyMap();
 
-	void loadImmuneGroups(Iterator<ImmuneGroupRow> rowIter, boolean reload);
+	void loadImmuneGroups(Iterator<GroupRow<Integer>> rowIter, boolean reload);
 
 	Iterator<AlleleCodeRow> getAlleleCodes();
 

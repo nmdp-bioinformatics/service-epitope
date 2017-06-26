@@ -23,36 +23,17 @@
 
 package org.nmdp.service.epitope.resource.impl;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.summingDouble;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-
+import com.google.common.base.Splitter;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.gl.client.GlClientException;
 import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
-import org.nmdp.service.epitope.gl.filter.GlstringFilter;
+import org.nmdp.service.epitope.gl.transform.GlStringFunctions;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GlstringTransformer;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
 import org.nmdp.service.epitope.resource.AlleleListRequest;
 import org.nmdp.service.epitope.resource.AlleleView;
@@ -62,11 +43,13 @@ import org.nmdp.service.epitope.service.FrequencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Splitter;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.util.*;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.*;
 
 @Path("groups/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -76,30 +59,27 @@ public class GroupResource {
 	Logger log = LoggerFactory.getLogger(getClass());
 	private EpitopeService epitopeService;
 	private GlClient glClient;
-	private Function<String, String> glStringFilter;
-    private FrequencyService freqService;
+	private Function<String, String> glStringTransformer;
+	private FrequencyService freqService;
 	private long precision;
-	private ArsAlleleFilter arsAlleleFilter;
-    
+
 	@Inject
 	public GroupResource(
 			EpitopeService epitopeService, 
-			GlClient glClient, 
-			@GlstringFilter Function<String, String> glStringFilter, 
-			ArsAlleleFilter arsAlleleFilter,
-			FrequencyService freqService, 
+			GlClient glClient,
+			@GlstringTransformer Function<String, String> glStringTransformer,
+			FrequencyService freqService,
 			@MatchProbabilityPrecision double precision) 
 	{
 		this.epitopeService = epitopeService;
 		this.glClient = glClient;
-		this.glStringFilter = glStringFilter;
-		this.arsAlleleFilter = arsAlleleFilter;
-        this.freqService = freqService;
+		this.glStringTransformer = glStringTransformer;
+		this.freqService = freqService;
 		this.precision = (long)Math.pow(10, 0 - Math.log10(precision));
 	}
 	
 	private AlleleView getAlleleView(String glstring) {
-		glstring = glStringFilter.apply(glstring);
+		glstring = glStringTransformer.apply(glstring);
 		Allele allele;
 		try {
 			allele = glClient.createAllele(glstring);
@@ -109,7 +89,7 @@ public class GroupResource {
         Integer group = null;
         String error = null;
 		try {
-			group = epitopeService.getGroupForAllele(allele);
+			group = epitopeService.getImmuneGroupForAllele(allele);
 		} catch (Exception e) {
 			error = e.getMessage();
 		}
@@ -120,11 +100,11 @@ public class GroupResource {
         Integer group = null;
         String error = null;
 		try {
-			group = epitopeService.getGroupForAllele(allele);
+			group = epitopeService.getImmuneGroupForAllele(allele);
 		} catch (Exception e) {
 			error = e.getMessage();
 		}
-		return new AlleleView(glStringFilter.apply(allele.getGlstring()), group, null, null, error);
+		return new AlleleView(glStringTransformer.apply(allele.getGlstring()), group, null, null, error);
 	}
 	
 	private List<String> convertAlleleListToStringList(List<Allele> alleleList) {
@@ -152,7 +132,7 @@ public class GroupResource {
 		    if (null != race) {
 		        throw new IllegalStateException("race argument requires alleles to be provided");
 		    }
-			return epitopeService.getAllGroups().entrySet().stream()
+			return epitopeService.getAllImmuneGroups().entrySet().stream()
 					.map(e -> new GroupView(e.getKey(), null, null, convertAlleleListToStringList(e.getValue()), null))
 					.collect(toList());
 		}
@@ -235,7 +215,7 @@ public class GroupResource {
 	private List<AlleleView> getAllelesByGroup(Iterable<Integer> groupList) {
 		List<AlleleView> returnList = new ArrayList<>();
 		for (Integer group : groupList) {
-			returnList.addAll(getAllelesByAllele(epitopeService.getAllelesForGroup(group)));
+			returnList.addAll(getAllelesByAllele(epitopeService.getAllelesForImmuneGroup(group)));
 		}
 		log.debug("getAllelesByGroup(" + groupList + "): " + returnList);
 		return returnList;
@@ -314,7 +294,7 @@ public class GroupResource {
 	        groupFreqMap.put(groupView.getGroup() == null ? groupView.getError() : groupView.getGroup(), map);
 	        for (String a : groupView.getAlleleList()) {
 	        	// todo fix forcing ars for frequencies if/when moving to genomic freqs
-	        	String ars = arsAlleleFilter.apply(a); 
+	        	String ars = GlStringFunctions.trimAllelesToFields(2).apply(a);
 	        	double f = freqService.getFrequency(groupView.getRace(), ars);
 	        	map.put(ars, f);
 	        }
@@ -352,7 +332,7 @@ public class GroupResource {
 	@ApiOperation(value="Returns immunogenicity group with its associated alleles", response=GroupView.class)
 	public GroupView getGroup(@PathParam("group") String group) {
 		Integer gid = new Integer(group);
-		List<String> alleleList = convertAlleleListToStringList(epitopeService.getAllelesForGroup(new Integer(group))); 
+		List<String> alleleList = convertAlleleListToStringList(epitopeService.getAllelesForImmuneGroup(new Integer(group)));
 		return new GroupView(gid, null, null, alleleList, null);
 	}
 

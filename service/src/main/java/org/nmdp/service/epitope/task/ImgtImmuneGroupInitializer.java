@@ -34,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.nmdp.service.epitope.db.DbiManager;
-import org.nmdp.service.epitope.db.ImmuneGroupRow;
+import org.nmdp.service.epitope.db.GroupRow;
 import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,8 +139,8 @@ public class ImgtImmuneGroupInitializer implements ImmuneGroupInitializer {
 		if (null == datasetDate) datasetDate = 0L;
 		datasetDate = urlProcessor.process(is -> {
 			Map<String, String> alleleProteinMap = getAlleleProteinMap(is);
-			Iterator<ImmuneGroupRow> iter = alleleProteinMap.entrySet().stream()
-					.map(e -> new ImmuneGroupRow(e.getKey(), scoreAllele(e)))
+			Iterator<GroupRow<Integer>> iter = alleleProteinMap.entrySet().stream()
+					.map(e -> new GroupRow<Integer>(e.getKey(), scoreAllele(e)))
 					.iterator();
 			dbi.loadImmuneGroups(iter, true);
 		}, datasetDate);

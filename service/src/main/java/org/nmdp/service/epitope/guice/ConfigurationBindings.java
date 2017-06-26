@@ -41,8 +41,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface RefreshMillis {
-	}
+	@interface RefreshMillis {}
 	
 	/**
 	 * number of milliseconds to cache immunogenity groups for
@@ -50,26 +49,39 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface GroupCacheMillis {
-	}
+	@interface GroupCacheMillis {}
 
 	/**
 	 * number of milliseconds to cache immunogenity groups for
 	 */
 	@BindingAnnotation
-    @Target({FIELD, PARAMETER, METHOD})
-    @Retention(RUNTIME)
-	public @interface GGroupCacheMillis {
-	}
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface HlaGroupCacheMillis {}
 
 	/**
 	 * number of milliseconds to cache immunogenity groups for
 	 */
 	@BindingAnnotation
-    @Target({FIELD, PARAMETER, METHOD})
-    @Retention(RUNTIME)
-	public @interface GGroupCacheSize {
-	}
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface HlaGroupCacheSize {}
+
+	/**
+	 * number of milliseconds to cache immunogenity groups for
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface AlleleFilterCacheMillis {}
+
+	/**
+	 * number of milliseconds to cache immunogenity groups for
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface AlleleFilterCacheSize {}
 
 	/**
 	 * number of milliseconds to cache genotype lists for
@@ -77,7 +89,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface GlCacheMillis {}	
+	@interface GlCacheMillis {}
 
 	/**
 	 * size of the genotype list cache
@@ -85,8 +97,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface GlCacheSize {
-	}
+	@interface GlCacheSize {}
 	
 	/**
 	 * number of milliseconds to cache allele codes for
@@ -94,8 +105,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface AlleleCodeCacheMillis {
-	}
+	@interface AlleleCodeCacheMillis {}
 
 	/**
 	 * number of milliseconds to cache allele codes for
@@ -103,8 +113,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface AlleleCodeCacheSize {
-	}
+	@interface AlleleCodeCacheSize {}
 	
 	/**
 	 * number of milliseconds to cache frequencies for
@@ -112,8 +121,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface FrequencyCacheMillis {
-	}
+	@interface FrequencyCacheMillis {}
 
 	/**
 	 * number of milliseconds to cache frequencies for
@@ -121,8 +129,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface FrequencyCacheSize {
-	}
+	@interface FrequencyCacheSize {}
 
 	/**
 	 * URL for NMDP allele list file, published daily
@@ -131,8 +138,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface NmdpV3AlleleCodeUrls {
-	}
+	@interface NmdpV3AlleleCodeUrls {}
 	
 	/**
 	 * Refresh interval for NMDP allele list file in milliseconds 
@@ -140,22 +146,21 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface NmdpV3AlleleCodeRefreshMillis {
-	}
+	@interface NmdpV3AlleleCodeRefreshMillis {}
 
     /**
      * If null, use LocalGlClient.  If not null, use JsonGlClientModule and enable the following: 
      * <ul>
      * <li>GL Strings are created using the provided namespace URL, 
      * <li>GL Service IDs are accepted as input,
-     * <li>Immunogenicity groups are retrieved from the provided namespace URL given suffixes ({@link #group1Suffix}, {@link #group2Suffix}, {@link #group3Suffix})
-     * <li>GL Service IDs are optionally lifted over to internal namespace (if {@link #liftoverServiceUrl} is provided).
+     * <li>Immunogenicity groups are retrieved from the provided namespace URL given suffixes group1Suffix, group2Suffix, group3Suffix)
+     * <li>GL Service IDs are optionally lifted over to internal namespace (if liftoverServiceUrl is provided).
      * </ul>
      */
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface NamespaceUrl {}
+	@interface NamespaceUrl {}
 	
 	/**
      * if namespace is not null, use this url to retrieve group 1 allele list, 
@@ -164,7 +169,7 @@ public @interface ConfigurationBindings {
 	@BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface Group1Suffix {}
+	@interface Group1Suffix {}
 	
 	/**
      * if namespace is not null, use this url to retrieve group 2 allele list, 
@@ -173,7 +178,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface Group2Suffix {}
+	@interface Group2Suffix {}
 
 	/**
      * if namespace is not null, use this url to retrieve group 3 allele list, 
@@ -182,7 +187,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface Group3Suffix {}
+	@interface Group3Suffix {}
 
     /**
      * if not null (and if namespace not null, enabling , lift over input GL service IDs 
@@ -191,7 +196,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-	public @interface LiftoverServiceUrl {}
+	@interface LiftoverServiceUrl {}
 
     /**
      * if true, accept allele codes in GL string input (e.g. DPB1*ABCD+DPB1*EFGH) and resolve 
@@ -199,7 +204,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-    public @interface ResolveCodes {}
+    @interface ResolveCodes {}
 
     /**
      * if true, accept allele codes in GL string input (e.g. DPB1*ABCD+DPB1*EFGH) and resolve 
@@ -207,7 +212,7 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-    public @interface BaselineAlleleFrequency {}
+    @interface BaselineAlleleFrequency {}
 
     /**
      * threshold above which to consider possible outcomes as reported match grade 
@@ -215,17 +220,16 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-    public @interface MatchProbabilityPrecision {}
+    @interface MatchProbabilityPrecision {}
 
-    /**
-     * URLs for HLA Ambiguity file, published quarterly
-     * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/xml/hla_ambigs.xml.zip)
-     */
-    @BindingAnnotation
-    @Target({FIELD, PARAMETER, METHOD})
-    @Retention(RUNTIME)
-    public @interface HlaAmbigUrls {
-    }
+	/**
+	 * URLs for IMGT HLA XML file, published quarterly
+	 * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/xml/hla_ambigs.xml.zip)
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface ImgtHlaUrls {}
 
     /**
      * URLs for HLA allele file, published quarterly
@@ -234,17 +238,60 @@ public @interface ConfigurationBindings {
     @BindingAnnotation
     @Target({FIELD, PARAMETER, METHOD})
     @Retention(RUNTIME)
-    public @interface HlaAlleleUrls {
-    }
+    @interface HlaAlleleUrls {}
 
-    /**
-     * URLs for HLA allele protein fasta file, published quarterly
-     * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
-     */
-    @BindingAnnotation
-    @Target({FIELD, PARAMETER, METHOD})
-    @Retention(RUNTIME)
-    public @interface HlaProtUrls {
-    }
+	/**
+	 * URLs for HLA allele protein fasta file, published quarterly
+	 * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface HlaProtUrls {}
+
+	/**
+	 * URLs for HLA allele protein fasta file, published quarterly
+	 * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface GlstringTransformer {}
+
+	/**
+	 * URLs for HLA allele protein fasta file, published quarterly
+	 * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface MatchGlstringTransformer {}
+
+	/**
+	 * URLs for HLA allele protein fasta file, published quarterly
+	 * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface GenotypeListResolver {}
+
+	/**
+	 * URLs for HLA allele protein fasta file, published quarterly
+	 * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface ImmuneGroupResolver {}
+
+	/**
+	 * URLs for HLA allele protein fasta file, published quarterly
+	 * (typically: ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/hla_prot.fasta)
+	 */
+	@BindingAnnotation
+	@Target({FIELD, PARAMETER, METHOD})
+	@Retention(RUNTIME)
+	@interface AlleleCodeResolver {}
 
 }

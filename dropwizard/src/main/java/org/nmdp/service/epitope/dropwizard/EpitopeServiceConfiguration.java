@@ -23,46 +23,18 @@
 
 package org.nmdp.service.epitope.dropwizard;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheSize;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.BaselineAlleleFrequency;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.FrequencyCacheSize;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GGroupCacheSize;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.Group1Suffix;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.Group2Suffix;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.Group3Suffix;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.LiftoverServiceUrl;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.MatchProbabilityPrecision;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.NamespaceUrl;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeRefreshMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.RefreshMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.ResolveCodes;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.flyway.FlywayFactory;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.*;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 public class EpitopeServiceConfiguration extends Configuration {
 	
-    /** If null, use LocalGlClient.  If not null, use JsonGlClientModule and enable the following: 
-     *  <ul>
-     *  <li>GL Strings are created using the provided namespace URL, 
-     *  <li>GL Service IDs are accepted as input,
-     *  <li>Immunogenicity groups are retrieved from the provided namespace URL given suffixes ({@link #group1Suffix}, {@link #group2Suffix}, {@link #group3Suffix})
+    /** If null, use LocalGlClient.  If not null, use JsonGlClientModule.
      *  <li>GL Service IDs are optionally lifted over to internal namespace (if {@link #liftoverServiceUrl} is provided).
      *  </ul>
      */
@@ -83,7 +55,7 @@ public class EpitopeServiceConfiguration extends Configuration {
     
     /** IMGT ambiguous allele file locations 
      */
-    private String[] hlaAmbigUrls = { "ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/xml/hla_ambigs.xml.zip" };
+    private String[] imgtHlaUrls = { "https://github.com/ANHIG/IMGTHLA/raw/Latest/xml/hla.xml.zip" };
     
     /** IMGT allele name file locations
      */
@@ -193,7 +165,7 @@ public class EpitopeServiceConfiguration extends Configuration {
     }
 
     @JsonProperty
-	@GGroupCacheMillis
+	@HlaGroupCacheMillis
 	public long getGGroupCacheMillis() { 
 		return gGroupCacheMillis;
 	} 
@@ -204,7 +176,7 @@ public class EpitopeServiceConfiguration extends Configuration {
     }
 
     @JsonProperty
-	@GGroupCacheSize
+	@HlaGroupCacheSize
 	public long getGGroupCacheSize() { 
 		return gGroupCacheSize;
 	} 
@@ -313,14 +285,14 @@ public class EpitopeServiceConfiguration extends Configuration {
     }
 
     @JsonProperty
-    @HlaAmbigUrls
-    public String[] getHlaAmbigUrls() {
-        return hlaAmbigUrls;
+    @ImgtHlaUrls
+    public String[] getImgtHlaUrls() {
+        return imgtHlaUrls;
     }
 
     @JsonProperty
-    public void setHlaAmbigUrls(String[] hlaAmbigUrls) {
-        this.hlaAmbigUrls = hlaAmbigUrls;
+    public void setImgtHlaUrls(String[] imgtHlaUrls) {
+        this.imgtHlaUrls = imgtHlaUrls;
     }
 
     @JsonProperty
@@ -367,7 +339,7 @@ public class EpitopeServiceConfiguration extends Configuration {
 		this.refreshMillis = refreshMillis;
 	}
 
-	@GGroupCacheMillis
+	@HlaGroupCacheMillis
     @JsonProperty
 	public long getgGroupCacheMillis() {
 		return gGroupCacheMillis;
@@ -378,7 +350,7 @@ public class EpitopeServiceConfiguration extends Configuration {
 		this.gGroupCacheMillis = gGroupCacheMillis;
 	}
 
-	@GGroupCacheSize
+	@HlaGroupCacheSize
     @JsonProperty
 	public long getgGroupCacheSize() {
 		return gGroupCacheSize;

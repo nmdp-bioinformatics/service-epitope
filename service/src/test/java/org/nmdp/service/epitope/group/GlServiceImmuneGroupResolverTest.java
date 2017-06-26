@@ -25,45 +25,52 @@ package org.nmdp.service.epitope.group;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.nmdp.gl.Allele;
+import org.nmdp.gl.AlleleList;
 import org.nmdp.gl.client.GlClient;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nmdp.service.epitope.EpitopeServiceTestData;
-import org.nmdp.service.epitope.db.DbiManager;
-import org.nmdp.service.epitope.group.DbiGroupResolver;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DbiGroupResolverTest {
-	@Mock
-	private DbiManager dbiManager;
+public class GlServiceImmuneGroupResolverTest {
 
 	@Mock
 	private GlClient glClient;
-	
-	@InjectMocks
-	private DbiGroupResolver resolver;
+
+	private String group1Suffix;
+
+	private String group2Suffix;
+
+	private String group3Suffix;
+
+	private String namespace;
+
+	private GlServiceImmuneGroupResolver resolver;
+
+	@Before
+	public void setUp() throws Exception {
+		namespace = "/test";
+		group1Suffix = "/group1";
+		group1Suffix = "/group2";
+		group1Suffix = "/group3";
+		resolver = new GlServiceImmuneGroupResolver(glClient, namespace, group1Suffix, group2Suffix, group3Suffix);
+		when(glClient.getAlleleList(namespace + group1Suffix)).thenReturn(new AlleleList("group1", EpitopeServiceTestData.group1Alleles()));
+		when(glClient.getAlleleList(namespace + group2Suffix)).thenReturn(new AlleleList("group2", EpitopeServiceTestData.group2Alleles()));
+		when(glClient.getAlleleList(namespace + group3Suffix)).thenReturn(new AlleleList("group3", EpitopeServiceTestData.group3Alleles()));
+	}
 
 	@Test
 	public void testApply() throws Exception {
-		Allele a1 = EpitopeServiceTestData.group1Alleles().get(0);
-		Allele a2 = EpitopeServiceTestData.group1Alleles().get(1);
-		when(dbiManager.getAllelesForGroup(1)).thenReturn(Arrays.asList(a1.getGlstring(), a2.getGlstring()));
-		when(glClient.createAllele(a1.getGlstring())).thenReturn(a1);
-		when(glClient.createAllele(a2.getGlstring())).thenReturn(a2);
 		List<Allele> test = resolver.apply(1);
-		assertThat(test, containsInAnyOrder(a1, a2));
+		assertThat(test, containsInAnyOrder(EpitopeServiceTestData.group1Alleles().toArray()));
 	}
 
 }

@@ -23,52 +23,30 @@
 
 package org.nmdp.service.epitope.guice;
 
-import static org.nmdp.service.epitope.task.URLProcessor.getUrls;
-
-import java.net.URL;
-import java.util.List;
-import java.util.function.Function;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import org.nmdp.gl.Allele;
 import org.nmdp.gl.GenotypeList;
-import org.nmdp.service.epitope.allelecode.AlleleCodeResolver;
 import org.nmdp.service.epitope.allelecode.DbiAlleleCodeResolver;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.db.DbiManagerImpl;
-import org.nmdp.service.epitope.gl.GlResolver;
-import org.nmdp.service.epitope.gl.GlStringResolver;
-import org.nmdp.service.epitope.gl.LocalGlClientModule;
-import org.nmdp.service.epitope.gl.filter.AlleleCodeFilter;
-import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
-import org.nmdp.service.epitope.gl.filter.GGroupFilter;
-import org.nmdp.service.epitope.gl.filter.GlstringFilter;
-import org.nmdp.service.epitope.gl.filter.MatchGlstringFilter;
-import org.nmdp.service.epitope.gl.filter.PermissiveAlleleFilter;
-import org.nmdp.service.epitope.group.DbiGroupResolver;
-import org.nmdp.service.epitope.group.GroupResolver;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.AlleleCodeCacheSize;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GlCacheSize;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.GroupCacheMillis;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAlleleUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaAmbigUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.HlaProtUrls;
-import org.nmdp.service.epitope.guice.ConfigurationBindings.NmdpV3AlleleCodeUrls;
-import org.nmdp.service.epitope.service.EpitopeService;
-import org.nmdp.service.epitope.service.EpitopeServiceImpl;
-import org.nmdp.service.epitope.service.FrequencyService;
-import org.nmdp.service.epitope.service.FrequencyServiceImpl;
-import org.nmdp.service.epitope.service.MatchService;
-import org.nmdp.service.epitope.service.MatchServiceImpl;
+import org.nmdp.service.epitope.gl.*;
+import org.nmdp.service.epitope.gl.transform.GlStringFunctions;
+import org.nmdp.service.epitope.group.DbiImmuneGroupResolver;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.*;
+import org.nmdp.service.epitope.guice.ConfigurationBindings.GenotypeListResolver;
+import org.nmdp.service.epitope.service.*;
 import org.nmdp.service.epitope.task.AlignedImmuneGroupInitializer;
 import org.nmdp.service.epitope.task.ImmuneGroupInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import java.net.URL;
+import java.util.List;
+import java.util.function.Function;
+
+import static org.nmdp.service.epitope.task.URLProcessor.getUrls;
 
 public class LocalServiceModule extends AbstractModule {
 
@@ -95,8 +73,8 @@ public class LocalServiceModule extends AbstractModule {
     }
     
     @Provides
-    @HlaAmbigUrls 
-    public URL[] getHlaAmbigUrls(@HlaAmbigUrls String[] urls) {
+    @ImgtHlaUrls
+    public URL[] getImgtHlaUrls(@ImgtHlaUrls String[] urls) {
         return getUrls(urls);
     }
     
@@ -112,6 +90,11 @@ public class LocalServiceModule extends AbstractModule {
         return getUrls(urls);
     }
 
+    private <T, R> Function<T, R> cache(Function<T, R> function, long duration, long period, long cacheCapacity) {
+		//return new CachingFunction<>(function, duration, period, cacheCapacity);
+		return function;
+	}
+
 	/**
 	 * resolve allele codes from alpha.v3.zip file
 	 */
@@ -119,7 +102,7 @@ public class LocalServiceModule extends AbstractModule {
 	@Singleton
 	@AlleleCodeResolver
 	public Function<String, String> getAlleleCodeResolver(DbiAlleleCodeResolver resolver, @AlleleCodeCacheMillis long duration, @AlleleCodeCacheSize long size) {
-		return new CachingFunction<String, String>(resolver, duration, duration, size);
+		return cache(resolver, duration, duration, size);
 	}
 	
 	/**
@@ -127,9 +110,9 @@ public class LocalServiceModule extends AbstractModule {
 	 */
 	@Provides
 	@Singleton
-	@GroupResolver
-	public Function<Integer, List<Allele>> getGroupResolver(DbiGroupResolver resolver, @GroupCacheMillis long duration) {
-		return new CachingFunction<Integer, List<Allele>>(resolver, duration, duration, 3);
+	@ImmuneGroupResolver
+	public Function<Integer, List<Allele>> getImmuneGroupResolver(DbiImmuneGroupResolver resolver, @GroupCacheMillis long duration) {
+		return cache(resolver, duration, duration, 3);
 	}
 	
 	/**
@@ -137,32 +120,33 @@ public class LocalServiceModule extends AbstractModule {
 	 */
 	@Provides
 	@Singleton
-	@GlResolver
-	public Function<String, GenotypeList> getGlResolver(GlStringResolver resolver, @GlCacheMillis long duration, @GlCacheSize long size) {
-		// todo: applying glstring filter twice - within glresolver and before calling glresolver?
-		return new CachingFunction<String, GenotypeList>(resolver, duration, duration, size);
+	@GenotypeListResolver
+	public Function<String, GenotypeList> getGenotypeListResolver(org.nmdp.service.epitope.gl.GenotypeListResolver resolver, @GlCacheMillis long duration, @GlCacheSize long size) {
+		return cache(resolver, duration, duration, size);
 	}
 	
 	/**
-	 * be permissive about prefixes and allele codes and truncate all alleles to two fields
+	 * performs transformation on GL string prior to converting to GenotypeList object
 	 */
 	@Provides
-	@GlstringFilter
-	public Function<String, String> getGlstringFilter(AlleleCodeFilter alleleCodeFilter, PermissiveAlleleFilter permissiveAlleleFilter) {
-	    return permissiveAlleleFilter.andThen(alleleCodeFilter);
+	@GlstringTransformer
+	public Function<String, String> getGlstringTransformer(@AlleleCodeResolver Function<String, String> alleleCodeResolver) {
+		return GlStringFunctions.normalizePrefixes("HLA-DPB1").andThen(
+				GlStringFunctions.expandAlleleCodes(alleleCodeResolver));
 	}
 	
 	/**
-	 * for matching, also truncate to ars resolution and coalesce g-groups
+	 * for matching, also coalesce p-groups and truncate to ars resolution
 	 */
 	@Provides
-	@MatchGlstringFilter
-	public Function<String, String> getMatchGlstringFilter(
-			@GlstringFilter Function<String, String> glStringFilter, 
-			GGroupFilter gGroupFilter, 
-			ArsAlleleFilter arsAlleleFilter) 
+	@MatchGlstringTransformer
+	public Function<String, String> getMatchGlstringTransformer(
+			@GlstringTransformer Function<String, String> glStringTransformer,
+			DbiManager dbi)
 	{
-		return glStringFilter.andThen(gGroupFilter).andThen(arsAlleleFilter);		
+		return glStringTransformer
+				.andThen(GlStringFunctions.normalizeGroups(dbi::getPGroupForAllele))
+				.andThen(GlStringFunctions.trimAllelesToFields(2));
 	}
 	
 }

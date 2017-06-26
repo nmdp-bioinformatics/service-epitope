@@ -37,24 +37,24 @@ public interface EpitopeService {
 	 * @param allele Allele object
 	 * @return TCE group of the given allele, if known
 	 */
-	public Integer getGroupForAllele(Allele allele);
+	public Integer getImmuneGroupForAllele(Allele allele);
 
-	/**
-	 * @param allele Glstring for an allele
-	 * @return TCE group for the given allele, if known
-	 */
-	public Integer getGroupForAllele(String allele);
+//	/**
+//	 * @param allele Glstring for an allele
+//	 * @return TCE group for the given allele, if known
+//	 */
+//	public Integer getImmuneGroupForAllele(String allele);
 	
 	/**
 	 * @return a Map of TCE group to list of alleles within each group.  
 	 * All groups (1, 2, and 3) are included.
 	 */
-	public Map<Integer, List<Allele>> getAllGroups();
+	public Map<Integer, List<Allele>> getAllImmuneGroups();
 	
 	/**
 	 * @return map of Allele to the TCE group of the allele for all known alleles.
 	 */
-	public Map<Allele, Integer> getGroupsForAllAlleles();
+	public Map<Allele, Integer> getImmuneGroupsForAllAlleles();
 
 	/**
 	 * @param allele an Allele object
@@ -71,11 +71,11 @@ public interface EpitopeService {
 	 * @param group a TCE group
 	 * @return list of alleles for the given TCE group
 	 */
-	public List<Allele> getAllelesForGroup(Integer group);
+	public List<Allele> getAllelesForImmuneGroup(Integer group);
 
 	/**
 	 * build TCE group/allele maps
 	 */
-	void buildAlleleGroupMaps();
+	void buildImmuneGroupMaps();
 
 }

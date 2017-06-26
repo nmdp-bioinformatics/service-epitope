@@ -21,21 +21,43 @@
 
 */
 
-package org.nmdp.service.epitope.gl.filter;
+package org.nmdp.service.epitope.gl;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.nmdp.service.epitope.gl.filter.ArsAlleleFilter;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.nmdp.gl.GenotypeList;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.service.epitope.EpitopeServiceTestData;
 
-public class ArsAlleleFilterTest {
+@RunWith(MockitoJUnitRunner.class)
+public class GenotypeListResolverTest {
 
-	ArsAlleleFilter filter = new ArsAlleleFilter(100, 100);
+	@Mock
+	private GlClient glClient;
+
+	private GenotypeListResolver resolver;
+
+	@Before
+	public void setup() {
+		resolver = new GenotypeListResolver(glClient);
+	}
 	
 	@Test
 	public void testApply() throws Exception {
-		assertThat(filter.apply("DPB1*01:01:01/DPB1*01:01:02"), equalTo("DPB1*01:01/DPB1*01:01"));
+		String gl = "test";
+		GenotypeList gtl = EpitopeServiceTestData.aGenotypeList();
+		when(glClient.createGenotypeList(gl)).thenReturn(gtl);
+		GenotypeList test = resolver.apply(gl);
+		verify(glClient).createGenotypeList(gl);
+		assertThat(test, equalTo(gtl));
 	}
 
 }

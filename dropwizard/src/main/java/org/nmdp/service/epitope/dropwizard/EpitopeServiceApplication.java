@@ -44,7 +44,7 @@ import org.nmdp.service.epitope.service.EpitopeService;
 import org.nmdp.service.epitope.service.FrequencyService;
 import org.nmdp.service.epitope.task.AlleleCodeInitializer;
 import org.nmdp.service.epitope.task.AlleleInitializer;
-import org.nmdp.service.epitope.task.GGroupInitializer;
+import org.nmdp.service.epitope.task.HlaGroupInitializer;
 import org.nmdp.service.epitope.task.ImmuneGroupInitializer;
 import org.skife.jdbi.v2.DBI;
 
@@ -145,11 +145,11 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 		//    		() -> injector.getInstance(DbiAlleleCodeResolver.class).buildAlleleCodeMap()));
 
 	    Runnable initializers = serial(
-	        		() -> injector.getInstance(GGroupInitializer.class).loadGGroups(),
+	        		() -> injector.getInstance(HlaGroupInitializer.class).loadGroups(),
 	        		() -> injector.getInstance(AlleleCodeInitializer.class).loadAlleleCodes(),
         			() -> injector.getInstance(AlleleInitializer.class).loadAlleles(),
         			() -> injector.getInstance(ImmuneGroupInitializer.class).loadImmuneGroups(),
-	        		() -> injector.getInstance(EpitopeService.class).buildAlleleGroupMaps(),
+	        		() -> injector.getInstance(EpitopeService.class).buildImmuneGroupMaps(),
 	        		() -> injector.getInstance(FrequencyService.class).buildFrequencyMap());
 //	        		() -> injector.getInstance(DbiAlleleCodeResolver.class).buildAlleleCodeMap());
 

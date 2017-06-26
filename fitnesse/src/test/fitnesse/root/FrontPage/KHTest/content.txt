@@ -1,0 +1,29 @@
+!1 Automated Acceptance Tests for !-EpitopeService-!
+!3 Notes
+ * edit button to edit page, test button to run tests
+ * don't edit first two lines
+ * first four columns are inputs to the fixture
+ * last five columns are test assertions
+ * blank cells aren't asserted - if you want to assert null, you must be explicit
+
+!| DT:org.nmdp.service.epitope.test.MatchTest | http://localhost:48080 |
+| #caseDescription | recipGl | recipRace | donorGl | donorRace | matchGrade? | matchPct? | permPct? | hvgPct? | gvhPct? | unknownPct? |
+| 1:  Erik P test | HLA-DPB1*01:01:01+HLA-DPB1*01:01:02 | CAU | HLA-DPB1*02:01:02+HLA-DPB1*02:01:03 | CAU | PERMISSIVE | 0.0 | 1.0 | 0.0 | 0.0 | 0.0 |
+| 2:Patient 0,0 Donor 0,0 | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*161:01N+HLA-DPB1*328:01N | CAU | PERMISSIVE | | | | | |
+| 3.Patient 0,0 Donor 0,1 | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*154:01N+HLA-DPB1*30:01 | CAU | GVH_NONPERMISSIVE | | | | | |
+| 4.Patient 0,0 Donor 0,2 | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*216:01N+HLA-DPB1*21:01 | CAU | GVH_NONPERMISSIVE | | | | | |
+| 5.Patient 0,0 Donor 0,3 | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*154:01N+HLA-DPB1*04:01 | CAU | GVH_NONPERMISSIVE | | | | | |
+| 6. Patient 0,1 Donor 0,0 | HLA-DPB1*401:01N+HLA-DPB1*54:01 | CAU | HLA-DPB1*161:01N+HLA-DPB1*328:01N | CAU | HVG_NONPERMISSIVE | | | | | |
+| 7. Patient 0,2  Donor 0,0 | HLA-DPB1*382:01N+HLA-DPB1*79:01 | CAU | HLA-DPB1*161:01N+HLA-DPB1*328:01N | CAU | HVG_NONPERMISSIVE | | | | | |
+| 8.Patient 0,3  Donor 0,0 | HLA-DPB1*159:01N+HLA-DPB1*13:01 | CAU | HLA-DPB1*161:01N+HLA-DPB1*328:01N | CAU | HVG_NONPERMISSIVE | | | | | |
+| 9. Patient 0,0 Donor 0, 2/3 | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*154:01+HLA-DPB1*02:ADPGS | CAU | HVG_NONPERMISSIVE | | | | | |
+| 9. Patient 0,0 Donor 0, 2/3 (fixed 154:01N, note PERMISSIVE is possible) | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*154:01N+HLA-DPB1*02:ADPGS | CAU | POTENTIAL | | | | | |
+| 10. Patient 0,0 Donor 0, 3 with a null code | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*154:01N+HLA-DPB1*02:ADNSR | CAU | POTENTIAL | | | | | |
+| 11. Patient 0,0 Donor null, code with only a null | HLA-DPB1*61:01N+HLA-DPB1*64:01N | CAU | HLA-DPB1*161:01N+HLA-DPB1*120:XX | CAU | PERMISSIVE | | | | | |
+| 12:G codes Patient 3, 3 donor 3, 3 g code | HLA-DPB1*04:02+HLA-DPB1*04:02 | CAU | HLA-DPB1*04:02+HLA-DPB1*04:FNVS | CAU | MATCH | | | | | |
+| 11. Patient 1,0 Donor 1, 3 with a null code (all possible outcomes are PERMISSIVE?) | HLA-DPB1*154:01N+HLA-DPB1*17:01 | CAU | HLA-DPB1*30:01+HLA-DPB1*02:ADNSR | CAU | POTENTIAL | | | | | |
+| 12. Old vs new g codes Patient 3,3 Donor 3,3 | HLA-DPB1*04:FNVS+HLA-DPB1*04:FNVS | CAU | HLA-DPB1*04:BDKS+HLA-DPB1*04:BDKS | CAU | MATCH | | | | | |
+| 13. Patient 1,2 Donor 2,3 | HLA-DPB1*30:01+HLA-DPB1*08:01 | CAU | HLA-DPB1*25:01+HLA-DPB1*04:02 | CAU | GVH_NONPERMISSIVE | | | | | |
+| 14. Patient 2,3 Donor 3,3 | HLA-DPB1*03:01+HLA-DPB1*02:02 | CAU | HLA-DPB1*01:01+HLA-DPB1*02:01 | CAU | GVH_NONPERMISSIVE | | | | | |
+| 15. Patient 2,3 Donor 1,2 | HLA-DPB1*06:01+HLA-DPB1*04:01 | CAU | HLA-DPB1*09:01+HLA-DPB1*03:01 | CAU | HVG_NONPERMISSIVE | | | | | |
+| 16. Patient 3,3 Donor 2,3 | HLA-DPB1*01:01+HLA-DPB1*02:01 | CAU | HLA-DPB1*03:01+HLA-DPB1*04:01 | CAU | HVG_NONPERMISSIVE | | | | | |
