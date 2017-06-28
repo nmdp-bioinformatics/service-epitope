@@ -171,7 +171,7 @@ public class GroupResource {
 	@ApiOperation(value="Returns immunogenicity groups with their associated alleles",
 			response = GroupView.class,
 		    responseContainer = "List")
-	@ApiImplicitParam(paramType="body", dataType="AlleleListRequest")
+	@ApiImplicitParam(paramType="body", dataType="org.nmdp.service.epitope.resource.AlleleListRequest")
     @Consumes(MediaType.APPLICATION_JSON)
 	public List<GroupView> getGroups(
 			@ApiParam(value="request filter") // needed for description (ignored if placed above)

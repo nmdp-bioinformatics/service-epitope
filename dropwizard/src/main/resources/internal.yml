@@ -1,11 +1,21 @@
 ---
 
-hlaProtUrls:
-  - /DPB1.db.3.24.0
-  
 nmdpV3AlleleCodeUrls:
   - https://bioinformatics.bethematchclinical.org/HLA/alpha.v3.zip
   - /var/lib/epitope-service/alpha.v3.zip
+
+imgtHlaUrls:
+  - https://bioinformatics.bethematchclinical.org/HLA/hla.xml.zip
+  - https://github.com/ANHIG/IMGTHLA/raw/Latest/xml/hla.xml.zip
+
+hlaAlleleUrls:
+  - https://bioinformatics.bethematchclinical.org/HLA/Allelelist.txt
+  - ftp://ftp.ebi.ac.uk/pub/databases/ipd/imgt/hla/Allelelist.txt
+
+hlaProtUrls:
+  - https://bioinformatics.bethematchclinical.org/HLA/DPB1.db.3.27.0
+  - https://bioinformatics.bethematchclinical.org/HLA/DPB1.db.3.26.0
+  - /DPB1.db.3.24.0
 
 logging:
 
