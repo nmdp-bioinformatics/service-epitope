@@ -109,7 +109,7 @@ public class AlleleResource {
 	@ApiOperation(value="Returns alleles with their associated immunogenicity groups",
 			response = AlleleView.class,
 		    responseContainer = "List")
-	@ApiImplicitParam(paramType="body", dataType="AlleleListRequest")
+	@ApiImplicitParam(paramType="body", dataType="org.nmdp.service.epitope.resource.AlleleListRequest")
 	public List<AlleleView> getAlleles(
 			@ApiParam("Request filter") // needed for description (ignored if placed above)
 			AlleleListRequest request) 

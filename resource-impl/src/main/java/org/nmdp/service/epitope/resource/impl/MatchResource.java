@@ -65,7 +65,7 @@ public class MatchResource {
 			response = MatchResponse.class,
 		    responseContainer = "List")
 	@ApiImplicitParams({
-	    @ApiImplicitParam(paramType="body", dataType="MatchRequest", value="list of match requests"), // need something to generate items in spec
+	    @ApiImplicitParam(paramType="body", dataType="org.nmdp.service.epitope.resource.MatchRequest", value="list of match requests"), // need something to generate items in spec
 	    @ApiImplicitParam(paramType="query", name="trace", value="trace detail", required=false, dataType = "boolean")	
 	})
 	public List<MatchResponse> getMatches(
