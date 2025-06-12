@@ -1,6 +1,5 @@
 package org.nmdp.service.epitope.dropwizard;
 
-import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.DatabaseConfiguration;
@@ -9,7 +8,7 @@ import io.dropwizard.setup.Environment;
 
 import org.flywaydb.core.Flyway;
 
-public abstract class FlywayMigrationBundle<T extends Configuration> implements ConfiguredBundle<T>, DatabaseConfiguration<T> {
+public abstract class FlywayMigrationBundle<T extends io.dropwizard.Configuration> implements ConfiguredBundle<T>, DatabaseConfiguration<T> {
 
     @Override
     public void initialize(Bootstrap<?> bootstrap) {
@@ -20,11 +19,17 @@ public abstract class FlywayMigrationBundle<T extends Configuration> implements 
 
     @Override
     public void run(T configuration, Environment environment) throws Exception {
-        Flyway flyway = new Flyway();
-        flyway.setDataSource(getDataSourceFactory(configuration).getUrl(),
-                getDataSourceFactory(configuration).getUser(),
-                getDataSourceFactory(configuration).getPassword());
+        DataSourceFactory dataSourceFactory = getDataSourceFactory(configuration);
+
+        // Create the Flyway instance using the builder pattern
+        Flyway flyway = Flyway.configure()
+                .dataSource(
+                        dataSourceFactory.getUrl(),
+                        dataSourceFactory.getUser(),
+                        dataSourceFactory.getPassword()
+                )
+                .load();
+
         flyway.migrate();
     }
-
 }

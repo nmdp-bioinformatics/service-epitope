@@ -1,34 +1,35 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
         <groupId>org.nmdp.service</groupId>
-		<artifactId>epitope-multimodule</artifactId>
-		<version>0.0.2-SNAPSHOT</version>
-	</parent>
-	<artifactId>epitope-resource-impl</artifactId>
+        <artifactId>epitope-multimodule</artifactId>
+        <version>0.0.2-SNAPSHOT</version>
+    </parent>
+    <artifactId>epitope-resource-impl</artifactId>
     <name>epitope-resource-impl</name>
     <description>JAX-RS resource implementation for epitope-service.</description>
-	<packaging>jar</packaging>
-	<dependencies>
-		<dependency>
-		    <groupId>javax.servlet</groupId>
-		    <artifactId>javax.servlet-api</artifactId>
-		</dependency>
-	    <dependency>
-	      <groupId>io.swagger</groupId>
-	      <artifactId>swagger-jersey2-jaxrs</artifactId>
-	    </dependency>
-		<dependency>
-			<groupId>com.google.inject</groupId>
-			<artifactId>guice</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.nmdp.service</groupId>
-			<artifactId>epitope-resource</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+    <packaging>jar</packaging>
+    <dependencies>
         <dependency>
-			<groupId>org.nmdp.service</groupId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+        <dependency>
+          <groupId>io.swagger</groupId>
+          <artifactId>swagger-jersey2-jaxrs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.nmdp.service</groupId>
+            <artifactId>epitope-resource</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.nmdp.service</groupId>
             <artifactId>epitope-service</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -39,5 +40,20 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

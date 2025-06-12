@@ -23,10 +23,7 @@
 
 package org.nmdp.service.epitope.resource.impl;
 
-import static org.junit.Assert.assertThat;
-
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

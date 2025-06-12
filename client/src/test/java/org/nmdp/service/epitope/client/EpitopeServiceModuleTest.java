@@ -23,17 +23,13 @@
 
 package org.nmdp.service.epitope.client;
 
-import static org.junit.Assert.assertNotNull;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.nmdp.service.epitope.client.EndpointUrl;
-import org.nmdp.service.epitope.client.EpitopeService;
-import org.nmdp.service.epitope.client.EpitopeServiceModule;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Unit test for EpitopeServiceModule.

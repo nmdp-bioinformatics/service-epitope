@@ -23,21 +23,21 @@
 
 package org.nmdp.service.epitope;
 
-import static com.google.common.base.CharMatcher.anyOf;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.nmdp.service.epitope.domain.DetailRace.CAU;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.io.ByteStreams;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.nmdp.gl.*;
+import org.nmdp.gl.client.GlClient;
+import org.nmdp.service.epitope.db.DbiManager;
+import org.nmdp.service.epitope.service.AllelePair;
+import org.nmdp.service.epitope.service.EpitopeService;
+import org.nmdp.service.epitope.service.EpitopeServiceImpl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -50,25 +50,12 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.nmdp.gl.Allele;
-import org.nmdp.gl.AlleleList;
-import org.nmdp.gl.Genotype;
-import org.nmdp.gl.GenotypeList;
-import org.nmdp.gl.Haplotype;
-import org.nmdp.gl.Locus;
-import org.nmdp.gl.client.GlClient;
-import org.nmdp.service.epitope.db.DbiManager;
-import org.nmdp.service.epitope.service.AllelePair;
-import org.nmdp.service.epitope.service.EpitopeService;
-import org.nmdp.service.epitope.service.EpitopeServiceImpl;
+import static com.google.common.base.CharMatcher.anyOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.nmdp.service.epitope.domain.DetailRace.CAU;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
-import com.google.common.io.ByteStreams;
 
 
 
@@ -239,16 +226,16 @@ public class EpitopeServiceTestData {
 		try {
 			doAnswer(new Answer<Locus>() {
 				@Override public Locus answer(InvocationOnMock invocation) throws Throwable {
-					return aLocus(invocation.getArgumentAt(0, String.class));
+					return aLocus(invocation.getArgument(0, String.class));
 				}}).when(glClient).createLocus(anyString());
             doAnswer(new Answer<Allele>() {
                 @Override public Allele answer(InvocationOnMock invocation) throws Throwable {
-                    return anAllele(invocation.getArgumentAt(0, String.class));
+                    return anAllele(invocation.getArgument(0, String.class));
                 }}).when(glClient).createAllele(anyString());
             doAnswer(new Answer<AlleleList>() {
                 @Override public AlleleList answer(InvocationOnMock invocation) throws Throwable {
                     List<Allele> al = FluentIterable.from(Splitter.on(anyOf(",/"))
-                            .split(invocation.getArgumentAt(0, String.class)))
+                            .split(invocation.getArgument(0, String.class)))
                             .transform(e -> anAllele(e)).toList();
                     return anAlleleList(al);
                 }}).when(glClient).createAlleleList(anyString());
@@ -269,13 +256,13 @@ public class EpitopeServiceTestData {
 
 		doAnswer(new Answer<List<String>>() {
 			@Override public List<String> answer(InvocationOnMock invocation) throws Throwable {
-				return Arrays.asList(invocation.getArgumentAt(0, String.class));
+				return Arrays.asList(invocation.getArgument(0, String.class));
 			}
 		}).when(mock).getGGroupAllelesForAllele(anyString());
 		
 		doAnswer(new Answer<List<String>>() {
 			@Override public List<String> answer(InvocationOnMock invocation) throws Throwable {
-				return alleleLists.get(invocation.getArgumentAt(0, Integer.class))
+				return alleleLists.get(invocation.getArgument(0, Integer.class))
 						.stream()
 						.map(a -> a.getGlstring())
 						.collect(Collectors.toList());

@@ -23,14 +23,20 @@
 
 package org.nmdp.service.epitope.dropwizard;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import java.util.Arrays;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-
-import org.apache.log4j.Logger;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import io.dropwizard.jdbi.DBIFactory;
+import io.dropwizard.jdbi.bundles.DBIExceptionsBundle;
+import io.dropwizard.lifecycle.Managed;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.models.Info;
 import org.nmdp.service.common.domain.ConfigurationModule;
 import org.nmdp.service.common.dropwizard.CommonServiceApplication;
 import org.nmdp.service.epitope.guice.ConfigurationBindings;
@@ -47,33 +53,24 @@ import org.nmdp.service.epitope.task.AlleleInitializer;
 import org.nmdp.service.epitope.task.GGroupInitializer;
 import org.nmdp.service.epitope.task.ImmuneGroupInitializer;
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Key;
+import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 
-import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.flyway.FlywayBundle;
-import io.dropwizard.flyway.FlywayFactory;
-import io.dropwizard.jdbi.DBIFactory;
-import io.dropwizard.jdbi.bundles.DBIExceptionsBundle;
-import io.dropwizard.lifecycle.Managed;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.models.Info;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Dropwizard main application wrapper
  */
 public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeServiceConfiguration> {
-	
-	Logger log = Logger.getLogger(getClass()); 
-	
+
+	Logger log = LoggerFactory.getLogger(getClass());
+
+
 	/**
 	 * Application main method
 	 */
@@ -89,26 +86,45 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
     /**
      * Dropwizard application initialization
      */
-    @Override
-    public void initializeService(Bootstrap<EpitopeServiceConfiguration> bootstrap) {
-        bootstrap.addBundle(new FlywayMigrationBundle<EpitopeServiceConfiguration>() {
-            @Override
-            public DataSourceFactory getDataSourceFactory(EpitopeServiceConfiguration configuration) {
-                return configuration.getDataSourceFactory();
-            }
-        });
-    	bootstrap.addBundle(new DBIExceptionsBundle());
-    	bootstrap.addBundle(new FlywayBundle<EpitopeServiceConfiguration>() {
-            @Override
-            public DataSourceFactory getDataSourceFactory(EpitopeServiceConfiguration configuration) {
-                return configuration.getDataSourceFactory();
-            }
-            @Override
-            public FlywayFactory getFlywayFactory(EpitopeServiceConfiguration configuration) {
-                return configuration.getFlywayFactory();
-            }
-        });
-    }
+//    @Override
+//    public void initializeService(Bootstrap<EpitopeServiceConfiguration> bootstrap) {
+//        bootstrap.addBundle(new FlywayMigrationBundle<EpitopeServiceConfiguration>() {
+//            @Override
+//            public DataSourceFactory getDataSourceFactory(EpitopeServiceConfiguration configuration) {
+//                return configuration.getDataSourceFactory();
+//            }
+//        });
+//    	bootstrap.addBundle(new DBIExceptionsBundle());
+//    	bootstrap.addBundle(new FlywayBundle<EpitopeServiceConfiguration>() {
+//            @Override
+//            public DataSourceFactory getDataSourceFactory(EpitopeServiceConfiguration configuration) {
+//                return configuration.getDataSourceFactory();
+//            }
+//            @Override
+//            public FlywayFactory getFlywayFactory(EpitopeServiceConfiguration configuration) {
+//                return configuration.getFlywayFactory();
+//            }
+//        });
+//    }
+	@Override
+	public void initializeService(Bootstrap<EpitopeServiceConfiguration> bootstrap) {
+		bootstrap.addBundle(new DBIExceptionsBundle());
+
+		// Use a type parameter to explicitly specify the configuration type
+		// TODO: Fix the configuration
+//		bootstrap.addBundle((io.dropwizard.ConfiguredBundle<EpitopeServiceConfiguration>) new FlywayBundle<io.dropwizard.Configuration>() {
+//			@Override
+//			public DataSourceFactory getDataSourceFactory(io.dropwizard.Configuration configuration) {
+//				return ((EpitopeServiceConfiguration) configuration).getDataSourceFactory();
+//			}
+//
+//			@Override
+//			public FlywayFactory getFlywayFactory(io.dropwizard.Configuration configuration) {
+//				return ((EpitopeServiceConfiguration) configuration).getFlywayFactory();
+//			}
+//		});
+	}
+
 
     /**
      * Dropwizard service runner.  Application resources are registered here.
@@ -218,6 +234,14 @@ public class EpitopeServiceApplication extends CommonServiceApplication<EpitopeS
 	    beanConfig.setPrettyPrint(true);
 		beanConfig.setInfo(info);
 	}
+
+//	@Override
+//	public void setupSwagger(BeanConfig beanConfig) {
+//		Info info = new Info();
+//		info.setTitle("DPB1 Epitope Service");
+//		info.setDescription("This service reports on alleles and their associated immunogenicity groups and provides matching functions.");
+//		beanConfig.setResourcePackage("org.nmdp.service.epitope.resource");
+//	}
 
 
 }

@@ -23,25 +23,23 @@
 
 package org.nmdp.service.epitope.group;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.nmdp.gl.Allele;
-import org.nmdp.gl.AlleleList;
-import org.nmdp.gl.client.GlClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.nmdp.gl.Allele;
+import org.nmdp.gl.AlleleList;
+import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.EpitopeServiceTestData;
-import org.nmdp.service.epitope.group.GlServiceGroupResolver;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.List;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class GlServiceGroupResolverTest {
 
 	@Mock

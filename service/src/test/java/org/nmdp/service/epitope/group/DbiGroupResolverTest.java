@@ -25,7 +25,7 @@ package org.nmdp.service.epitope.group;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -39,12 +39,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.nmdp.service.epitope.EpitopeServiceTestData;
 import org.nmdp.service.epitope.db.DbiManager;
 import org.nmdp.service.epitope.group.DbiGroupResolver;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DbiGroupResolverTest {
 	@Mock
 	private DbiManager dbiManager;

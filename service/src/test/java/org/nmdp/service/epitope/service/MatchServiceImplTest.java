@@ -23,31 +23,11 @@
 
 package org.nmdp.service.epitope.service;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.aGenotype;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.aGenotypeList;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.aLocus;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.anAlleleList;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestEpitopeService;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGlClient;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.getTestGlStringFilter;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.group1Alleles;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.group2Alleles;
-import static org.nmdp.service.epitope.EpitopeServiceTestData.group3Alleles;
-import static org.nmdp.service.epitope.domain.DetailRace.CAU;
-
-import java.util.Map;
-import java.util.function.Function;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.nmdp.gl.GenotypeList;
 import org.nmdp.gl.client.GlClient;
 import org.nmdp.service.epitope.EpitopeServiceTestData;
@@ -55,7 +35,18 @@ import org.nmdp.service.epitope.domain.DetailRace;
 import org.nmdp.service.epitope.domain.MatchGrade;
 import org.nmdp.service.epitope.domain.MatchResult;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.Map;
+import java.util.function.Function;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.nmdp.service.epitope.EpitopeServiceTestData.*;
+import static org.nmdp.service.epitope.domain.DetailRace.CAU;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MatchServiceImplTest {
 
 	@Mock

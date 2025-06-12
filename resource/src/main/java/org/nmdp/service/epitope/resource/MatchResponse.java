@@ -23,20 +23,19 @@
 
 package org.nmdp.service.epitope.resource;
 
-import java.util.List;
-
-import org.nmdp.service.epitope.domain.DetailRace;
-import org.nmdp.service.epitope.domain.MatchGrade;
-import org.nmdp.service.epitope.domain.MatchResult;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.nmdp.service.epitope.domain.DetailRace;
+import org.nmdp.service.epitope.domain.MatchGrade;
+import org.nmdp.service.epitope.domain.MatchResult;
+
+import java.util.List;
 
 @ApiModel(value="Result of match of recipient and donor.  If race information is given, the probabilities of"
-		+ " each match outcome are provided based on likelihood of occurance of each allele for that race group,"
-		+ " assuming that frequency of occurance is known for each allele.")
+		+ " each match outcome are provided based on likelihood of occurrence of each allele for that race group,"
+		+ " assuming that frequency of occurrence is known for each allele.")
 public class MatchResponse {
 
 	private String recipient;
@@ -135,35 +134,50 @@ public class MatchResponse {
 			value="Probability of match", 
 			required=false)
 	public Double getMatchProbability() {
-		return matchResult.getMatchProbability();
+		if (matchResult != null) {
+			return matchResult.getMatchProbability();
+		}
+		return null;
 	}
 
 	@ApiModelProperty(
 			value="Probability of permissive mismatch", 
 			required=false)
 	public Double getPermissiveMismatchProbability() {
-		return matchResult.getPermissiveMismatchProbability();
+		if (matchResult != null) {
+			return matchResult.getPermissiveMismatchProbability();
+		}
+		return null;
 	}
 	
 	@ApiModelProperty(
 			value="Probability of host vs. graft non-permissive mismatch", 
 			required=false)
 	public Double getHvgNonPermissiveMismatchProbability() {
-		return matchResult.getHvgNonPermissiveMismatchProbability();
+		if (matchResult != null) {
+			return matchResult.getHvgNonPermissiveMismatchProbability();
+		}
+		return null;
 	}
 
 	@ApiModelProperty(
 			value="Probability of graft vs. host non-permissive mismatch", 
 			required=false)
 	public Double getGvhNonPermissiveMismatchProbability() {
-		return matchResult.getGvhNonPermissiveMismatchProbability();
+		if (matchResult != null) {
+			return matchResult.getGvhNonPermissiveMismatchProbability();
+		}
+		return null;
 	}
 
 	@ApiModelProperty(
 			value="Probability that immunogenicity group for type is unknown", 
 			required=false)
 	public Double getUnknownProbability() {
-		return matchResult.getUnknownProbability();
+		if (matchResult != null) {
+			return matchResult.getUnknownProbability();
+		}
+		return null;
 	}
 
 	@ApiModelProperty(
@@ -172,7 +186,10 @@ public class MatchResponse {
 					+ " without possibility of MATCH or PERMISSIVE)",
 			required=false)
 	public MatchGrade getMatchGrade() {
-		return matchResult.getMatchGrade();
+		if (matchResult != null) {
+			return matchResult.getMatchGrade();
+		}
+		return null;
 	}
 	
     @ApiModelProperty(

@@ -27,12 +27,14 @@ import static db.migration.util.DbUtil.loadCsv;
 
 import java.sql.Connection;
 
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
 
-public class V2__load_initial_data implements JdbcMigration {
+public class V2__load_initial_data extends BaseJavaMigration {
 
 	@Override
-	public void migrate(Connection conn) throws Exception {
+	public void migrate(Context context) throws Exception {
+		Connection conn = context.getConnection();
 		loadCsv(conn, 
 		        "insert into detail_race (detail_race, broad_race, description) values (?, ?, ?);", 
 		        "db/v2/detail_race.csv");
